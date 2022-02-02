@@ -1,0 +1,22 @@
+{
+    "version": "1.0",
+    "zookeepers": [
+        "zookeeper"
+    ],
+    "clusterId": "iudx-rs-proxy-cluster",
+    "host": "rs-proxy",
+    "modules": [
+        {
+            "id": "iudx.rs.proxy.apiserver.ApiServerVerticle",
+            "verticleInstances": 1,
+            "ssl": true,
+            "port": 1234,
+            "keystore": "",
+            "keystorePassword": ""
+        },
+        {
+            "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
+            "verticleInstances": 1
+        }
+    ]
+}
