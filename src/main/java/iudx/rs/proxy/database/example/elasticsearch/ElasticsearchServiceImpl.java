@@ -19,9 +19,9 @@ public class ElasticsearchServiceImpl implements DatabaseService{
   @Override
   public DatabaseService searchQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
       throws ServiceException {
-    boolean status=true;
+    boolean success=true;
     //example how to use service exception
-    if(status) {
+    if(success) {
       handler.handle(Future.succeededFuture(new JsonObject()));
     }else {
       throw new ServiceException(HttpStatus.SC_BAD_REQUEST, "message for failures");
