@@ -1,0 +1,161 @@
+package iudx.rs.proxy.database.example.postgres;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.pgclient.PgConnectOptions;
+import io.vertx.pgclient.PgPool;
+import io.vertx.serviceproxy.ServiceException;
+import io.vertx.sqlclient.PoolOptions;
+import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.Row;
+import iudx.rs.proxy.database.DatabaseService;
+import org.apache.http.HttpStatus;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import static iudx.rs.proxy.database.example.postgres.Constants.*;
+
+public class PostgresServiceImpl implements DatabaseService {
+
+  private final PgPool pgClient;
+  private PgConnectOptions connectOptions;
+  private PoolOptions poolOptions;
+
+  private String databaseIP;
+  private int databasePort;
+  private String databaseName;
+  private String databaseUserName;
+  private String databasePassword;
+  private int poolSize;
+
+  private boolean exists;
+
+  public PostgresServiceImpl(Vertx vertx, JsonObject config) {
+
+    databaseIP = config.getString(DATABASE_IP);
+    databasePort = config.getInteger(DATABASE_PORT);
+    databaseName = config.getString(DATABASE_NAME);
+    databaseUserName = config.getString(DATABASE_USERNAME);
+    databasePassword = config.getString(DATABASE_PASSWORD);
+    poolSize = config.getInteger(POOL_SIZE);
+
+    this.connectOptions =
+        new PgConnectOptions()
+            .setPort(databasePort)
+            .setHost(databaseIP)
+            .setDatabase(databaseName)
+            .setUser(databaseUserName)
+            .setPassword(databasePassword);
+
+    this.poolOptions = new PoolOptions().setMaxSize(poolSize);
+    this.pgClient = PgPool.pool(vertx, connectOptions, poolOptions);
+  }
+
+  @Override
+  public DatabaseService searchQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
+      throws ServiceException {
+    String tableID = request.getString(ID);
+
+    if (!tableExists(tableID)) {
+      throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+    }
+
+    String query = queryBuilder(request);
+
+    Collector<Row, ?, List<JsonObject>> rowCollector =
+        Collectors.mapping(row -> row.toJson(), Collectors.toList());
+
+    pgClient
+        .withConnection(
+            connection ->
+                connection.query(query).collecting(rowCollector).execute().map(row -> row.value()))
+        .onSuccess(
+            successHandler -> {
+              long totalHits = successHandler.size();
+              JsonArray response = new JsonArray(successHandler);
+              handler.handle(
+                  Future.succeededFuture(
+                      new JsonObject().put("totalHits", totalHits).put("result", response)));
+            })
+        .onFailure(
+            failureHandler -> {
+              throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+            });
+    return this;
+  }
+
+  private String queryBuilder(JsonObject request) {
+    StringBuilder query;
+
+    String tableID = request.getString(ID); // TODO: make keys constants
+    String timerel = request.getString(TIME_REL);
+    String[] attrs = (String[]) request.getValue(ATTRS);
+    LocalDateTime time, endTime;
+    time = LocalDateTime.parse(request.getString(TIME));
+    endTime = LocalDateTime.parse(request.getString(END_TIME));
+
+    if (timerel.equalsIgnoreCase(BEFORE)) {
+      endTime = time;
+      time = time.minusDays(10);
+    } else if (timerel.equalsIgnoreCase(AFTER)) {
+      endTime = time.plusDays(10);
+    }
+
+    if (attrs == null || attrs.length == 0) {
+      query =
+          new StringBuilder(
+              PSQL_SELECT_QUERY
+                  .replace("$1", "*")
+                  .replace("$$", tableID)
+                  .replace("$3", time.toString())
+                  .replace("$4", endTime.toString()));
+    } else {
+      query =
+          new StringBuilder(
+              PSQL_SELECT_QUERY
+                  .replace("$1", String.join(",", attrs))
+                  .replace("$$", tableID)
+                  .replace("$3", time.toString())
+                  .replace("$4", endTime.toString()));
+    }
+
+    return query.toString();
+  }
+
+  private boolean tableExists(String tableID) {
+    StringBuilder query = new StringBuilder(PSQL_TABLE_EXISTS_QUERY.replace("$1", tableID));
+
+    exists = false;
+    pgClient
+        .query(query.toString())
+        .execute(
+            existsHandler -> {
+              if (existsHandler.succeeded()) {
+                RowSet<Row> rowSet = existsHandler.result();
+                rowSet.forEach(
+                    row -> {
+                      if (row.getBoolean("exists")) {
+                        exists = true;
+                      }
+                    });
+              } else {
+                exists = false;
+              }
+            });
+
+    return exists;
+  }
+
+  @Override
+  public DatabaseService countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
+      throws ServiceException {
+    return null;
+  }
+}
