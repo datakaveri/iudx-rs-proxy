@@ -67,7 +67,7 @@ public class PostgresServiceImpl implements DatabaseService {
       throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
     }
 
-    String query = queryBuilder(request);
+    String query = queryBuilder(request, false);
 
     Collector<Row, ?, List<JsonObject>> rowCollector =
         Collectors.mapping(row -> row.toJson(), Collectors.toList());
@@ -91,10 +91,39 @@ public class PostgresServiceImpl implements DatabaseService {
     return this;
   }
 
-  private String queryBuilder(JsonObject request) {
-    StringBuilder query;
+  @Override
+  public DatabaseService countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
+      throws ServiceException {
+    String tableID = request.getString(ID);
 
-    String tableID = request.getString(ID); // TODO: make keys constants
+    if (!tableExists(tableID)) {
+      throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+    }
+
+    String query = queryBuilder(request, true);
+
+    pgClient
+        .withConnection(
+            sqlConnection ->
+                sqlConnection
+                    .query(query)
+                    .execute()
+                    .map(rows -> rows.iterator().next().getInteger(0)))
+        .onSuccess(
+            count -> {
+              handler.handle(Future.succeededFuture(new JsonObject().put("totalHits", count)));
+            })
+        .onFailure(
+            failureHandler -> {
+              throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+            });
+    return this;
+  }
+
+  private String queryBuilder(JsonObject request, boolean isCount) {
+    StringBuilder query;
+    String selection;
+    String tableID = request.getString(ID);
     String timerel = request.getString(TIME_REL);
     String[] attrs = (String[]) request.getValue(ATTRS);
     LocalDateTime time, endTime;
@@ -109,22 +138,21 @@ public class PostgresServiceImpl implements DatabaseService {
     }
 
     if (attrs == null || attrs.length == 0) {
-      query =
-          new StringBuilder(
-              PSQL_SELECT_QUERY
-                  .replace("$1", "*")
-                  .replace("$$", tableID)
-                  .replace("$3", time.toString())
-                  .replace("$4", endTime.toString()));
+      if (isCount) {
+        selection = PSQL_SELECT_QUERY.replace("$1", "count(*)");
+      } else {
+        selection = PSQL_SELECT_QUERY.replace("$1", "*");
+      }
     } else {
-      query =
-          new StringBuilder(
-              PSQL_SELECT_QUERY
-                  .replace("$1", String.join(",", attrs))
-                  .replace("$$", tableID)
-                  .replace("$3", time.toString())
-                  .replace("$4", endTime.toString()));
+      selection = PSQL_SELECT_QUERY.replace("$1", String.join(",", attrs));
     }
+
+    query =
+        new StringBuilder(
+            selection
+                .replace("$$", tableID)
+                .replace("$2", time.toString())
+                .replace("$3", endTime.toString()));
 
     return query.toString();
   }
@@ -146,16 +174,10 @@ public class PostgresServiceImpl implements DatabaseService {
                       }
                     });
               } else {
-                exists = false;
+                throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
               }
             });
 
     return exists;
-  }
-
-  @Override
-  public DatabaseService countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
-      throws ServiceException {
-    return null;
   }
 }
