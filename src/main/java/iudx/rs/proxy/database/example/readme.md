@@ -6,7 +6,7 @@ Example implementations
 
 #### PostgresSQL ####
 
-Current example implementation for postgresSQL uses below table schema for queries.
+Current example implementation for postgresSQL uses below table schema for queries. Presently it only supports temporal queries.
 
 ~~~sql
 
