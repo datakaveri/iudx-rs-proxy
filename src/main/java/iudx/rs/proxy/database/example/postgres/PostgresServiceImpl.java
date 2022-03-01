@@ -1,5 +1,25 @@
 package iudx.rs.proxy.database.example.postgres;
 
+import static iudx.rs.proxy.database.example.postgres.Constants.AFTER;
+import static iudx.rs.proxy.database.example.postgres.Constants.ATTRS;
+import static iudx.rs.proxy.database.example.postgres.Constants.BEFORE;
+import static iudx.rs.proxy.database.example.postgres.Constants.DATABASE_IP;
+import static iudx.rs.proxy.database.example.postgres.Constants.DATABASE_NAME;
+import static iudx.rs.proxy.database.example.postgres.Constants.DATABASE_PASSWORD;
+import static iudx.rs.proxy.database.example.postgres.Constants.DATABASE_PORT;
+import static iudx.rs.proxy.database.example.postgres.Constants.DATABASE_USERNAME;
+import static iudx.rs.proxy.database.example.postgres.Constants.END_TIME;
+import static iudx.rs.proxy.database.example.postgres.Constants.ID;
+import static iudx.rs.proxy.database.example.postgres.Constants.POOL_SIZE;
+import static iudx.rs.proxy.database.example.postgres.Constants.PSQL_SELECT_QUERY;
+import static iudx.rs.proxy.database.example.postgres.Constants.PSQL_TABLE_EXISTS_QUERY;
+import static iudx.rs.proxy.database.example.postgres.Constants.TIME;
+import static iudx.rs.proxy.database.example.postgres.Constants.TIME_REL;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import org.apache.http.HttpStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -10,17 +30,10 @@ import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.serviceproxy.ServiceException;
 import io.vertx.sqlclient.PoolOptions;
-import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
+import iudx.rs.proxy.common.ServiceExceptionMessage;
 import iudx.rs.proxy.database.DatabaseService;
-import org.apache.http.HttpStatus;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
-import static iudx.rs.proxy.database.example.postgres.Constants.*;
 
 public class PostgresServiceImpl implements DatabaseService {
 
@@ -64,7 +77,12 @@ public class PostgresServiceImpl implements DatabaseService {
     String tableID = request.getString(ID);
 
     if (!tableExists(tableID)) {
-      throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+      ServiceExceptionMessage detailedMsg =
+          new ServiceExceptionMessage.Builder("urn:dx:rs:DatabaseError")
+              .withDetails(new JsonObject()
+                  .put("message", "table doesn't exist in the provided schema"))
+              .build();
+      throw new ServiceException(HttpStatus.SC_NOT_FOUND, "table not found", detailedMsg.toJson());
     }
 
     String query = queryBuilder(request, false);
@@ -74,8 +92,8 @@ public class PostgresServiceImpl implements DatabaseService {
 
     pgClient
         .withConnection(
-            connection ->
-                connection.query(query).collecting(rowCollector).execute().map(row -> row.value()))
+            connection -> connection.query(query).collecting(rowCollector).execute()
+                .map(row -> row.value()))
         .onSuccess(
             successHandler -> {
               long totalHits = successHandler.size();
@@ -86,7 +104,12 @@ public class PostgresServiceImpl implements DatabaseService {
             })
         .onFailure(
             failureHandler -> {
-              throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+              ServiceExceptionMessage detailedMsg =
+                  new ServiceExceptionMessage.Builder("urn:dx:rs:DatabaseError")
+                      .withDetails(new JsonObject().put("message", failureHandler.getMessage()))
+                      .build();
+              throw new ServiceException(HttpStatus.SC_NOT_FOUND, "brief message",
+                  detailedMsg.toJson());
             });
     return this;
   }
@@ -97,18 +120,22 @@ public class PostgresServiceImpl implements DatabaseService {
     String tableID = request.getString(ID);
 
     if (!tableExists(tableID)) {
-      throw new ServiceException(HttpStatus.SC_NOT_FOUND, "message for failure");
+      ServiceExceptionMessage detailedMsg =
+          new ServiceExceptionMessage.Builder("urn:dx:rs:DatabaseError")
+              .withDetails(new JsonObject()
+                  .put("message", "table doesn't exist in the provided schema"))
+              .build();
+      throw new ServiceException(HttpStatus.SC_NOT_FOUND, "table not found", detailedMsg.toJson());
     }
 
     String query = queryBuilder(request, true);
 
     pgClient
         .withConnection(
-            sqlConnection ->
-                sqlConnection
-                    .query(query)
-                    .execute()
-                    .map(rows -> rows.iterator().next().getInteger(0)))
+            sqlConnection -> sqlConnection
+                .query(query)
+                .execute()
+                .map(rows -> rows.iterator().next().getInteger(0)))
         .onSuccess(
             count -> {
               handler.handle(Future.succeededFuture(new JsonObject().put("totalHits", count)));
