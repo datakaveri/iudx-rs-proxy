@@ -1,21 +1,30 @@
 package iudx.rs.proxy.apiserver;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
-import java.util.HashSet;
-import java.util.Set;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_HEADERS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_METHODS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
+
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.CorsHandler;
-
-
+import iudx.rs.proxy.apiserver.handlers.AuthHandler;
+import iudx.rs.proxy.apiserver.handlers.FailureHandler;
+import iudx.rs.proxy.apiserver.handlers.ValidationHandler;
+import iudx.rs.proxy.apiserver.util.RequestType;
+import iudx.rs.proxy.apiserver.validation.ValidatorsHandlersFactory;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ApiServerVerticle extends AbstractVerticle {
 
@@ -34,19 +43,17 @@ public class ApiServerVerticle extends AbstractVerticle {
     router
         .route()
         .handler(
-            CorsHandler
-                .create("*")
-                .allowedHeaders(ALLOWED_HEADERS)
-                .allowedMethods(ALLOWED_METHODS))
-        .handler(responseHeaderHandler -> {
-          responseHeaderHandler
-              .response()
-              .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
-              .putHeader("Pragma", "no-cache")
-              .putHeader("Expires", "0")
-              .putHeader("X-Content-Type-Options", "nosniff");
-          responseHeaderHandler.next();
-        });
+            CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
+        .handler(
+            responseHeaderHandler -> {
+              responseHeaderHandler
+                  .response()
+                  .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
+                  .putHeader("Pragma", "no-cache")
+                  .putHeader("Expires", "0")
+                  .putHeader("X-Content-Type-Options", "nosniff");
+              responseHeaderHandler.next();
+            });
 
     isSSL = config().getBoolean("ssl");
     isProduction = config().getBoolean("production");
@@ -62,9 +69,7 @@ public class ApiServerVerticle extends AbstractVerticle {
 
       serverOptions
           .setSsl(true)
-          .setKeyStoreOptions(new JksOptions()
-              .setPath(keystore)
-              .setPassword(keystorePassword));
+          .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
 
     } else {
       LOGGER.info("Info: Starting HTTP server");
@@ -81,15 +86,23 @@ public class ApiServerVerticle extends AbstractVerticle {
     server = vertx.createHttpServer(serverOptions);
     server.requestHandler(router).listen(port);
 
+    ValidatorsHandlersFactory validators = new ValidatorsHandlersFactory();
+    FailureHandler validationsFailureHandler = new FailureHandler();
 
-    router.get("/health").handler(this::health);
+    ValidationHandler temporalValidationHandler =
+        new ValidationHandler(vertx, RequestType.TEMPORAL);
+    router
+        .get(NGSILD_TEMPORAL_URL)
+        .handler(temporalValidationHandler)
+        .handler(AuthHandler.create(vertx))
+        .handler(this::handleTemporalQuery)
+        .failureHandler(validationsFailureHandler);
+
   }
 
-  public void health(RoutingContext context) {
-    context
-        .response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(new JsonObject().put("status", "running").toString());
+  public void handleTemporalQuery(RoutingContext routingContext) {
+
+    LOGGER.trace("Info: handleTemporalQuery method started.");
+
   }
 }
