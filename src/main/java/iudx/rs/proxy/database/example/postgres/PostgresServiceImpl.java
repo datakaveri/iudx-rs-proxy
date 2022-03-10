@@ -74,7 +74,14 @@ public class PostgresServiceImpl implements DatabaseService {
   @Override
   public DatabaseService searchQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
       throws ServiceException {
-    String tableID = request.getString(ID);
+
+    if (!request.containsKey(ID)
+        || request.getJsonArray(ID).isEmpty()
+        || !request.containsKey(SEARCH_TYPE)) {
+      throw new ServiceException(HttpStatus.SC_BAD_REQUEST, "message for failure");
+    }
+
+    String tableID = request.getJsonArray(ID).getString(0);
 
     if (!tableExists(tableID)) {
       ServiceExceptionMessage detailedMsg =
@@ -117,7 +124,14 @@ public class PostgresServiceImpl implements DatabaseService {
   @Override
   public DatabaseService countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
       throws ServiceException {
-    String tableID = request.getString(ID);
+
+    if (!request.containsKey(ID)
+        || request.getJsonArray(ID).isEmpty()
+        || !request.containsKey(SEARCH_TYPE)) {
+      throw new ServiceException(HttpStatus.SC_BAD_REQUEST, "message for failure");
+    }
+
+    String tableID = request.getJsonArray(ID).getString(0);
 
     if (!tableExists(tableID)) {
       ServiceExceptionMessage detailedMsg =
@@ -149,10 +163,37 @@ public class PostgresServiceImpl implements DatabaseService {
 
   private String queryBuilder(JsonObject request, boolean isCount) {
     StringBuilder query;
-    String selection;
-    String tableID = request.getString(ID);
-    String timerel = request.getString(TIME_REL);
+    String searchType = request.getString(SEARCH_TYPE);
+    String tableID = request.getJsonArray(ID).getString(0);
     String[] attrs = (String[]) request.getValue(ATTRS);
+
+    String selection = PSQL_SELECT_QUERY.replace("$$", tableID);
+
+    if (attrs == null || attrs.length == 0) {
+      if (isCount) {
+        query = new StringBuilder(selection.replace("$1", "count(*)"));
+      } else {
+        query = new StringBuilder(selection.replace("$1", "*"));
+      }
+    } else {
+      query = new StringBuilder(selection.replace("$1", String.join(",", attrs)));
+    }
+
+    if (searchType.matches(TEMPORAL_SEARCH_REGEX)) {
+      query = temporalQueryBuilder(request, query);
+    }
+    if (searchType.matches(GEOSEARCH_REGEX)) {
+      query = new StringBuilder(geoQueryBuilder(request, query));
+    }
+    if (searchType.matches(ATTRIBUTE_SEARCH_REGEX)) {
+      query = attrsQueryBuilder(request, query);
+    }
+
+    return query.toString();
+  }
+
+  private StringBuilder temporalQueryBuilder(JsonObject request, StringBuilder query) {
+    String timerel = request.getString(TIME_REL);
     LocalDateTime time, endTime;
     time = LocalDateTime.parse(request.getString(TIME));
     endTime = LocalDateTime.parse(request.getString(END_TIME));
@@ -164,24 +205,36 @@ public class PostgresServiceImpl implements DatabaseService {
       endTime = time.plusDays(10);
     }
 
-    if (attrs == null || attrs.length == 0) {
-      if (isCount) {
-        selection = PSQL_SELECT_QUERY.replace("$1", "count(*)");
-      } else {
-        selection = PSQL_SELECT_QUERY.replace("$1", "*");
-      }
+    query.append(
+        PSQL_TEMPORAL_CONDITION
+            .replace("$2", time.toString())
+            .replace("$3", endTime.toString()));
+
+    return query;
+  }
+
+  private StringBuilder geoQueryBuilder(JsonObject request, StringBuilder query) {
+    // TODO: implementation
+    return null;
+  }
+
+  private StringBuilder attrsQueryBuilder(JsonObject request, StringBuilder query) {
+    JsonObject attr_query = request.getJsonArray(ATTR_QUERY).getJsonObject(0);
+    String attribute = attr_query.getString(ATTRIBUTE);
+    String operator = attr_query.getString(OPERATOR);
+    double value = attr_query.getDouble(VALUE);
+
+    if (query.toString().contains("WHERE")) {
+      query.append(" AND ");
     } else {
-      selection = PSQL_SELECT_QUERY.replace("$1", String.join(",", attrs));
+      query.append(" WHERE ");
     }
-
-    query =
-        new StringBuilder(
-            selection
-                .replace("$$", tableID)
-                .replace("$2", time.toString())
-                .replace("$3", endTime.toString()));
-
-    return query.toString();
+    query.append(
+        PSQL_ATTR_CONDITION
+            .replace("$4", attribute)
+            .replace("$op", operator)
+            .replace("$5", String.valueOf(value)));
+    return query;
   }
 
   private boolean tableExists(String tableID) {
