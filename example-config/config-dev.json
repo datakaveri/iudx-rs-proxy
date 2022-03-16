@@ -4,19 +4,37 @@
         "zookeeper"
     ],
     "clusterId": "iudx-rs-proxy-cluster",
-    "host": "rs-proxy",
+    "host": "rs.iudx.io",
     "modules": [
         {
             "id": "iudx.rs.proxy.apiserver.ApiServerVerticle",
-            "verticleInstances": 1,
             "ssl": true,
-            "port": 1234,
+            "production": false,
             "keystore": "",
-            "keystorePassword": ""
+            "keystorePassword": "",
+            "rsAdmin": "",
+            "verticleInstances": 1,
+            "catServerHost": "",
+            "catServerPort": 123,
+            "port": 123
         },
         {
             "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
-            "verticleInstances": 1
+            "verticleInstances": 1,
+            "keystore": "",
+            "keystorePassword": "",
+            "authServerHost": "",
+            "testAuthToken": "",
+            "testExpiredAuthToken": "",
+            "testResourceID": "",
+            "resourceServerId": "",
+            "serverMode": "",
+            "jwtIgnoreExpiry": true
+        },     {
+            "id": "iudx.rs.proxy.cache.CacheVerticle",
+            "verticleInstances": 1,
+            "catServerHost": "",
+            "catServerPort": 0
         }
     ]
 }

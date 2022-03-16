@@ -72,7 +72,9 @@ public enum HttpStatusCode {
   public String getDescription() {
     return description;
   }
-
+  public String getUrn() {
+    return urn;
+  }
 
   @Override
   public String toString() {

@@ -1,5 +1,7 @@
 package iudx.rs.proxy.authenticator;
 
+import static iudx.rs.proxy.common.Constants.CACHE_SERVICE_ADDRESS;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -12,6 +14,7 @@ import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.serviceproxy.ServiceBinder;
+import iudx.rs.proxy.cache.CacheService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,12 +31,13 @@ import org.apache.logging.log4j.Logger;
  */
 public class AuthenticationVerticle extends AbstractVerticle {
 
-  private static final String AUTH_SERVICE_ADDRESS = "iudx.rs.authentication.service";
+  private static final String AUTH_SERVICE_ADDRESS = "iudx.rs.proxy.auth.service";
   private static final Logger LOGGER = LogManager.getLogger(AuthenticationVerticle.class);
   private AuthenticationService jwtAuthenticationService;
   private ServiceBinder binder;
   private MessageConsumer<JsonObject> consumer;
   private WebClient webClient;
+  private CacheService cacheService;
 
   static WebClient createWebClient(Vertx vertx, JsonObject config) {
     return createWebClient(vertx, config, false);
@@ -79,10 +83,9 @@ public class AuthenticationVerticle extends AbstractVerticle {
                     "JWT ignore expiration set to true, do not set IgnoreExpiration in production!!");
               }
               JWTAuth jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
-
+              cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
               jwtAuthenticationService =
-                  new JwtAuthenticationServiceImpl(
-                      vertx, jwtAuth, createWebClient(vertx, config()), config());
+                  new JwtAuthenticationServiceImpl(vertx, jwtAuth, config(), cacheService);
 
               /* Publish the Authentication service with the Event Bus against an address. */
               consumer =

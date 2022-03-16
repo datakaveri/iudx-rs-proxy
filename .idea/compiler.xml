@@ -9,5 +9,8 @@
         <module name="iudx.rs.proxy" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="iudx.rs.proxy" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>

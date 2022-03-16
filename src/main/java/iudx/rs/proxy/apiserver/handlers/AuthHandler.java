@@ -4,6 +4,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_METHOD;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ENTITIES_URL_REGEX;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.EXPIRY;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_TOKEN;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
@@ -12,6 +13,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_DETAIL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TEMPORAL_URL_REGEX;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
@@ -60,6 +62,7 @@ public class AuthHandler implements Handler<RoutingContext> {
     final String path = getNormalizedPath(request.path());
     final String method = context.request().method().toString();
 
+
     if (token == null) token = "public";
 
     JsonObject authInfo =
@@ -68,7 +71,7 @@ public class AuthHandler implements Handler<RoutingContext> {
     LOGGER.debug("Info :" + context.request().path());
     LOGGER.debug("Info :" + context.request().path().split("/").length);
 
-    String id = getId();
+    String id = getId(path);
     authInfo.put(ID, id);
 
     JsonArray ids = new JsonArray();
@@ -84,10 +87,8 @@ public class AuthHandler implements Handler<RoutingContext> {
         authInfo,
         authHandler -> {
           if (authHandler.succeeded()) {
-
             authInfo.put(IID, authHandler.result().getValue(IID));
             authInfo.put(USER_ID, authHandler.result().getValue(USER_ID));
-            authInfo.put(EXPIRY, authHandler.result().getValue(EXPIRY));
             context.data().put(AUTH_INFO, authInfo);
           } else {
             processAuthFailure(context, authHandler.cause().getMessage());
@@ -130,10 +131,9 @@ public class AuthHandler implements Handler<RoutingContext> {
    * @param forPath endpoint called for
    * @return id extraced fro path if present
    */
-  private String getId() {
+  private String getId(String path) {
 
     String pathId = getId4rmRequest();
-
     String id = "";
     if (pathId != null && !pathId.isBlank()) {
       id = pathId;
@@ -157,6 +157,8 @@ public class AuthHandler implements Handler<RoutingContext> {
     String path = null;
     if (url.matches(TEMPORAL_URL_REGEX)) {
       path = NGSILD_TEMPORAL_URL;
+    } else if (url.matches(ENTITIES_URL_REGEX)) {
+      path = NGSILD_ENTITIES_URL;
     }
     return path;
   }

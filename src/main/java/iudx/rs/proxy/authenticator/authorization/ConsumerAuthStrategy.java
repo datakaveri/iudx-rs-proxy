@@ -1,5 +1,7 @@
 package iudx.rs.proxy.authenticator.authorization;
 
+import static iudx.rs.proxy.apiserver.util.RequestType.ENTITY;
+import static iudx.rs.proxy.authenticator.authorization.Api.ENTITIES;
 import static iudx.rs.proxy.authenticator.authorization.Api.TEMPORAL;
 import static iudx.rs.proxy.authenticator.authorization.Method.GET;
 
@@ -18,10 +20,11 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
 
   static Map<String, List<AuthorizationRequest>> consumerAuthorizationRules = new HashMap<>();
   static {
-
     // api access list/rules
     List<AuthorizationRequest> apiAccessList = new ArrayList<>();
     apiAccessList.add(new AuthorizationRequest(GET, TEMPORAL));
+    apiAccessList.add(new AuthorizationRequest(GET, ENTITIES));
+
     consumerAuthorizationRules.put(IudxAccess.API.getAccess(), apiAccessList);
   }
 

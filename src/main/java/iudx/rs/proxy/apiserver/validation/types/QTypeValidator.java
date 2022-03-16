@@ -87,11 +87,13 @@ public final class QTypeValidator implements Validator {
       }
 
     }
+    LOGGER.info(json+" JSON");
     return json;
   }
 
   @Override
   public boolean isValid() {
+
     LOGGER.debug("value : " + value + " required : " + required);
     if (required && (value == null || value.isBlank())) {
       LOGGER.error("Validation error : null or blank value for required mandatory field");
@@ -112,6 +114,7 @@ public final class QTypeValidator implements Validator {
     JsonObject qJson;
     try {
       qJson = getQueryTerms(value);
+      LOGGER.info(qJson);
     } catch (Exception ex) {
       LOGGER.error("Validation error : Operator not allowed.");
       throw new DxRuntimeException(failureCode(), INVALID_PARAM_VALUE_URN, failureMessage(value));

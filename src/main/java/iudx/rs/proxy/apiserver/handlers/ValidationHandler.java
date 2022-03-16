@@ -32,14 +32,13 @@ public class ValidationHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext context) {
+    LOGGER.info("In validator");
     ValidatorsHandlersFactory validationFactory = new ValidatorsHandlersFactory();
     MultiMap parameters = context.request().params();
-    MultiMap headers = context.request().headers();
-    JsonObject body = context.getBodyAsJson();
     Map<String, String> pathParams = context.pathParams();
     parameters.addAll(pathParams);
     
-    List<Validator> validations = validationFactory.build(requestType, parameters, headers);
+    List<Validator> validations = validationFactory.build(requestType, parameters);
     for (Validator validator : Optional.ofNullable(validations).orElse(Collections.emptyList())) {
       LOGGER.debug("validator :" + validator.getClass().getName());
       if (!validator.isValid()) {

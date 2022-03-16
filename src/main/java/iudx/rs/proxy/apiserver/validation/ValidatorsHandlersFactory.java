@@ -10,14 +10,13 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOPRO
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOREL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_MAXDISTANCE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_Q;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_OPERATOR;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIME;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIMEREL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSLILDQUERY_Q;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.apiserver.validation.types.AttrsTypeValidator;
 import iudx.rs.proxy.apiserver.validation.types.CoordinatesTypeValidator;
@@ -44,15 +43,17 @@ public class ValidatorsHandlersFactory {
 
   public List<Validator> build(
       final RequestType requestType,
-      final MultiMap parameters,
-      final MultiMap headers) {
+      final MultiMap parameters) {
     LOGGER.debug("getValidation4Context() started for :" + requestType);
     LOGGER.debug("type :" + requestType);
     List<Validator> validator = null;
 
     switch (requestType) {
+      case ENTITY:
+        validator = getEntityRequestValidations(parameters);
+        break;
       case TEMPORAL:
-        validator = getTemporalRequestValidations(parameters, headers);
+        validator = getTemporalRequestValidations(parameters);
         break;
       default:
         break;
@@ -61,8 +62,31 @@ public class ValidatorsHandlersFactory {
     return validator;
   }
 
+
+  private List<Validator> getEntityRequestValidations(final MultiMap parameters) {
+    List<Validator> validators = new ArrayList<>();
+
+    validators.add(new IDTypeValidator(parameters.get(NGSILDQUERY_ID), true));
+    validators.add(new AttrsTypeValidator(parameters.get(NGSILDQUERY_ATTRIBUTE), false));
+    validators.add(new GeoRelTypeValidator(parameters.get(NGSILDQUERY_GEOREL), false));
+    validators.add(new GeometryTypeValidator(parameters.get(NGSILDQUERY_GEOMETRY), false));
+    validators.add(new GeoPropertyTypeValidator(parameters.get(NGSILDQUERY_GEOPROPERTY), false));
+    validators.add(new QTypeValidator(parameters.get(NGSLILDQUERY_Q), false));
+    validators.add(new DistanceTypeValidator(parameters.get(NGSILDQUERY_MAXDISTANCE), false));
+    validators.add(new DistanceTypeValidator(parameters.get("maxDistance"), false));
+    validators.add(new OptionsTypeValidator(parameters.get(IUDXQUERY_OPTIONS), false));
+    validators.add(new CoordinatesTypeValidator(parameters.get(NGSILDQUERY_COORDINATES), false));
+
+    // pagination optional fields
+    validators.add(new PaginationLimitTypeValidator(parameters.get(NGSILDQUERY_SIZE), false));
+    validators.add(new PaginationOffsetTypeValidator(parameters.get(NGSILDQUERY_FROM), false));
+
+    return validators;
+
+  }
+
   private List<Validator> getTemporalRequestValidations(
-      final MultiMap parameters, final MultiMap headers) {
+      final MultiMap parameters) {
 
     List<Validator> validators = new ArrayList<>();
 
@@ -71,7 +95,7 @@ public class ValidatorsHandlersFactory {
     validators.add(new GeoRelTypeValidator(parameters.get(NGSILDQUERY_GEOREL), false));
     validators.add(new GeometryTypeValidator(parameters.get(NGSILDQUERY_GEOMETRY), false));
     validators.add(new GeoPropertyTypeValidator(parameters.get(NGSILDQUERY_GEOPROPERTY), false));
-    validators.add(new QTypeValidator(parameters.get(NGSILDQUERY_Q), false));
+    validators.add(new QTypeValidator(parameters.get(NGSILDQUERY_OPERATOR), false));
     validators.add(new DistanceTypeValidator(parameters.get(NGSILDQUERY_MAXDISTANCE), false));
     validators.add(new DistanceTypeValidator(parameters.get("maxDistance"), false));
     validators.add(new OptionsTypeValidator(parameters.get(IUDXQUERY_OPTIONS), false));
@@ -79,10 +103,6 @@ public class ValidatorsHandlersFactory {
     validators.add(new TimeRelTypeValidator(parameters.get(NGSILDQUERY_TIMEREL), true));
     validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_TIME), true));
     validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_ENDTIME), false));
-
-    // pagination optional fields
-    validators.add(new PaginationLimitTypeValidator(parameters.get(NGSILDQUERY_SIZE), false));
-    validators.add(new PaginationOffsetTypeValidator(parameters.get(NGSILDQUERY_FROM), false));
 
     return validators;
   }

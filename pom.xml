@@ -28,6 +28,7 @@
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
 		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
+		<jts2geojson.version>0.16.1</jts2geojson.version>
 		<maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-pmd-plugin.version>3.14.0</maven-pmd-plugin.version>
@@ -56,6 +57,12 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-codegen</artifactId>
 			<classifier>processor</classifier>
+		</dependency>
+		<!-- for validation of coordinates -->
+		<dependency>
+			<groupId>org.wololo</groupId>
+			<artifactId>jts2geojson</artifactId>
+			<version>${jts2geojson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
