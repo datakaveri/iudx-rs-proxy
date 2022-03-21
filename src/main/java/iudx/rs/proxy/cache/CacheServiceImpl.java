@@ -23,7 +23,6 @@ public class CacheServiceImpl implements CacheService {
   private final WebClient catWebClient;
 
   public CacheServiceImpl(Vertx vertx, WebClient webClient, JsonObject config) {
-    LOGGER.info("configs " + config);
     WebClientOptions options = new WebClientOptions();
     options.setTrustAll(true).setVerifyHost(false).setSsl(true);
     this.catWebClient = webClient;
