@@ -58,11 +58,6 @@ public class Response {
       return this;
     }
 
-    public Builder withTitle(String title) {
-      this.title = title;
-      return this;
-    }
-
     public Builder withDetail(String detail) {
       this.detail = detail;
       return this;
@@ -73,28 +68,12 @@ public class Response {
     }
   }
 
-
   public String getType() {
     return type;
-  }
-
-  public int getStatus() {
-    return status;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public String getDetail() {
-    return detail;
   }
 
   @Override
   public String toString() {
     return toJson().toString();
   }
-
-
-
 }
