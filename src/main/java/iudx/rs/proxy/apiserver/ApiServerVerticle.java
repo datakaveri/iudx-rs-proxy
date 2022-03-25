@@ -3,9 +3,12 @@ package iudx.rs.proxy.apiserver;
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_HEADERS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_METHODS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
@@ -13,7 +16,9 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
+import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
@@ -24,6 +29,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
@@ -44,10 +50,10 @@ import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
 import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.apiserver.util.RequestType;
-import iudx.rs.proxy.apiserver.validation.ValidatorsHandlersFactory;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
+import iudx.rs.proxy.metering.MeteringService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,15 +71,14 @@ public class ApiServerVerticle extends AbstractVerticle {
   private boolean isSSL, isProduction;
   private ParamsValidator validator;
   private CatalogueService catalogueService;
-  private DatabaseService database;
-
-
+  private DatabaseService databaseService;
+  private MeteringService meteringService;
 
   @Override
   public void start() throws Exception {
     catalogueService = new CatalogueService(vertx, config());
-    database = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
-
+    databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
+    meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
     router = Router.router(vertx);
     router
@@ -124,15 +129,13 @@ public class ApiServerVerticle extends AbstractVerticle {
     server = vertx.createHttpServer(serverOptions);
     server.requestHandler(router).listen(port);
 
-    router.get("/health").handler(this::health);
-    ValidatorsHandlersFactory validators = new ValidatorsHandlersFactory();
     FailureHandler validationsFailureHandler = new FailureHandler();
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
     router
         .get(NGSILD_ENTITIES_URL)
         .handler(entityValidationHandler)
-//        .handler(AuthHandler.create(vertx))
+        .handler(AuthHandler.create(vertx))
         .handler(this::handleEntitiesQuery)
         .failureHandler(validationsFailureHandler);
 
@@ -153,7 +156,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     HttpServerRequest request = routingContext.request();
     /* Handles HTTP response from server to client */
     HttpServerResponse response = routingContext.response();
-    // get query paramaters
+    // get query parameters
     MultiMap params = getQueryParams(routingContext, response).get();
     MultiMap headerParams = request.headers();
     // validate request parameters
@@ -162,8 +165,8 @@ public class ApiServerVerticle extends AbstractVerticle {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             // parse query params
-            NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            if (isTemporalParamsPresent(ngsildquery)) {
+            NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(params);
+            if (isTemporalParamsPresent(ngsildQuery)) {
               DxRuntimeException ex =
                   new DxRuntimeException(
                       BAD_REQUEST.getValue(),
@@ -173,13 +176,12 @@ public class ApiServerVerticle extends AbstractVerticle {
             }
             // create json
             QueryMapper queryMapper = new QueryMapper();
-            JsonObject json = queryMapper.toJson(ngsildquery, false);
+            JsonObject json = queryMapper.toJson(ngsildQuery, false);
             Future<List<String>> filtersFuture =
                 catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
             /* HTTP request instance/host details */
             String instanceID = request.getHeader(HEADER_HOST);
             json.put(JSON_INSTANCEID, instanceID);
-            LOGGER.info("Info: IUDX query json;" + json);
             /* HTTP request body as Json */
             JsonObject requestBody = new JsonObject();
             requestBody.put("ids", json.getJsonArray("id"));
@@ -189,9 +191,9 @@ public class ApiServerVerticle extends AbstractVerticle {
                     json.put("applicableFilters", filtersHandler.result());
                     if (json.containsKey(IUDXQUERY_OPTIONS)
                         && JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
-                      executeCountQuery( json, response);
+                      executeCountQuery(routingContext, json, response);
                     } else {
-                      executeSearchQuery( json, response);
+                      executeSearchQuery(routingContext, json, response);
                     }
                   } else if (validationHandler.failed()) {
                     LOGGER.error("Fail: Validation failed");
@@ -210,19 +212,11 @@ public class ApiServerVerticle extends AbstractVerticle {
         });
   }
 
-  private boolean isTemporalParamsPresent(NGSILDQueryParams ngsildquery) {
+  private boolean isTemporalParamsPresent(NGSILDQueryParams ngsildQueryParams) {
 
-    return ngsildquery.getTemporalRelation().getTimeRel() != null
-        || ngsildquery.getTemporalRelation().getTime() != null
-        || ngsildquery.getTemporalRelation().getEndTime() != null;
-  }
-
-  public void health(RoutingContext context) {
-    context
-        .response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(new JsonObject().put("status", "running").toString());
+    return ngsildQueryParams.getTemporalRelation().getTimeRel() != null
+        || ngsildQueryParams.getTemporalRelation().getTime() != null
+        || ngsildQueryParams.getTemporalRelation().getEndTime() != null;
   }
 
   public void handleTemporalQuery(RoutingContext routingContext) {
@@ -237,18 +231,17 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     // validate request params
     Future<Boolean> validationResult = validator.validate(params);
-    LOGGER.info(validationResult.result());
+
     validationResult.onComplete(
         validationHandler -> {
           if (validationHandler.succeeded()) {
             // parse query params
 
             // start from here
-            NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            LOGGER.info("NGSILD query " + ngsildquery);
+            NGSILDQueryParams ngsildQueryParams = new NGSILDQueryParams(params);
             // create json
             QueryMapper queryMapper = new QueryMapper();
-            JsonObject json = queryMapper.toJson(ngsildquery, true);
+            JsonObject json = queryMapper.toJson(ngsildQueryParams, true);
             Future<List<String>> filtersFuture =
                 catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
             json.put(JSON_INSTANCEID, instanceID);
@@ -262,11 +255,9 @@ public class ApiServerVerticle extends AbstractVerticle {
                     json.put("applicableFilters", filtersHandler.result());
                     if (json.containsKey(IUDXQUERY_OPTIONS)
                         && JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
-                      LOGGER.info(json.encodePrettily());
-                      executeCountQuery(json, response);
+                      executeCountQuery(routingContext, json, response);
                     } else {
-                      LOGGER.info(json.encodePrettily());
-                      executeSearchQuery( json, response);
+                      executeSearchQuery(routingContext, json, response);
                     }
                   } else {
                     LOGGER.error("catalogue item/group doesn't have filters.");
@@ -280,14 +271,14 @@ public class ApiServerVerticle extends AbstractVerticle {
         });
   }
 
-
   private void executeSearchQuery(
-       JsonObject json, HttpServerResponse response) {
-    database.searchQuery(
+      RoutingContext context, JsonObject json, HttpServerResponse response) {
+    databaseService.searchQuery(
         json,
         handler -> {
           if (handler.succeeded()) {
             LOGGER.info("Success: Search Success");
+            Future.future(fu -> updateAuditTable(context));
             handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
           } else if (handler.failed()) {
             LOGGER.error("Fail: Search Fail");
@@ -297,12 +288,13 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private void executeCountQuery(
-     JsonObject json, HttpServerResponse response) {
-    database.countQuery(
+      RoutingContext context, JsonObject json, HttpServerResponse response) {
+    databaseService.countQuery(
         json,
         handler -> {
           if (handler.succeeded()) {
             LOGGER.info("Success: Count Success");
+            Future.future(fu -> updateAuditTable(context));
             handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
           } else if (handler.failed()) {
             LOGGER.error("Fail: Count Fail");
@@ -333,19 +325,17 @@ public class ApiServerVerticle extends AbstractVerticle {
     return Optional.of(queryParams);
   }
 
-
   private void handleSuccessResponse(HttpServerResponse response, int statusCode, String result) {
     response.putHeader(CONTENT_TYPE, APPLICATION_JSON).setStatusCode(statusCode).end(result);
   }
 
   private void handleResponse(
-      HttpServerResponse response,
-      HttpStatusCode statusCode,
-      ResponseUrn urn,
-      String message) {    response
-      .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-      .setStatusCode(statusCode.getValue())
-      .end(generateResponse(statusCode, urn, message).toString());}
+      HttpServerResponse response, HttpStatusCode statusCode, ResponseUrn urn, String message) {
+    response
+        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+        .setStatusCode(statusCode.getValue())
+        .end(generateResponse(statusCode, urn, message).toString());
+  }
 
   private void handleResponse(HttpServerResponse response, HttpStatusCode code, ResponseUrn urn) {
     handleResponse(response, code, urn, code.getDescription());
@@ -375,5 +365,26 @@ public class ApiServerVerticle extends AbstractVerticle {
     }
   }
 
+  private void updateAuditTable(RoutingContext context) {
+    Promise<Void> promise = Promise.promise();
+    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
 
+    JsonObject request = new JsonObject();
+    request.put(USER_ID, authInfo.getValue(USER_ID));
+    request.put(ID, authInfo.getValue(ID));
+    request.put(API, authInfo.getValue(API_ENDPOINT));
+    meteringService.executeWriteQuery(
+        request,
+        handler -> {
+          if (handler.succeeded()) {
+            LOGGER.info("audit table updated");
+            promise.complete();
+          } else {
+            LOGGER.error("failed to update audit table");
+            promise.complete();
+          }
+        });
+
+    promise.future();
+  }
 }

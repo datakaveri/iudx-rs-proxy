@@ -25,6 +25,10 @@ import static iudx.rs.proxy.database.example.postgres.Constants.ATTR_QUERY;
 import static iudx.rs.proxy.database.example.postgres.Constants.ATTRIBUTE;
 import static iudx.rs.proxy.database.example.postgres.Constants.OPERATOR;
 import static iudx.rs.proxy.database.example.postgres.Constants.VALUE;
+
+import io.vertx.sqlclient.SqlResult;
+import iudx.rs.proxy.common.Response;
+import iudx.rs.proxy.common.ResponseUrn;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collector;
@@ -44,40 +48,32 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import iudx.rs.proxy.common.ServiceExceptionMessage;
 import iudx.rs.proxy.database.DatabaseService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PostgresServiceImpl implements DatabaseService {
 
   private final PgPool pgClient;
-  private PgConnectOptions connectOptions;
-  private PoolOptions poolOptions;
-
-  private String databaseIP;
-  private int databasePort;
-  private String databaseName;
-  private String databaseUserName;
-  private String databasePassword;
-  private int poolSize;
-
   private boolean exists;
+  private static final Logger LOGGER = LogManager.getLogger(PostgresServiceImpl.class);
 
   public PostgresServiceImpl(Vertx vertx, JsonObject config) {
 
-    databaseIP = config.getString(DATABASE_IP);
-    databasePort = config.getInteger(DATABASE_PORT);
-    databaseName = config.getString(DATABASE_NAME);
-    databaseUserName = config.getString(DATABASE_USERNAME);
-    databasePassword = config.getString(DATABASE_PASSWORD);
-    poolSize = config.getInteger(POOL_SIZE);
+    String databaseIP = config.getString(DATABASE_IP);
+    int databasePort = config.getInteger(DATABASE_PORT);
+    String databaseName = config.getString(DATABASE_NAME);
+    String databaseUserName = config.getString(DATABASE_USERNAME);
+    String databasePassword = config.getString(DATABASE_PASSWORD);
+    int poolSize = config.getInteger(POOL_SIZE);
 
-    this.connectOptions =
-        new PgConnectOptions()
-            .setPort(databasePort)
-            .setHost(databaseIP)
-            .setDatabase(databaseName)
-            .setUser(databaseUserName)
-            .setPassword(databasePassword);
+    PgConnectOptions connectOptions = new PgConnectOptions()
+        .setPort(databasePort)
+        .setHost(databaseIP)
+        .setDatabase(databaseName)
+        .setUser(databaseUserName)
+        .setPassword(databasePassword);
 
-    this.poolOptions = new PoolOptions().setMaxSize(poolSize);
+    PoolOptions poolOptions = new PoolOptions().setMaxSize(poolSize);
     this.pgClient = PgPool.pool(vertx, connectOptions, poolOptions);
   }
 
@@ -105,12 +101,12 @@ public class PostgresServiceImpl implements DatabaseService {
     String query = queryBuilder(request, false);
 
     Collector<Row, ?, List<JsonObject>> rowCollector =
-        Collectors.mapping(row -> row.toJson(), Collectors.toList());
+        Collectors.mapping(Row::toJson, Collectors.toList());
 
     pgClient
         .withConnection(
             connection -> connection.query(query).collecting(rowCollector).execute()
-                .map(row -> row.value()))
+                .map(SqlResult::value))
         .onSuccess(
             successHandler -> {
               long totalHits = successHandler.size();
@@ -270,4 +266,40 @@ public class PostgresServiceImpl implements DatabaseService {
 
     return exists;
   }
+
+  @Override
+  public DatabaseService executeQuery(final JsonObject jsonObject,
+                                      Handler<AsyncResult<JsonObject>> handler) {
+  LOGGER.info("In execute query");
+    Collector<Row, ?, List<JsonObject>> rowCollector =
+        Collectors.mapping(Row::toJson, Collectors.toList());
+  String query=jsonObject.getString("query");
+
+    pgClient
+        .withConnection(connection -> connection.query(query)
+            .collecting(rowCollector)
+            .execute()
+            .map(SqlResult::value))
+        .onSuccess(successHandler -> {
+          LOGGER.info("In postgres success");
+          JsonArray result = new JsonArray(successHandler);
+          JsonObject responseJson = new JsonObject()
+              .put("type", ResponseUrn.SUCCESS_URN.getUrn())
+              .put("title",ResponseUrn.SUCCESS_URN.getMessage())
+              .put("result",result);
+          handler.handle(Future.succeededFuture(responseJson));
+        })
+        .onFailure(failureHandler -> {
+          LOGGER.info("In postgres failed");
+
+          LOGGER.debug(failureHandler);
+          Response response = new Response.Builder()
+              .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
+              .withStatus(HttpStatus.SC_BAD_REQUEST)
+              .withDetail(failureHandler.getLocalizedMessage()).build();
+          handler.handle(Future.failedFuture(response.toString()));
+        });
+    return this;
+  }
+
 }

@@ -127,10 +127,11 @@ public class ApiServerConstants {
   public static final String RESOURCE_SERVER = "resourceServer";
   public static final String RESOURCE_GROUP = "resourceGroup";
   public static final String RESOURCE_NAME = "resourceName";
-  public static final String USER_ID = "userid";
   public static final String EXPIRY = "expiry";
   public static final String IID = "iid";
   public static final String API = "api";
+  public static final String USER_ID = "userid";
+
 
   // Geometry
   public static final String GEOM_POINT = "point";

@@ -36,4 +36,10 @@ public class ElasticsearchServiceImpl implements DatabaseService{
     return null;
   }
 
+  @Override
+  public DatabaseService executeQuery(JsonObject query,
+                                      Handler<AsyncResult<JsonObject>> handler) {
+    return null;
+  }
+
 }

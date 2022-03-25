@@ -1,8 +1,7 @@
 package iudx.rs.proxy.cache.cacheImpl;
 
 public enum CacheType {
-  RESOURCE_GROUP("resource_group"),
-  RESOURCE_ID("resource_Id");
+  REVOKED_CLIENT("revoked_client");
 
   String cacheName;
 

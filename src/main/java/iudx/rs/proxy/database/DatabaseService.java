@@ -45,9 +45,20 @@ public interface DatabaseService {
    * @return DatabaseService object.
    */
 
-
   @GenIgnore
   static DatabaseService createProxy(Vertx vertx, String address) {
     return new DatabaseServiceVertxEBProxy(vertx, address);
   }
+
+  /**
+   * The execute query implements the String query in the database.
+   *
+   * @param query which is a String
+   * @param handler which is a Request Handler
+   * @return DatabaseService which is a Service
+   */
+  @Fluent
+  DatabaseService executeQuery(final JsonObject jsonObject,
+                               Handler<AsyncResult<JsonObject>> handler) throws ServiceException;
+
 }

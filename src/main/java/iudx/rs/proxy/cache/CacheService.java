@@ -101,7 +101,4 @@ public interface CacheService {
   @Fluent
   CacheService refresh(JsonObject request, Handler<AsyncResult<JsonObject>> handler);
 
-  @Fluent
-  CacheService refreshCache(JsonObject request, Handler<AsyncResult<JsonObject>> handler);
-
 }
