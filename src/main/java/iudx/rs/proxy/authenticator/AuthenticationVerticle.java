@@ -1,6 +1,6 @@
 package iudx.rs.proxy.authenticator;
 
-import static iudx.rs.proxy.common.Constants.CACHE_SERVICE_ADDRESS;
+import static iudx.rs.proxy.common.Constants.*;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -23,15 +23,15 @@ import org.apache.logging.log4j.Logger;
  *
  * <h1>Authentication Verticle</h1>
  *
- * <p>The Authentication Verticle implementation in the the IUDX Resource Server exposes the {@link
- * iudx.rs.proxy.authenticator.AuthenticationService} over the Vert.x Event Bus.
+ * <p>
+ * The Authentication Verticle implementation in the the IUDX Resource Server exposes the
+ * {@link iudx.rs.proxy.authenticator.AuthenticationService} over the Vert.x Event Bus.
  *
  * @version 1.0
  * @since 2020-05-31
  */
 public class AuthenticationVerticle extends AbstractVerticle {
 
-  private static final String AUTH_SERVICE_ADDRESS = "iudx.rs.proxy.auth.service";
   private static final Logger LOGGER = LogManager.getLogger(AuthenticationVerticle.class);
   private AuthenticationService jwtAuthenticationService;
   private ServiceBinder binder;

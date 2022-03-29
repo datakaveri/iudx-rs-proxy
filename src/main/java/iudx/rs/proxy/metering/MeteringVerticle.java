@@ -1,26 +1,21 @@
 package iudx.rs.proxy.metering;
 
+import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_IP;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_NAME;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_PASSWORD;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_PORT;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_USERNAME;
 import static iudx.rs.proxy.metering.util.Constants.POOL_SIZE;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.pgclient.PgPool;
 import io.vertx.serviceproxy.ServiceBinder;
-import io.vertx.sqlclient.PoolOptions;
-import iudx.rs.proxy.common.Constants;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class MeteringVerticle extends AbstractVerticle {
 
-  private static final String METERING_SERVICE_ADDRESS = Constants.METERING_SERVICE_ADDRESS;
   private static final Logger LOGGER = LogManager.getLogger(MeteringVerticle.class);
   private String databaseIP;
   private int databasePort;
