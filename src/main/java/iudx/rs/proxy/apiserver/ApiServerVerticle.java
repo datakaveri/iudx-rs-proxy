@@ -23,7 +23,11 @@ import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
-
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -41,6 +45,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.serviceproxy.ServiceException;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.handlers.AuthHandler;
 import iudx.rs.proxy.apiserver.handlers.FailureHandler;
@@ -54,11 +59,6 @@ import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.metering.MeteringService;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class ApiServerVerticle extends AbstractVerticle {
 
@@ -282,6 +282,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
           } else if (handler.failed()) {
             LOGGER.error("Fail: Search Fail");
+            LOGGER.debug(handler instanceof ServiceException);
             processBackendResponse(response, handler.cause().getMessage());
           }
         });
@@ -345,9 +346,10 @@ public class ApiServerVerticle extends AbstractVerticle {
     LOGGER.debug("Info : " + failureMessage);
     try {
       JsonObject json = new JsonObject(failureMessage);
-      int type = json.getInteger(JSON_TYPE);
-      HttpStatusCode status = HttpStatusCode.getByValue(type);
-      String urnTitle = json.getString(JSON_TITLE);
+      String type = json.getString(JSON_TYPE);
+      int status=json.getInteger("status");
+      HttpStatusCode httpStatus = HttpStatusCode.getByValue(status);
+      String urnTitle = type;
       ResponseUrn urn;
       if (urnTitle != null) {
         urn = ResponseUrn.fromCode(urnTitle);
@@ -357,8 +359,8 @@ public class ApiServerVerticle extends AbstractVerticle {
       // return urn in body
       response
           .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-          .setStatusCode(type)
-          .end(generateResponse(status, urn).toString());
+          .setStatusCode(status)
+          .end(generateResponse(httpStatus, urn).toString());
     } catch (DecodeException ex) {
       LOGGER.error("ERROR : Expecting Json from backend service [ jsonFormattingException ]");
       handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);

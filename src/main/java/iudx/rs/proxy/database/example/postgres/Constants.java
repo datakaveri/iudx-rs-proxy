@@ -14,11 +14,11 @@ public class Constants {
   public static final String SEARCH_TYPE = "searchType";
   public static final String TIME_REL = "timerel";
   public static final String TIME = "time";
-  public static final String END_TIME = "endTime";
+  public static final String END_TIME = "endtime";
   public static final String ATTRS = "attrs";
   public static final String BEFORE = "before";
   public static final String AFTER = "after";
-  public static final String ATTR_QUERY = "attr_query";
+  public static final String ATTR_QUERY = "attr-query";
   public static final String ATTRIBUTE = "attribute";
   public static final String OPERATOR = "operator";
   public static final String VALUE = "value";
@@ -31,7 +31,7 @@ public class Constants {
   // SQL
   public static String PSQL_TABLE_EXISTS_QUERY =
       "SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname='public' AND tablename='$1');";
-  public static String PSQL_SELECT_QUERY = "SELECT $1 FROM $$";
-  public static String PSQL_TEMPORAL_CONDITION = " WHERE time BETWEEN '$2' and '$3'";
+  public static String PSQL_SELECT_QUERY = "SELECT $1 FROM $$ WHERE id='$2'";
+  public static String PSQL_TEMPORAL_CONDITION = "observationdatetime BETWEEN '$2' and '$3'";
   public static String PSQL_ATTR_CONDITION = "$4 $op $5";
 }
