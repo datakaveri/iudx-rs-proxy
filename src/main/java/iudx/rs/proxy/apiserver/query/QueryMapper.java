@@ -126,6 +126,10 @@ public class QueryMapper {
     } else if (timeRel.equalsIgnoreCase("before")) {
 
     }
+    if (totalDaysAllowed > ApiServerConstants.VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+      throw new DxRuntimeException(BAD_REQUEST.getValue(), ResponseUrn.INVALID_TEMPORAL_PARAM_URN,
+          "time interval greater than 10 days is not allowed");
+    }
   }
 
   private boolean isNullOrEmpty(String value) {

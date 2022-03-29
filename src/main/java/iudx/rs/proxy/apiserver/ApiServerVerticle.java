@@ -236,12 +236,10 @@ public class ApiServerVerticle extends AbstractVerticle {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             // parse query params
-
-            // start from here
-            NGSILDQueryParams ngsildQueryParams = new NGSILDQueryParams(params);
+            NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
             // create json
             QueryMapper queryMapper = new QueryMapper();
-            JsonObject json = queryMapper.toJson(ngsildQueryParams, true);
+            JsonObject json = queryMapper.toJson(ngsildquery, true);
             Future<List<String>> filtersFuture =
                 catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
             json.put(JSON_INSTANCEID, instanceID);
@@ -279,7 +277,13 @@ public class ApiServerVerticle extends AbstractVerticle {
           if (handler.succeeded()) {
             LOGGER.info("Success: Search Success");
             Future.future(fu -> updateAuditTable(context));
-            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+            if (handler.result().getLong("totalHits") == 0) {
+              handleSuccessResponse(
+                  response, ResponseType.NoContent.getCode(), handler.result().toString());
+            } else {
+              handleSuccessResponse(
+                  response, ResponseType.Ok.getCode(), handler.result().toString());
+            }
           } else if (handler.failed()) {
             LOGGER.error("Fail: Search Fail");
             LOGGER.debug(handler instanceof ServiceException);
@@ -296,7 +300,13 @@ public class ApiServerVerticle extends AbstractVerticle {
           if (handler.succeeded()) {
             LOGGER.info("Success: Count Success");
             Future.future(fu -> updateAuditTable(context));
-            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+            if (handler.result().getJsonArray("results").getJsonObject(0).getLong("totalHits") == 0) {
+              handleSuccessResponse(
+                  response, ResponseType.NoContent.getCode(), handler.result().toString());
+            } else {
+              handleSuccessResponse(
+                  response, ResponseType.Ok.getCode(), handler.result().toString());
+            }
           } else if (handler.failed()) {
             LOGGER.error("Fail: Count Fail");
             processBackendResponse(response, handler.cause().getMessage());
