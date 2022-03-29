@@ -46,12 +46,13 @@ public class PostgresServiceImpl implements DatabaseService {
     String databasePassword = config.getString(DATABASE_PASSWORD);
     int poolSize = config.getInteger(POOL_SIZE);
 
-    PgConnectOptions connectOptions = new PgConnectOptions()
-        .setPort(databasePort)
-        .setHost(databaseIP)
-        .setDatabase(databaseName)
-        .setUser(databaseUserName)
-        .setPassword(databasePassword);
+    PgConnectOptions connectOptions =
+        new PgConnectOptions()
+            .setPort(databasePort)
+            .setHost(databaseIP)
+            .setDatabase(databaseName)
+            .setUser(databaseUserName)
+            .setPassword(databasePassword);
 
     PoolOptions poolOptions = new PoolOptions().setMaxSize(poolSize);
     this.pgClient = PgPool.pool(vertx, connectOptions, poolOptions);
@@ -68,7 +69,6 @@ public class PostgresServiceImpl implements DatabaseService {
     iudxQueryOperator2PgMapping.put("<", "<");
     iudxQueryOperator2PgMapping.put(">", ">");
     iudxQueryOperator2PgMapping.put("!=", "!=");
-
   }
 
   @Override
@@ -88,23 +88,29 @@ public class PostgresServiceImpl implements DatabaseService {
     LOGGER.debug("query : " + query);
     pgClient
         .withConnection(
-            connection -> connection.query(query).collecting(rowCollector).execute()
-                .map(SqlResult::value))
+            connection ->
+                connection.query(query).collecting(rowCollector).execute().map(SqlResult::value))
         .onSuccess(
             successHandler -> {
               long totalHits = successHandler.size();
               JsonArray response = new JsonArray(successHandler);
               handler.handle(
                   Future.succeededFuture(
-                      new JsonObject().put("totalHits", totalHits).put("result", response)));
+                      new JsonObject()
+                          .put("type", ResponseUrn.SUCCESS_URN.getUrn())
+                          .put("title", "Success")
+                          .put("totalHits", totalHits)
+                          .put("results", response)));
             })
         .onFailure(
             failureHandler -> {
               LOGGER.debug(failureHandler);
-              Response response = new Response.Builder()
-                  .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
-                  .withStatus(HttpStatus.SC_BAD_REQUEST)
-                  .withDetail(failureHandler.getLocalizedMessage()).build();
+              Response response =
+                  new Response.Builder()
+                      .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
+                      .withStatus(HttpStatus.SC_BAD_REQUEST)
+                      .withDetail(failureHandler.getLocalizedMessage())
+                      .build();
               handler.handle(Future.failedFuture(response.toString()));
             });
     return this;
@@ -124,21 +130,31 @@ public class PostgresServiceImpl implements DatabaseService {
     LOGGER.debug("query : " + query);
     pgClient
         .withConnection(
-            sqlConnection -> sqlConnection
-                .query(query)
-                .execute()
-                .map(rows -> rows.iterator().next().getInteger(0)))
+            sqlConnection ->
+                sqlConnection
+                    .query(query)
+                    .execute()
+                    .map(rows -> rows.iterator().next().getInteger(0)))
         .onSuccess(
             count -> {
-              handler.handle(Future.succeededFuture(new JsonObject().put("totalHits", count)));
+              handler.handle(
+                  Future.succeededFuture(
+                      new JsonObject()
+                          .put("type", ResponseUrn.SUCCESS_URN.getUrn())
+                          .put("title", "Success")
+                          .put(
+                              "results",
+                              new JsonArray().add(new JsonObject().put("totalHits", count)))));
             })
         .onFailure(
             failureHandler -> {
               LOGGER.debug(failureHandler);
-              Response response = new Response.Builder()
-                  .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
-                  .withStatus(HttpStatus.SC_BAD_REQUEST)
-                  .withDetail(failureHandler.getLocalizedMessage()).build();
+              Response response =
+                  new Response.Builder()
+                      .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
+                      .withStatus(HttpStatus.SC_BAD_REQUEST)
+                      .withDetail(failureHandler.getLocalizedMessage())
+                      .build();
               handler.handle(Future.failedFuture(response.toString()));
             });
     return this;
@@ -150,16 +166,14 @@ public class PostgresServiceImpl implements DatabaseService {
     String id = request.getJsonArray(ID).getString(0);
     String resourceGroup = getResourceGroup(id);
     String tableID = resourceGroup2TableMapping.get(resourceGroup);
-    
+
     String[] attrs = null;
-    
-    if(request.containsKey(ATTRS)) {
-      attrs= request.getJsonArray(ATTRS).stream().toArray(String[]::new);
+
+    if (request.containsKey(ATTRS)) {
+      attrs = request.getJsonArray(ATTRS).stream().toArray(String[]::new);
     }
-  
-    String selection = PSQL_SELECT_QUERY
-          .replace("$$", tableID)
-          .replace("$2", id);
+
+    String selection = PSQL_SELECT_QUERY.replace("$$", tableID).replace("$2", id);
 
     if (attrs == null || attrs.length == 0) {
       if (isCount) {
@@ -168,7 +182,7 @@ public class PostgresServiceImpl implements DatabaseService {
         query = new StringBuilder(selection.replace("$1", "*"));
       }
     } else {
-     
+
       query = new StringBuilder(selection.replace("$1", String.join(",", attrs)));
     }
 
@@ -189,13 +203,14 @@ public class PostgresServiceImpl implements DatabaseService {
     String timerel = request.getString(TIME_REL);
     ZonedDateTime time, endTime;
     time = ZonedDateTime.parse(request.getString(TIME));
-    endTime = ZonedDateTime.parse(request.getString(END_TIME));
 
     if (timerel.equalsIgnoreCase(BEFORE)) {
       endTime = time;
       time = time.minusDays(10);
     } else if (timerel.equalsIgnoreCase(AFTER)) {
       endTime = time.plusDays(10);
+    } else {
+      endTime = ZonedDateTime.parse(request.getString(END_TIME));
     }
     if (query.toString().contains("WHERE")) {
       query.append(" AND ");
@@ -204,9 +219,7 @@ public class PostgresServiceImpl implements DatabaseService {
     }
 
     query.append(
-        PSQL_TEMPORAL_CONDITION
-            .replace("$2", time.toString())
-            .replace("$3", endTime.toString()));
+        PSQL_TEMPORAL_CONDITION.replace("$2", time.toString()).replace("$3", endTime.toString()));
 
     return query;
   }
@@ -236,42 +249,45 @@ public class PostgresServiceImpl implements DatabaseService {
   }
 
   @Override
-  public DatabaseService executeQuery(final JsonObject jsonObject,
-      Handler<AsyncResult<JsonObject>> handler) {
+  public DatabaseService executeQuery(
+      final JsonObject jsonObject, Handler<AsyncResult<JsonObject>> handler) {
     LOGGER.info("In execute query");
     Collector<Row, ?, List<JsonObject>> rowCollector =
         Collectors.mapping(Row::toJson, Collectors.toList());
     String query = jsonObject.getString("query");
 
     pgClient
-        .withConnection(connection -> connection.query(query)
-            .collecting(rowCollector)
-            .execute()
-            .map(SqlResult::value))
-        .onSuccess(successHandler -> {
-          LOGGER.info("In postgres success");
-          JsonArray result = new JsonArray(successHandler);
-          JsonObject responseJson = new JsonObject()
-              .put("type", ResponseUrn.SUCCESS_URN.getUrn())
-              .put("title", ResponseUrn.SUCCESS_URN.getMessage())
-              .put("result", result);
-          handler.handle(Future.succeededFuture(responseJson));
-        })
-        .onFailure(failureHandler -> {
-          LOGGER.info("In postgres failed");
+        .withConnection(
+            connection ->
+                connection.query(query).collecting(rowCollector).execute().map(SqlResult::value))
+        .onSuccess(
+            successHandler -> {
+              LOGGER.info("In postgres success");
+              JsonArray result = new JsonArray(successHandler);
+              JsonObject responseJson =
+                  new JsonObject()
+                      .put("type", ResponseUrn.SUCCESS_URN.getUrn())
+                      .put("title", ResponseUrn.SUCCESS_URN.getMessage())
+                      .put("result", result);
+              handler.handle(Future.succeededFuture(responseJson));
+            })
+        .onFailure(
+            failureHandler -> {
+              LOGGER.info("In postgres failed");
 
-          LOGGER.debug(failureHandler);
-          Response response = new Response.Builder()
-              .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
-              .withStatus(HttpStatus.SC_BAD_REQUEST)
-              .withDetail(failureHandler.getLocalizedMessage()).build();
-          handler.handle(Future.failedFuture(response.toString()));
-        });
+              LOGGER.debug(failureHandler);
+              Response response =
+                  new Response.Builder()
+                      .withUrn(ResponseUrn.DB_ERROR_URN.getUrn())
+                      .withStatus(HttpStatus.SC_BAD_REQUEST)
+                      .withDetail(failureHandler.getLocalizedMessage())
+                      .build();
+              handler.handle(Future.failedFuture(response.toString()));
+            });
     return this;
   }
 
   private String getResourceGroup(String id) {
     return id.substring(0, id.lastIndexOf('/'));
   }
-
 }
