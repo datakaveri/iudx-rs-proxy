@@ -4,19 +4,55 @@
         "zookeeper"
     ],
     "clusterId": "iudx-rs-proxy-cluster",
-    "host": "rs-proxy",
+    "host": "",
     "modules": [
         {
             "id": "iudx.rs.proxy.apiserver.ApiServerVerticle",
-            "verticleInstances": 1,
             "ssl": true,
-            "port": 1234,
+            "production": false,
             "keystore": "",
-            "keystorePassword": ""
+            "keystorePassword": "",
+            "verticleInstances": 8,
+            "catServerHost": "",
+            "catServerPort": 1,
+            "port": 1
         },
         {
             "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
-            "verticleInstances": 1
+            "verticleInstances": 1,
+            "keystore": "",
+            "keystorePassword": "",
+            "authServerHost": "",
+            "catServerHost": "",
+            "catServerPort": 1,
+            "jwtIgnoreExpiry": true
+        },     {
+            "id": "iudx.rs.proxy.cache.CacheVerticle",
+            "verticleInstances": 1,
+            "catServerHost": "",
+            "catServerPort": 1
+        },
+        {
+            "id":"iudx.rs.proxy.database.DatabaseVerticle",
+            "verticleInstances": 1,
+            "databaseIp": "",
+            "databasePort": 1,
+            "databaseName": "",
+            "databaseUserName": "",
+            "databasePassword": "",
+            "poolSize": 25
+
+        },
+
+        {
+            "id": "iudx.rs.proxy.metering.MeteringVerticle",
+            "verticleInstances": 1,
+            "meteringDatabaseIP": "",
+            "meteringDatabasePort": 1,
+            "meteringDatabaseName": "",
+            "meteringDatabaseUserName": "",
+            "meteringDatabasePassword": "",
+            "meteringPoolSize": 25
         }
     ]
 }

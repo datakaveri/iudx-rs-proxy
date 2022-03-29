@@ -1,0 +1,242 @@
+package iudx.rs.proxy.apiserver.query;
+
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_ENTITIES;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.MSG_INVALID_PARAM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ATTRIBUTE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ENDTIME;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_FROM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_SIZE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TEMPORALQ;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIME;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIMEREL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSLILDQUERY_Q;
+import static iudx.rs.proxy.apiserver.util.Util.toUriFunction;
+
+import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+/** NGSILDQueryParams Class to parse query parameters from HTTP request. */
+public class NGSILDQueryParams {
+  private static final Logger LOGGER = LogManager.getLogger(NGSILDQueryParams.class);
+
+  private List<URI> id;
+  private List<String> type;
+  private List<String> attrs;
+  private List<String> idPattern;
+  private String textQuery;
+  private TemporalRelation temporalRelation;
+  private String options;
+
+  public NGSILDQueryParams() {}
+
+  /**
+   * constructor a NGSILDParams passing query parameters map.
+   *
+   * @param paramsMap query paramater's map.
+   */
+  public NGSILDQueryParams(MultiMap paramsMap) {
+    this.setTemporalRelation(new TemporalRelation());
+    this.create(paramsMap);
+  }
+
+  /**
+   * constructor a NGSILDParams passing json.
+   *
+   * @param json JsonObject of query.
+   */
+  public NGSILDQueryParams(JsonObject json) {
+
+    this.setTemporalRelation(new TemporalRelation());
+    this.create(json);
+  }
+
+  public static void main(String[] args) {
+    JsonObject json = new JsonObject();
+    json.put("type", "query")
+        .put(
+            "temporalQ",
+            new JsonObject()
+                .put("timerel", "during")
+                .put("time", "2020-06-01T14:20:00Z")
+                .put("endtime", "2020-06-03T15:00:00Z")
+                .put("timeProperty", "timeProperty"))
+        .put(
+            "entities",
+            new JsonArray()
+                .add(
+                    new JsonObject()
+                        .put(
+                            "id",
+                            "rs.varanasi.iudx.org.in/varanasi-swm-vehicles/varanasi-swm-vehicles-live")));
+
+    new NGSILDQueryParams(json);
+    new QueryMapper();
+  }
+
+  private void create(MultiMap paramsMap) {
+    List<Entry<String, String>> entries = paramsMap.entries();
+    for (final Entry<String, String> entry : entries) {
+      switch (entry.getKey()) {
+
+        case NGSILDQUERY_ID:
+          {
+            this.id = new ArrayList<URI>();
+            String[] ids = entry.getValue().split(",");
+            List<URI> uris = Arrays.stream(ids).map(toUriFunction).collect(Collectors.toList());
+            this.id.addAll(uris);
+            break;
+          }
+        case NGSILDQUERY_ATTRIBUTE:
+          {
+            this.attrs = new ArrayList<String>();
+            this.attrs.addAll(
+                Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
+            break;
+          }
+        case NGSILDQUERY_TIMEREL:
+          {
+            this.temporalRelation.setTimeRel(entry.getValue());
+            break;
+          }
+        case NGSILDQUERY_TIME:
+          {
+            this.temporalRelation.setTime(entry.getValue());
+            break;
+          }
+        case NGSILDQUERY_ENDTIME:
+          {
+            this.temporalRelation.setEndTime(entry.getValue());
+            break;
+          }
+        case NGSLILDQUERY_Q:
+          {
+            this.textQuery = entry.getValue();
+            break;
+          }
+        case IUDXQUERY_OPTIONS:
+          {
+            this.options = entry.getValue();
+            break;
+          }
+        case NGSILDQUERY_SIZE:
+        case NGSILDQUERY_FROM:
+          {
+            break;
+          }
+        default:
+          {
+            LOGGER.warn(MSG_INVALID_PARAM + ":" + entry.getKey());
+            break;
+          }
+      }
+    }
+  }
+
+  private void create(JsonObject requestJson) {
+    LOGGER.info("create from json started");
+    LOGGER.info("Request Json "+requestJson);
+    requestJson.forEach(
+        entry -> {
+          LOGGER.debug("key ::" + entry.getKey() + " value :: " + entry.getValue());
+          if (entry.getKey().equalsIgnoreCase(NGSLILDQUERY_Q)) {
+            this.textQuery = requestJson.getString(NGSLILDQUERY_Q);
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_ATTRIBUTE)) {
+            this.attrs = new ArrayList<String>();
+            this.attrs =
+                Arrays.stream(entry.getValue().toString().split(",")).collect(Collectors.toList());
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_TYPE)) {
+            this.type = new ArrayList<String>();
+            this.type =
+                Arrays.stream(entry.getValue().toString().split(",")).collect(Collectors.toList());
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_TEMPORALQ)) {
+            JsonObject temporalJson = requestJson.getJsonObject(entry.getKey());
+            this.temporalRelation.setTimeRel(temporalJson.getString(NGSILDQUERY_TIMEREL));
+            this.temporalRelation.setTime(temporalJson.getString(NGSILDQUERY_TIME));
+            this.temporalRelation.setEndTime(temporalJson.getString(NGSILDQUERY_ENDTIME));
+          } else if (entry.getKey().equalsIgnoreCase(JSON_ENTITIES)) {
+            JsonArray array = new JsonArray(entry.getValue().toString());
+            Iterator<?> iter = array.iterator();
+            while (iter.hasNext()) {
+              this.id = new ArrayList<URI>();
+              this.idPattern = new ArrayList<String>();
+              JsonObject entity = (JsonObject) iter.next();
+              String id = entity.getString("id");
+              String idPattern = entity.getString("idPattern");
+              if (id != null) {
+                this.id.add(toUri(id));
+              }
+              if (idPattern != null) {
+                this.idPattern.add(idPattern);
+              }
+            }
+          } else if (entry.getKey().equalsIgnoreCase(IUDXQUERY_OPTIONS)) {
+            this.options = requestJson.getString(entry.getKey());
+          }
+        });
+  }
+
+  private URI toUri(String source) {
+    URI uri = null;
+    try {
+      uri = new URI(source);
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
+    }
+    return uri;
+  }
+
+  public List<URI> getId() {
+    return id;
+  }
+
+  public void setId(List<URI> id) {
+    this.id = id;
+  }
+
+  public List<String> getType() {
+    return type;
+  }
+
+  public void setType(List<String> type) {
+    this.type = type;
+  }
+
+  public List<String> getAttrs() {
+    return attrs;
+  }
+
+
+  public String getQ() {
+    return textQuery;
+  }
+
+  public TemporalRelation getTemporalRelation() {
+    return temporalRelation;
+  }
+
+  public void setTemporalRelation(TemporalRelation temporalRelation) {
+    this.temporalRelation = temporalRelation;
+  }
+
+  public String getOptions() {
+    return options;
+  }
+
+  public void setOptions(String options) {
+    this.options = options;
+  }
+}

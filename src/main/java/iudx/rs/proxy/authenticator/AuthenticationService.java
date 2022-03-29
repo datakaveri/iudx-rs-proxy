@@ -39,7 +39,7 @@ public interface AuthenticationService {
    */
 
   @Fluent
-  AuthenticationService tokenInterospect(JsonObject request,
-      JsonObject authenticationInfo,
-      Handler<AsyncResult<JsonObject>> handler);
+  AuthenticationService tokenIntrospect(JsonObject request,
+                                        JsonObject authenticationInfo,
+                                        Handler<AsyncResult<JsonObject>> handler);
 }

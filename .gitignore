@@ -9,6 +9,8 @@ docker-compose.temp.yml
 config.properties
 upload-dir/
 temp-dir/
+.idea
+iudx.rs.proxy.iml
 ### STS ###
 .apt_generated
 .classpath

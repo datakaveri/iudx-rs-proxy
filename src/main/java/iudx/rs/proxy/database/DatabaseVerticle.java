@@ -5,6 +5,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
+import iudx.rs.proxy.database.example.postgres.PostgresServiceImpl;
 
 
 public class DatabaseVerticle extends AbstractVerticle {
@@ -24,7 +25,7 @@ public class DatabaseVerticle extends AbstractVerticle {
      * dbServiceImpl=new ElasticDBServiceImpl(config());
      * 
      */
-
+    dbServiceImpl=new PostgresServiceImpl(vertx,config());
     consumer = binder
         .setAddress(DB_SERVICE_ADDRESS)
         .register(DatabaseService.class, dbServiceImpl);
