@@ -2,7 +2,7 @@ package iudx.rs.proxy.apiserver.exceptions;
 
 import iudx.rs.proxy.common.ResponseUrn;
 
-public final class DxRuntimeException extends RuntimeException {
+public  class DxRuntimeException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 

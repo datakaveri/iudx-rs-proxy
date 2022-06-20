@@ -132,7 +132,7 @@ public class QueryMapper {
     }
   }
 
-  private boolean isNullOrEmpty(String value) {
+  public boolean isNullOrEmpty(String value) {
     return value == null || value.isEmpty();
   }
 
