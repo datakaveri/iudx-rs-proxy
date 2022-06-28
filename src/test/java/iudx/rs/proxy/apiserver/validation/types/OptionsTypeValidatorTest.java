@@ -26,7 +26,9 @@ class OptionsTypeValidatorTest {
         return Stream.of(
                 Arguments.of("count1", true),
                 Arguments.of("AND 1=1", true),
-                Arguments.of("1==1", true));
+                Arguments.of("1==1", true),
+                    Arguments.of(null, true)
+        );
     }
 
     @BeforeEach

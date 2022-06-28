@@ -20,8 +20,8 @@ class ResponseBuilderTest {
         ResponseBuilder responseBuilder= new ResponseBuilder("200");
         responseBuilder.setTypeAndTitle(200);
         assertEquals("successful operations", SUCCESS_URN.getMessage());
-       /*responseBuilder.setTypeAndTitle(204);
-        assertEquals("successful operations",SUCCESS_URN);*/
+       responseBuilder.setTypeAndTitle(204);
+        assertEquals("successful operations",SUCCESS_URN.getMessage());
         responseBuilder.setTypeAndTitle(400);
         assertEquals("bad request parameter",ResponseUrn.BAD_REQUEST_URN.getMessage());
         vertxTestContext.completeNow();

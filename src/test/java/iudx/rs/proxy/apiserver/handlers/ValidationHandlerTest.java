@@ -40,22 +40,21 @@ class ValidationHandlerTest {
         lenient().doReturn(response).when(event).response();
     }
 
-   /* @Test
+    @Test
     public void validationHandlerSuccess() {
         parameters = MultiMap.caseInsensitiveMultiMap();
-        parameters.set("PARAM_ID", "asdasd/asdasd/adasd/adasd/adasd");
+        parameters.set("id", "asdasd/asdasd/asdassd/adadadad/adfaf");
 
-        Mockito.doReturn(parameters).when(request).params();
-        Mockito.doReturn(headers).when(request).headers();
+        lenient().doReturn(parameters).when(request).params();
+        lenient().doReturn(headers).when(request).headers();
 
         new ValidationHandler(vertx,RequestType.ENTITY).handle(event);
         Mockito.verify(event, times(1)).next();
-    }*/
-
+    }
     @Test
     public void validationHandlerFailed() {
         parameters = MultiMap.caseInsensitiveMultiMap();
-        parameters.set("PARAM_ID", "asdasd/asdasd");
+        parameters.set("id", "aaaa/aaaa");
 
         Mockito.doReturn(parameters).when(request).params();
        lenient().doReturn(headers).when(request).headers();

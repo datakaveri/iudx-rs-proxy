@@ -26,6 +26,7 @@ class PaginationLimitTypeValidatorTest {
     }
 
     static Stream<Arguments> allowedValues() {
+        // Add any valid value which will pass successfully.
         return Stream.of(
                 Arguments.of(null, false),
                 Arguments.of("1000", false),
@@ -45,6 +46,7 @@ class PaginationLimitTypeValidatorTest {
 
 
     static Stream<Arguments> invalidValues() {
+        // Add any valid value which will pass successfully.
         return Stream.of(
                 Arguments.of("-1", false),
                 Arguments.of("7500", false),
@@ -53,8 +55,9 @@ class PaginationLimitTypeValidatorTest {
                 Arguments.of("   ", false),
                 Arguments.of("7896541233568796313611634", false),
                 Arguments.of("false", false),
-                Arguments.of("kajlksdjloasknfdlkanslodnmalsdasd", false)
-        );
+                Arguments.of("kajlksdjloasknfdlkanslodnmalsdasd", false),
+                Arguments.of(null,true),
+                Arguments.of("",false));
     }
 
     @ParameterizedTest
@@ -66,5 +69,4 @@ class PaginationLimitTypeValidatorTest {
         assertThrows(DxRuntimeException.class, () -> paginationLimitTypeValidator.isValid());
         testContext.completeNow();
     }
-
 }

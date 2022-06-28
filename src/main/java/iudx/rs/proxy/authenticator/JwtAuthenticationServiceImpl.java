@@ -83,7 +83,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     catWebClient = WebClient.create(vertx, options);
     this.cache = cacheService;
   }
-
   @Override
   public AuthenticationService tokenIntrospect(
       JsonObject request, JsonObject authenticationInfo, Handler<AsyncResult<JsonObject>> handler) {

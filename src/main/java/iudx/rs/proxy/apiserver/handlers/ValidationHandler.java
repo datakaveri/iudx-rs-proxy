@@ -41,25 +41,25 @@ public class ValidationHandler implements Handler<RoutingContext> {
     List<Validator> validations = validationFactory.build(requestType, parameters);
     for (Validator validator : Optional.ofNullable(validations).orElse(Collections.emptyList())) {
       LOGGER.debug("validator :" + validator.getClass().getName());
-      if (!validator.isValid()) {
+      validator.isValid();
+      /*if (!validator.isValid()) {
         error(context);
         return;
-      }
+      }*/
     }
     context.next();
     return;
   }
 
-  private void error(RoutingContext context) {
+ /* private void error(RoutingContext context) {
     context.response().putHeader("content-type", "application/json")
         .setStatusCode(HttpStatus.SC_BAD_REQUEST)
         .end(getBadRequestMessage().toString());
   }
-
   private JsonObject getBadRequestMessage() {
     return new JsonObject()
         .put("type", 400)
         .put("title", "Bad Request")
         .put("details", "Bad query");
-  }
+  }*/
 }

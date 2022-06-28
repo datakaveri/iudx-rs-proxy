@@ -54,7 +54,10 @@ class PaginationOffsetTypeValidatorTest {
                 Arguments.of("   ", false),
                 Arguments.of("7896541233568796313611634", false),
                 Arguments.of("false", false),
-                Arguments.of("kajlksdjloasknfdlkanslodnmalsdasd", false));
+                Arguments.of("kajlksdjloasknfdlkanslodnmalsdasd", false),
+                Arguments.of(null,true),
+                Arguments.of("",true)
+        );
     }
 
     @ParameterizedTest

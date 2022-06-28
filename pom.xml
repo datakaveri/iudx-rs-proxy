@@ -242,10 +242,12 @@
 						<exclude>iudx/rs/proxy/deploy/*.class</exclude>
 						<exclude>**/*AuthenticationService.class</exclude>
 						<exclude>**/*MeteringService.class</exclude>
-						<exclude>**/*CacheService.class</exclude>
+					 <exclude>**/*CacheService.class</exclude>
 						<exclude>**/*Method.class</exclude>
 						<exclude>**/*DatabaseService.class</exclude>
 						<exclude>**/*ApiServerConstants.class</exclude>
+						<exclude>**/*CacheServiceVertxProxyHandler.class</exclude>
+
 
 					</excludes>
 				</configuration>

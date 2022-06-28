@@ -20,12 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class QTypeValidatorTest {
 
 
+
     private QTypeValidator qTypeValidator;
 
-    @BeforeEach
-    public void setup(Vertx vertx, VertxTestContext testContext) {
-        testContext.completeNow();
-    }
     static Stream<Arguments> invalidValues() {
         // Add any invalid value which will throw error.
         return Stream.of(
@@ -40,9 +37,16 @@ class QTypeValidatorTest {
                 Arguments.of("referenceLevel*15.0", true),
                 Arguments.of("reference_Level$>15.0", true),
                 Arguments.of("reference$Level>15.0", true),
-                Arguments.of("referenceLevel!<15.0", true));
+                Arguments.of("referenceLevel!<15.0", true),
+                Arguments.of("",false),
+                Arguments.of(null,true));
     }
 
+
+    @BeforeEach
+    public void setup(Vertx vertx, VertxTestContext testContext) {
+        testContext.completeNow();
+    }
 
     @ParameterizedTest
     @MethodSource("invalidValues")
