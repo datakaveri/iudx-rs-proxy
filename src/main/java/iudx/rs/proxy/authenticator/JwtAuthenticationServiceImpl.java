@@ -45,7 +45,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   private static final Logger LOGGER = LogManager.getLogger(JwtAuthenticationServiceImpl.class);
 
   final JWTAuth jwtAuth;
-  final WebClient catWebClient;
+   WebClient catWebClient;
   final String host;
   final int port;
   final String path;
@@ -167,8 +167,8 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
     return promise.future();
   }
-
-  private Future<String> isOpenResource(String id) {
+  //private Future<String> isOpenResource(String id)
+   Future<String> isOpenResource(String id) {
     LOGGER.trace("isOpenResource() started");
     Promise<String> promise = Promise.promise();
 

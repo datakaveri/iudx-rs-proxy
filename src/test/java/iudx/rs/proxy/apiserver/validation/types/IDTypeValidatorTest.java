@@ -79,8 +79,9 @@ class IDTypeValidatorTest {
                         "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io$/surat-itms-realtime-information/surat-itms-live-eta",
                         true),
                 Arguments.of(
-                        "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86$/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta",
-                        true));
+                        "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86$/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta",true
+                        ),
+            Arguments.of("",false));
     }
 
     @ParameterizedTest

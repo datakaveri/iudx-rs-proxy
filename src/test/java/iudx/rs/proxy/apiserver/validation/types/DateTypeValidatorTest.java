@@ -53,7 +53,9 @@ class DateTypeValidatorTest {
                 Arguments.of("2020-10-18T25:20:00Z", true),
                 Arguments.of("2020-10-32T14:20:00Z", true),
                 Arguments.of("date-time", true),
-                Arguments.of("{{asdbbjas}}", true));
+                Arguments.of("{{asdbbjas}}", true),
+                Arguments.of("", false)
+        );
     }
 
     @ParameterizedTest

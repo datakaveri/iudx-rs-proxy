@@ -1,7 +1,10 @@
 package iudx.rs.proxy.cache;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.cli.annotations.Description;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -12,6 +15,9 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,8 +36,9 @@ class CacheServiceImplTest {
             .put("type", CacheType.REVOKED_CLIENT)
             .put("key", "revoked_client_id_1")
             .put("value", "2020-10-19T14:20:00Z");
+
     static JsonObject testJson_2 = new JsonObject()
-            .put("type", "CacheType.REVOKED_CLIENT")
+            .put("type", "CacheType.REVOKED")
             .put("key", "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta")
             .put("value", "license_plate");
 
@@ -63,16 +70,18 @@ class CacheServiceImplTest {
             }
         });
     }
-   /* @Test
+    @Test
     public void cachePutTest3(Vertx vertx, VertxTestContext testContext) {
         cacheService.put(testJson_2, handler -> {
             if (handler.succeeded()) {
-                testContext.completeNow();
+                testContext.failNow("No cache defined for given type");
+
             } else {
-                testContext.failNow("failed to insert in cache");;
+                testContext.completeNow();
+
             }
         });
-    }*/
+    }
     @Test
     public void failCachePutTestNoType(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_0.copy();
@@ -233,7 +242,7 @@ class CacheServiceImplTest {
         });
     }
 
-   /* @Description("refresh cache without passing key and value.")
+    @Description("refresh cache without passing key and value.")
     @Test
     public void refreshCacheTest_1(Vertx vertx, VertxTestContext testContext) {
         // prepare request json for CacheServiceImpl.refresh()
@@ -262,7 +271,7 @@ class CacheServiceImplTest {
                 ((Handler<AsyncResult<JsonObject>>) arg0.getArgument(1)).handle(asyncResult);
                 return null;
             }
-        }).when(databaseService).executeQuery(any(String.class), any());
+        }).when(databaseService).executeQuery(any(), any());
 
         // Test
         // call cache refresh
@@ -277,8 +286,8 @@ class CacheServiceImplTest {
                     if (getHandler.succeeded()) {
                         //verify
                         assertEquals("2020-10-19T14:20:00Z", getHandler.result().getString("value"));
-                        // executeQuery() will be called 2 times from constructor[revoked.UA] and once from refresh()
-                        verify(databaseService, times(3)).executeQuery(any(String.class), any());
+                        // executeQuery() will be called 2 times once from constructor and once from refresh()
+                        verify(databaseService, times(2)).executeQuery(any(), any());
                         testContext.completeNow();
                     } else {
                         testContext.failNow("fail to fetch value for key");
@@ -289,5 +298,5 @@ class CacheServiceImplTest {
             }
         });
         testContext.completeNow();
-   }*/
+    }
 }

@@ -7,6 +7,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,8 +16,7 @@ import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(VertxExtension.class)
 public class AttrsTypeValidatorTest {
@@ -32,7 +32,9 @@ public class AttrsTypeValidatorTest {
         // Add any valid value which will pass successfully.
         return Stream.of(
                 Arguments.of("refrenceLeval,Co2,NO2,SO2,CO", true),
-                Arguments.of(null, false));
+                Arguments.of(null, false),
+                Arguments.of(null, false)
+        );
     }
 
     @ParameterizedTest
@@ -45,6 +47,7 @@ public class AttrsTypeValidatorTest {
         testContext.completeNow();
     }
 
+
     static Stream<Arguments> invalidValues() {
 
         return Stream.of(
@@ -53,7 +56,8 @@ public class AttrsTypeValidatorTest {
                 Arguments.of("refrenceLeval,Co2,NO2,SO2,CO,ABC", true),
                 Arguments.of(RandomStringUtils.random(102) + ",refrenceLeval,Co2,NO2,SO2", true),
                 Arguments.of("refrence$Leval,Co2,NO2,SO2", true),
-                Arguments.of("refrenceLeval,Co2,NO2,S*&O2", true));
+                Arguments.of("refrenceLeval,Co2,NO2,S*&O2", true),
+                Arguments.of("", false));
     }
 
     @ParameterizedTest

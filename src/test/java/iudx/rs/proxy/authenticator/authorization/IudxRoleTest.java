@@ -14,9 +14,9 @@ class IudxRoleTest {
 
     @ParameterizedTest
     @EnumSource
-    public void test(IudxRole requestType, VertxTestContext vertxTestContext)
+    public void test(IudxRole iudxRole, VertxTestContext vertxTestContext)
     {
-        assertNotNull(requestType);
+        assertNotNull(iudxRole);
         vertxTestContext.completeNow();
     }
 

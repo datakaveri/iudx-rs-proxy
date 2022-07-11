@@ -56,7 +56,9 @@ static Stream<Arguments>allowedValues(){
                 Arguments.of("1=1", true),
                 Arguments.of("AND XYZ=XYZ", true),
                 Arguments.of(random600Id, true),
-                Arguments.of("%2cX%2c", true));
+                Arguments.of("%2cX%2c", true),
+                Arguments.of("",false)
+        );
     }
 
     @ParameterizedTest

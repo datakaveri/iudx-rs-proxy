@@ -57,7 +57,7 @@ class PaginationLimitTypeValidatorTest {
                 Arguments.of("false", false),
                 Arguments.of("kajlksdjloasknfdlkanslodnmalsdasd", false),
                 Arguments.of(null,true),
-                Arguments.of("",false));
+                Arguments.of("",true));
     }
 
     @ParameterizedTest

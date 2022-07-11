@@ -42,91 +42,92 @@ class QueryMapperTest {
         testContext.completeNow();
 
     }
-//java.lang.StringIndexOutOfBoundsException: start 0, end -1, length 0
-  /* @Test
-     public void testToJson(Vertx vertx, VertxTestContext testContext) {
-         MultiMap map = MultiMap.caseInsensitiveMultiMap();
-         map.add(NGSILDQUERY_ID, "id1");
-         map.add(NGSILDQUERY_ATTRIBUTE, "attr1");
-         NGSILDQueryParams params = new NGSILDQueryParams(map);
-         JsonObject json = qm.toJson(params, false);
 
-         assertTrue(json.containsKey(NGSILDQUERY_ID));
-         assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
-         assertTrue(json.getJsonArray(NGSILDQUERY_ID) instanceof JsonArray);
-         assertTrue(json.getJsonArray(NGSILDQUERY_ATTRIBUTE) instanceof JsonArray);
-         testContext.completeNow();
-    }*/
+@Test
+public void testToJson(Vertx vertx, VertxTestContext testContext) {
+    MultiMap map = MultiMap.caseInsensitiveMultiMap();
+    map.add(NGSILDQUERY_ID, "id1");
+    map.add(NGSILDQUERY_ATTRIBUTE, "attr1");
+    NGSILDQueryParams params = new NGSILDQueryParams(map);
+    JsonObject json = qm.toJson(params, false);
 
-    /* @Test
-     @Description("QueryMapper test for Circle geo-query")
-     public void testToJson4CircleQuery(Vertx vertx, VertxTestContext testContext) {
-         // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
-         MultiMap map = MultiMap.caseInsensitiveMultiMap();
-         map.add(NGSILDQUERY_ID, "id1");
-         map.add(NGSILDQUERY_ATTRIBUTE, "attr1");
-         map.add(NGSILDQUERY_GEOREL, "near;maxdistance=360");
-         map.add(NGSILDQUERY_GEOMETRY, "point");
-         map.add(NGSILDQUERY_COORDINATES, "[8.6846,49.40606]");
-         map.add(NGSILDQUERY_GEOPROPERTY, "location");
-         NGSILDQueryParams params = new NGSILDQueryParams(map);
+    assertTrue(json.containsKey(NGSILDQUERY_ID));
+    assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
+    assertTrue(json.getJsonArray(NGSILDQUERY_ID) instanceof JsonArray);
+    assertTrue(json.getJsonArray(NGSILDQUERY_ATTRIBUTE) instanceof JsonArray);
+    testContext.completeNow();
+}
+   /* @Test
+    @Description("QueryMapper test for Circle geo-query")
+    public void testToJson4CircleQuery(Vertx vertx, VertxTestContext testContext) {
+        // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
+        MultiMap map = MultiMap.caseInsensitiveMultiMap();
+        map.add(NGSILDQUERY_ID, "id1");
+        map.add(NGSILDQUERY_ATTRIBUTE, "attr1");
+        map.add(NGSILDQUERY_GEOREL, "near;maxdistance=360");
+        map.add(NGSILDQUERY_GEOMETRY, "point");
+        map.add(NGSILDQUERY_COORDINATES, "[8.6846,49.40606]");
+        map.add(NGSILDQUERY_GEOPROPERTY, "location");
+        NGSILDQueryParams params = new NGSILDQueryParams(map);
 
-         JsonObject json = qm.toJson(params, false);
+        JsonObject json = qm.toJson(params, false);
 
-         assertTrue(json.containsKey(JSON_LAT));
-         assertTrue(json.containsKey(JSON_LON));
-         assertTrue(json.containsKey(JSON_RADIUS));
-         assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
-         assertFalse(json.containsKey(NGSILDQUERY_TIME));
-         assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
-         testContext.completeNow();
-     }
-   /*  @Test
-     @Description("QueryMapper test for geo-query")
-     public void testToJson4GeoQuery(Vertx vertx, VertxTestContext testContext) {
-         MultiMap map = MultiMap.caseInsensitiveMultiMap();
-         map.add(NGSILDQUERY_ID, "id1,id2");
-         map.add(NGSILDQUERY_ATTRIBUTE, "attr1,attr2");
-         map.add(NGSILDQUERY_GEOREL, "within");
-         map.add(NGSILDQUERY_GEOMETRY, "Polygon");
-         map.add(NGSILDQUERY_COORDINATES,
-                 "[[[8.68462,49.40606],[8.68550,49.40622],[8.68545,49.406344],[8.68457,49.40617],[8.6846,49.4060]]]");
-         map.add(NGSILDQUERY_GEOPROPERTY, "location");
-         NGSILDQueryParams params = new NGSILDQueryParams(map);
+        assertTrue(json.containsKey(JSON_LAT));
+        assertTrue(json.containsKey(JSON_LON));
+        assertTrue(json.containsKey(JSON_RADIUS));
+        assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
+        assertFalse(json.containsKey(NGSILDQUERY_TIME));
+        assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
+        testContext.completeNow();
+    }
 
-         JsonObject json = qm.toJson(params, false);
-
-         assertTrue(json.containsKey(NGSILDQUERY_ID));
-         assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
-         assertTrue(json.containsKey(NGSILDQUERY_COORDINATES));
-         assertTrue(json.containsKey(NGSILDQUERY_GEOREL));
-         assertTrue(json.containsKey(NGSILDQUERY_GEOMETRY));
-         assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
-         assertFalse(json.containsKey(NGSILDQUERY_TIME));
-         assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
-         testContext.completeNow();
-     }
 */
-    @Test
-    @Description("QueryMapper test for temporal queries(during)")
-    public void testToJson4TemporalDuringQuery(Vertx vertx, VertxTestContext testContext) {
+  /*  @Test
+    @Description("QueryMapper test for geo-query")
+    public void testToJson4GeoQuery(Vertx vertx, VertxTestContext testContext) {
         MultiMap map = MultiMap.caseInsensitiveMultiMap();
         map.add(NGSILDQUERY_ID, "id1,id2");
         map.add(NGSILDQUERY_ATTRIBUTE, "attr1,attr2");
-        map.add(NGSILDQUERY_TIMEREL, "during");
-        map.add(NGSILDQUERY_TIME, "2020-01-23T14:20:00Z");
-        map.add(NGSILDQUERY_ENDTIME, "2020-01-24T14:40:00Z");
+        map.add(NGSILDQUERY_GEOREL, "within");
+        map.add(NGSILDQUERY_GEOMETRY, "Polygon");
+        map.add(NGSILDQUERY_COORDINATES,
+                "[[[8.68462,49.40606],[8.68550,49.40622],[8.68545,49.406344],[8.68457,49.40617],[8.6846,49.4060]]]");
+        map.add(NGSILDQUERY_GEOPROPERTY, "location");
         NGSILDQueryParams params = new NGSILDQueryParams(map);
 
-        JsonObject json = qm.toJson(params, true);
+        JsonObject json = qm.toJson(params, false);
 
         assertTrue(json.containsKey(NGSILDQUERY_ID));
         assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
-        assertTrue(json.containsKey(NGSILDQUERY_TIMEREL));
-        assertTrue(json.containsKey(NGSILDQUERY_TIME));
-        assertTrue(json.containsKey(NGSILDQUERY_ENDTIME));
+        assertTrue(json.containsKey(NGSILDQUERY_COORDINATES));
+        assertTrue(json.containsKey(NGSILDQUERY_GEOREL));
+        assertTrue(json.containsKey(NGSILDQUERY_GEOMETRY));
+        assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
+        assertFalse(json.containsKey(NGSILDQUERY_TIME));
+        assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
         testContext.completeNow();
     }
+*/
+  @Test
+  @Description("QueryMapper test for temporal queries(during)")
+  public void testToJson4TemporalDuringQuery(Vertx vertx, VertxTestContext testContext) {
+      MultiMap map = MultiMap.caseInsensitiveMultiMap();
+      map.add(NGSILDQUERY_ID, "id1,id2");
+      map.add(NGSILDQUERY_ATTRIBUTE, "attr1,attr2");
+      map.add(NGSILDQUERY_TIMEREL, "during");
+      map.add(NGSILDQUERY_TIME, "2020-01-23T14:20:00Z");
+      map.add(NGSILDQUERY_ENDTIME, "2020-01-24T14:40:00Z");
+      NGSILDQueryParams params = new NGSILDQueryParams(map);
+
+      JsonObject json = qm.toJson(params, true);
+
+      assertTrue(json.containsKey(NGSILDQUERY_ID));
+      assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
+      assertTrue(json.containsKey(NGSILDQUERY_TIMEREL));
+      assertTrue(json.containsKey(NGSILDQUERY_TIME));
+      assertTrue(json.containsKey(NGSILDQUERY_ENDTIME));
+      testContext.completeNow();
+  }
 
     @Test
     @Description("QueryMapper test for temporal queries(before)")
@@ -261,8 +262,8 @@ class QueryMapperTest {
                 "incomplete geo-query geoproperty, geometry, georel, coordinates all are mandatory.",
                 ex.getMessage());
         testContext.completeNow();
-    }*/
-
+    }
+*/
     @AfterEach
     public void teardown() {
 

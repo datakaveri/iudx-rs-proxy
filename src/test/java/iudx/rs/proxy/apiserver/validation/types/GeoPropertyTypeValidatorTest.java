@@ -55,7 +55,9 @@ class GeoPropertyTypeValidatorTest {
                 Arguments.of("bypass", true),
                 Arguments.of("1=1", true),
                 Arguments.of("AND XYZ=XYZ", true),
-                Arguments.of(random600Id, true));
+                Arguments.of(random600Id, true),
+                Arguments.of("", false)
+        );
     }
 
 

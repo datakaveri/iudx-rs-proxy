@@ -56,7 +56,7 @@ class DistanceTypeValidatorTest {
                 Arguments.of("5000", true),
                 Arguments.of("-1", true),
                 Arguments.of("3147483646", true),
-                Arguments.of("3147483647", true));
+                Arguments.of("", false));
     }
 
     @ParameterizedTest

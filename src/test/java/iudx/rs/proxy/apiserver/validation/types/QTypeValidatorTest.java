@@ -6,6 +6,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -77,6 +78,24 @@ class QTypeValidatorTest {
         assertTrue(qTypeValidator.isValid());
         testContext.completeNow();
     }
+    @ParameterizedTest
+    @MethodSource("validValues")
+    public void TestIsvlidValue(String value, boolean required, Vertx vertx,
+                                     VertxTestContext vertxTestContext){
+    qTypeValidator = new QTypeValidator(value, required);
+    assertTrue(qTypeValidator.isValidValue("1.2"));
 
+        vertxTestContext.completeNow();
+}
+
+    @ParameterizedTest
+    @MethodSource("validValues")
+    public void TestIsvlidValuethrow(String value, boolean required, Vertx vertx,
+                                     VertxTestContext vertxTestContext){
+        qTypeValidator = new QTypeValidator(value, required);
+        assertThrows(DxRuntimeException.class, () -> qTypeValidator.isValidValue("abc"));
+
+        vertxTestContext.completeNow();
+    }
 
 }

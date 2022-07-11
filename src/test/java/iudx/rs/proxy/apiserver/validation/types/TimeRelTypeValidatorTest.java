@@ -32,7 +32,8 @@ class TimeRelTypeValidatorTest {
                 Arguments.of("after", true),
                 Arguments.of("before", true),
                 Arguments.of("during", true),
-                Arguments.of("between", true));
+                Arguments.of("between", true),
+                Arguments.of(null, false));
     }
 
     @ParameterizedTest

@@ -27,7 +27,8 @@ class OptionsTypeValidatorTest {
                 Arguments.of("count1", true),
                 Arguments.of("AND 1=1", true),
                 Arguments.of("1==1", true),
-                    Arguments.of(null, true)
+                Arguments.of(null, true),
+                Arguments.of("", false)
         );
     }
 

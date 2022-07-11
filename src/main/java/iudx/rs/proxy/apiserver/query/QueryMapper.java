@@ -144,7 +144,7 @@ public class QueryMapper {
     if (isAttributeSearch) {
       searchType.append(ApiServerConstants.JSON_ATTRIBUTE_SEARCH);
     }
-    return searchType.substring(0, searchType.length() - 1);
+    return searchType.substring(0, searchType.length() );
   }
 
   JsonObject getQueryTerms(String queryTerms) {
