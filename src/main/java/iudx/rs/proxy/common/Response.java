@@ -71,6 +71,15 @@ public class Response {
   public String getType() {
     return type;
   }
+  public String getDetail(){
+    return  detail;
+  }
+  public int getStatus(){
+    return  status;
+  }
+  public String getTitle(){
+    return title;
+  }
 
   @Override
   public String toString() {

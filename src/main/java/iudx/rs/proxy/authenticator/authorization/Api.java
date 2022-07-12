@@ -6,7 +6,7 @@ public enum Api {
   ENTITIES("/ngsi-ld/v1/entities"),
   TEMPORAL("/ngsi-ld/v1/temporal/entities");
 
-  private final String endpoint;
+ private final String endpoint;
 
   Api(String endpoint) {
     this.endpoint = endpoint;

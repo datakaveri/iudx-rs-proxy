@@ -32,7 +32,7 @@ public class CatalogueService {
 
   private static final Logger LOGGER = LogManager.getLogger(CatalogueService.class);
 
-  private WebClient catWebClient;
+  public static WebClient catWebClient;
   private long cacheTimerid;
   private static String catHost;
   private static int catPort;;
@@ -53,13 +53,15 @@ public class CatalogueService {
 
     WebClientOptions options =
         new WebClientOptions().setTrustAll(true).setVerifyHost(false).setSsl(true);
-    catWebClient = WebClient.create(vertx, options);
+   // catWebClient = WebClient.create(vertx, options); // original code
+    if(catWebClient==null) {
+      catWebClient = WebClient.create(vertx, options);
+    }
     populateCache();
     cacheTimerid = vertx.setPeriodic(TimeUnit.DAYS.toMillis(1), handler -> {
       populateCache();
     });
   }
-
   /**
    * populate
    * 
