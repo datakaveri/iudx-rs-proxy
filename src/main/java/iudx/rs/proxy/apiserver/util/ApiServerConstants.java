@@ -167,7 +167,7 @@ public class ApiServerConstants {
   public static final Pattern ID_REGEX =
       Pattern.compile(
           "^[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
-
+  public static final String RESPONSE_SIZE="response_size";
 
   public static final double VALIDATION_ALLOWED_DIST = 1000.0;
   public static final int VALIDATION_PAGINATION_LIMIT_MAX = 5000;
