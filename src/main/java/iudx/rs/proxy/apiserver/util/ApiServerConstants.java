@@ -132,6 +132,8 @@ public class ApiServerConstants {
   public static final String API = "api";
   public static final String USER_ID = "userid";
 
+  public static final String RESPONSE_SIZE="response_size";
+
 
   // Geometry
   public static final String GEOM_POINT = "point";

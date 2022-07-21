@@ -5,6 +5,7 @@ import static iudx.rs.proxy.metering.util.Constants.DATABASE_IP;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_NAME;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_PASSWORD;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_PORT;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_TABLE_NAME;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_USERNAME;
 import static iudx.rs.proxy.metering.util.Constants.POOL_SIZE;
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +23,7 @@ public class MeteringVerticle extends AbstractVerticle {
   private String databaseName;
   private String databaseUserName;
   private String databasePassword;
+  private String databaseTableName;
   private int poolSize;
   private ServiceBinder binder;
   private MessageConsumer<JsonObject> consumer;
@@ -35,6 +37,7 @@ public class MeteringVerticle extends AbstractVerticle {
     databaseName = config().getString(DATABASE_NAME);
     databaseUserName = config().getString(DATABASE_USERNAME);
     databasePassword = config().getString(DATABASE_PASSWORD);
+    databaseTableName= config().getString(DATABASE_TABLE_NAME);
     poolSize = config().getInteger(POOL_SIZE);
 
     JsonObject propObj = new JsonObject();
@@ -43,6 +46,7 @@ public class MeteringVerticle extends AbstractVerticle {
     propObj.put(DATABASE_NAME, databaseName);
     propObj.put(DATABASE_USERNAME, databaseUserName);
     propObj.put(DATABASE_PASSWORD, databasePassword);
+    propObj.put(DATABASE_TABLE_NAME,databaseTableName);
     propObj.put(POOL_SIZE, poolSize);
 
     binder = new ServiceBinder(vertx);
