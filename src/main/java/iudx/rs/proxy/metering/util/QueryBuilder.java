@@ -1,5 +1,7 @@
 package iudx.rs.proxy.metering.util;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_TABLE_NAME;
 import static iudx.rs.proxy.metering.util.Constants.HEADER_OPTIONS;
 import static iudx.rs.proxy.metering.util.Constants.API;
 import static iudx.rs.proxy.metering.util.Constants.API_QUERY;
@@ -48,7 +50,7 @@ public class QueryBuilder {
     String providerID = request.getString(PROVIDER_ID);
     String consumerID = request.getString(CONSUMER_ID);
     String iid = request.getString(IID);
-
+    String databaseTableName = request.getString(DATABASE_TABLE_NAME);
     StringBuilder query, tempQuery;
 
     if (providerID != null && !checkProviderId(iid, providerID)) {
@@ -89,6 +91,7 @@ public class QueryBuilder {
         query =
             new StringBuilder(
                 PROVIDERID_TIME_INTERVAL_COUNT_QUERY
+                    .replace("$0",databaseTableName)
                     .replace("$1", Long.toString(fromTime))
                     .replace("$2", Long.toString(toTime))
                     .replace("$3", providerID));
@@ -96,6 +99,7 @@ public class QueryBuilder {
         query =
             new StringBuilder(
                 CONSUMERID_TIME_INTERVAL_COUNT_QUERY
+                    .replace("$0",databaseTableName)
                     .replace("$1", Long.toString(fromTime))
                     .replace("$2", Long.toString(toTime))
                     .replace("$3", userId));
@@ -105,6 +109,7 @@ public class QueryBuilder {
         query =
             new StringBuilder(
                 PROVIDERID_TIME_INTERVAL_READ_QUERY
+                    .replace("$0",databaseTableName)
                     .replace("$1", Long.toString(fromTime))
                     .replace("$2", Long.toString(toTime))
                     .replace("$3", providerID));
@@ -112,6 +117,7 @@ public class QueryBuilder {
         query =
             new StringBuilder(
                 CONSUMERID_TIME_INTERVAL_READ_QUERY
+                    .replace("$0",databaseTableName)
                     .replace("$1", Long.toString(fromTime))
                     .replace("$2", Long.toString(toTime))
                     .replace("$3", userId));
@@ -147,24 +153,28 @@ public class QueryBuilder {
     String providerID =
         resourceId.substring(0, resourceId.indexOf('/', resourceId.indexOf('/') + 1));
     String api = request.getString(API);
-    ZonedDateTime zst = ZonedDateTime.now();
+    String databaseTableName = request.getString(DATABASE_TABLE_NAME);
+    Long responseSize = request.getLong(RESPONSE_SIZE);
+    ZonedDateTime zst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
     long time = getEpochTime(zst);
     String isoTime =
         LocalDateTime.now()
-            .atZone(ZoneId.systemDefault())
+            .atZone(ZoneId.of("Asia/Kolkata"))
             .truncatedTo(ChronoUnit.SECONDS)
             .toString();
 
     StringBuilder query =
         new StringBuilder(
             WRITE_QUERY
+                .replace("$0", databaseTableName)
                 .replace("$1", primaryKey)
                 .replace("$2", api)
                 .replace("$3", userId)
                 .replace("$4", Long.toString(time))
                 .replace("$5", resourceId)
                 .replace("$6", isoTime)
-                .replace("$7", providerID));
+                .replace("$7", providerID)
+                .replace("$8", Long.toString(responseSize)));
 
     LOGGER.trace("Info: Query " + query);
     return new JsonObject().put(QUERY_KEY, query);

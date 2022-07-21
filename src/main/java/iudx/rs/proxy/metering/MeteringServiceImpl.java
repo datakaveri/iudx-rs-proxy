@@ -1,17 +1,18 @@
 package iudx.rs.proxy.metering;
 
 import static iudx.rs.proxy.metering.util.Constants.API;
+import static iudx.rs.proxy.metering.util.Constants.API_COLUMN;
 import static iudx.rs.proxy.metering.util.Constants.CONSUMER;
+import static iudx.rs.proxy.metering.util.Constants.COUNT_COLUMN;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_IP;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_NAME;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_PASSWORD;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_PORT;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_TABLE_NAME;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_USERNAME;
 import static iudx.rs.proxy.metering.util.Constants.HEADER_OPTIONS;
 import static iudx.rs.proxy.metering.util.Constants.ID;
 import static iudx.rs.proxy.metering.util.Constants.IUDX_PROVIDER_AUDIT_URL;
-import static iudx.rs.proxy.metering.util.Constants.API_COLUMN_NAME;
-import static iudx.rs.proxy.metering.util.Constants.COUNT_COLUMN_NAME;
 import static iudx.rs.proxy.metering.util.Constants.DURING;
 import static iudx.rs.proxy.metering.util.Constants.ENDPOINT;
 import static iudx.rs.proxy.metering.util.Constants.END_TIME;
@@ -22,16 +23,17 @@ import static iudx.rs.proxy.metering.util.Constants.MESSAGE;
 import static iudx.rs.proxy.metering.util.Constants.POOL_SIZE;
 import static iudx.rs.proxy.metering.util.Constants.PROVIDER_ID;
 import static iudx.rs.proxy.metering.util.Constants.QUERY_KEY;
-import static iudx.rs.proxy.metering.util.Constants.RESOURCE_ID_COLUMN_NAME;
+import static iudx.rs.proxy.metering.util.Constants.RESOURCEID_COLUMN;
+import static iudx.rs.proxy.metering.util.Constants.RESPONSE_SIZE_COLUMN;
 import static iudx.rs.proxy.metering.util.Constants.START_TIME;
 import static iudx.rs.proxy.metering.util.Constants.SUCCESS;
 import static iudx.rs.proxy.metering.util.Constants.TIME;
-import static iudx.rs.proxy.metering.util.Constants.TIME_COLUMN_NAME;
+import static iudx.rs.proxy.metering.util.Constants.TIME_COLUMN;
 import static iudx.rs.proxy.metering.util.Constants.TIME_NOT_FOUND;
 import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION;
 import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION_NOT_FOUND;
 import static iudx.rs.proxy.metering.util.Constants.TOTAL;
-import static iudx.rs.proxy.metering.util.Constants.USERID_COLUMN_NAME;
+import static iudx.rs.proxy.metering.util.Constants.USERID_COLUMN;
 import static iudx.rs.proxy.metering.util.Constants.USERID_NOT_FOUND;
 import static iudx.rs.proxy.metering.util.Constants.USER_ID;
 
@@ -55,6 +57,12 @@ import org.apache.logging.log4j.Logger;
 public class MeteringServiceImpl implements MeteringService {
 
   private static final Logger LOGGER = LogManager.getLogger(MeteringServiceImpl.class);
+  public final String _COUNT_COLUMN;
+  public final String _RESOURCE_ID_COLUMN;
+  public final String _API_COLUMN;
+  public final String _USERID_COLUMN;
+  public final String _TIME_COLUMN;
+  public final String _RESPONSE_SIZE_COLUMN;
   private final Vertx vertx;
   private final QueryBuilder queryBuilder = new QueryBuilder();
   PgConnectOptions connectOptions;
@@ -66,6 +74,7 @@ public class MeteringServiceImpl implements MeteringService {
   private String databaseName;
   private String databaseUserName;
   private String databasePassword;
+  private String databaseTableName;
   private int databasePoolSize;
   private ResponseBuilder responseBuilder;
 
@@ -77,6 +86,7 @@ public class MeteringServiceImpl implements MeteringService {
       databaseName = propObj.getString(DATABASE_NAME);
       databaseUserName = propObj.getString(DATABASE_USERNAME);
       databasePassword = propObj.getString(DATABASE_PASSWORD);
+      databaseTableName=propObj.getString(DATABASE_TABLE_NAME);
       databasePoolSize = propObj.getInteger(POOL_SIZE);
     }
 
@@ -93,6 +103,20 @@ public class MeteringServiceImpl implements MeteringService {
     this.poolOptions = new PoolOptions().setMaxSize(databasePoolSize);
     this.pool = PgPool.pool(vertxInstance, connectOptions, poolOptions);
     this.vertx = vertxInstance;
+
+    _COUNT_COLUMN =
+        COUNT_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
+    _RESOURCE_ID_COLUMN =
+        RESOURCEID_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
+    _API_COLUMN =
+        API_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
+    _USERID_COLUMN =
+        USERID_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
+    _TIME_COLUMN =
+        TIME_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
+    _RESPONSE_SIZE_COLUMN =
+        RESPONSE_SIZE_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".")
+            .toString();
   }
 
   @Override
@@ -132,6 +156,7 @@ public class MeteringServiceImpl implements MeteringService {
       handler.handle(Future.failedFuture(responseBuilder.getResponse().toString()));
       return this;
     }
+    request.put(DATABASE_TABLE_NAME,databaseTableName);
     query = queryBuilder.buildReadingQuery(request);
 
     if (query.containsKey(ERROR)) {
@@ -170,10 +195,10 @@ public class MeteringServiceImpl implements MeteringService {
               RowSet<Row> result = rows;
               for (Row rs : result) {
                 JsonObject temp = new JsonObject();
-                temp.put(ID, rs.getString(RESOURCE_ID_COLUMN_NAME));
-                temp.put(TIME, rs.getString(TIME_COLUMN_NAME));
-                temp.put(API, rs.getString(API_COLUMN_NAME));
-                temp.put(CONSUMER, rs.getString(USERID_COLUMN_NAME));
+                temp.put(ID, rs.getString(_RESOURCE_ID_COLUMN));
+                temp.put(TIME, rs.getString(_TIME_COLUMN));
+                temp.put(API, rs.getString(_API_COLUMN));
+                temp.put(CONSUMER, rs.getString(_USERID_COLUMN));
                 jsonArray.add(temp);
               }
 
@@ -202,8 +227,8 @@ public class MeteringServiceImpl implements MeteringService {
             rows -> {
               RowSet<Row> result = rows;
               for (Row rs : result) {
-                LOGGER.debug("COUNT: " + (rs.getInteger(COUNT_COLUMN_NAME)));
-                response.put(TOTAL, rs.getInteger(COUNT_COLUMN_NAME));
+                LOGGER.debug("COUNT: " + (rs.getInteger(_COUNT_COLUMN)));
+                response.put(TOTAL, rs.getInteger(_COUNT_COLUMN));
               }
               if (response.getInteger(TOTAL) == 0) {
                 responseBuilder = new ResponseBuilder(FAILED).setTypeAndTitle(204);
@@ -228,6 +253,7 @@ public class MeteringServiceImpl implements MeteringService {
   public MeteringService executeWriteQuery(
       JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
 
+    request.put(DATABASE_TABLE_NAME,databaseTableName);
     query = queryBuilder.buildWritingQuery(request);
 
     Future<JsonObject> result = writeInDatabase(query);

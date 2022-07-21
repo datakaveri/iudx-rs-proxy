@@ -16,6 +16,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
@@ -276,13 +277,16 @@ public class ApiServerVerticle extends AbstractVerticle {
         handler -> {
           if (handler.succeeded()) {
             LOGGER.info("Success: Search Success");
-            Future.future(fu -> updateAuditTable(context));
             if (handler.result().getLong("totalHits") == 0) {
               handleSuccessResponse(
                   response, ResponseType.NoContent.getCode(), handler.result().toString());
+              context.data().put(RESPONSE_SIZE, 0);
+              Future.future(fu -> updateAuditTable(context));
             } else {
               handleSuccessResponse(
                   response, ResponseType.Ok.getCode(), handler.result().toString());
+              context.data().put(RESPONSE_SIZE, response.bytesWritten());
+              Future.future(fu -> updateAuditTable(context));
             }
           } else if (handler.failed()) {
             LOGGER.error("Fail: Search Fail");
@@ -299,13 +303,16 @@ public class ApiServerVerticle extends AbstractVerticle {
         handler -> {
           if (handler.succeeded()) {
             LOGGER.info("Success: Count Success");
-            Future.future(fu -> updateAuditTable(context));
             if (handler.result().getJsonArray("results").getJsonObject(0).getLong("totalHits") == 0) {
               handleSuccessResponse(
                   response, ResponseType.NoContent.getCode(), handler.result().toString());
+              context.data().put(RESPONSE_SIZE, 0);
+              Future.future(fu -> updateAuditTable(context));
             } else {
               handleSuccessResponse(
                   response, ResponseType.Ok.getCode(), handler.result().toString());
+              context.data().put(RESPONSE_SIZE, response.bytesWritten());
+              Future.future(fu -> updateAuditTable(context));
             }
           } else if (handler.failed()) {
             LOGGER.error("Fail: Count Fail");
@@ -385,6 +392,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     request.put(USER_ID, authInfo.getValue(USER_ID));
     request.put(ID, authInfo.getValue(ID));
     request.put(API, authInfo.getValue(API_ENDPOINT));
+    request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
     meteringService.executeWriteQuery(
         request,
         handler -> {
