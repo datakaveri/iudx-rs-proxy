@@ -233,6 +233,28 @@
 					<systemPropertyVariables>
 						<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
 					</systemPropertyVariables>
+					<excludes>
+						<!--<exclude>**/*Util.class</exclude>-->
+						<exclude>**/*VertxEBProxy.class</exclude>
+						<exclude>**/Constants.class</exclude>
+						<exclude>**/*Verticle.class</exclude>
+						<exclude>iudx/rs/proxy/apiserver/*.class</exclude>
+						<exclude>iudx/rs/proxy/deploy/*.class</exclude>
+						<exclude>**/*AuthenticationService.class</exclude>
+						<exclude>**/*MeteringService.class</exclude>
+					 <exclude>**/*CacheService.class</exclude>
+						<exclude>**/*Method.class</exclude>
+						<exclude>**/*DatabaseService.class</exclude>
+						<exclude>**/*ApiServerConstants.class</exclude>
+						<exclude>**/*CacheServiceVertxProxyHandler.class</exclude>
+						<exclude>**/*MeteringServiceVertxProxyHandler.class</exclude>
+						<exclude>**/*AuthenticationServiceVertxProxyHandler.class</exclude>
+
+						<exclude>**/database/**</exclude>
+						<!-- <exclude>**/metering/**</exclude>-->
+
+
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>

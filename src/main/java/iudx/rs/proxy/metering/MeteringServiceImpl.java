@@ -133,6 +133,7 @@ public class MeteringServiceImpl implements MeteringService {
       return this;
     }
     query = queryBuilder.buildReadingQuery(request);
+    System.out.println("query-----"+query);
 
     if (query.containsKey(ERROR)) {
       LOGGER.error("Fail: Query returned with an error: " + query.getString(ERROR));
