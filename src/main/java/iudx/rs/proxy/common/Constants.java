@@ -7,6 +7,7 @@ public class Constants {
   public static final String CACHE_SERVICE_ADDRESS = "iudx.rs.proxy.cache.service";
   public static final String DATABASE_SERVICE_ADDRESS ="iudx.rs.proxy.database.service";
   public static final String METERING_SERVICE_ADDRESS = "iudx.rs.proxy.metering.service";
+  public static final String DATABROKER_SERVICE_ADDRESS = "iudx.rs.proxy.broker.service";
 
 
   // postgres queries
