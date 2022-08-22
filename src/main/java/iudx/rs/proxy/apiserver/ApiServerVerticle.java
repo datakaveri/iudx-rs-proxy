@@ -9,17 +9,15 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_CONSUMER_AUDIT_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_PROVIDER_AUDIT_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
-import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
+import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
@@ -28,7 +26,15 @@ import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
 import static iudx.rs.proxy.metering.util.Constants.RESULTS;
 import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
+import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 
+import java.util.Objects;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -59,12 +65,9 @@ import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
+import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Stream;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -81,16 +84,18 @@ public class ApiServerVerticle extends AbstractVerticle {
   private CatalogueService catalogueService;
   private DatabaseService databaseService;
   private MeteringService meteringService;
+  private DatabrokerService brokerService;
 
   @Override
   public void start() throws Exception {
     catalogueService = new CatalogueService(vertx, config());
     databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
+    brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
     router = Router.router(vertx);
     router.route().handler(
-            CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
+        CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
         .handler(responseHeaderHandler -> {
           responseHeaderHandler.response()
               .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
@@ -171,6 +176,37 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(this::getConsumerAuditDetail);
     router.get(IUDX_PROVIDER_AUDIT_URL).handler(AuthHandler.create(vertx))
         .handler(this::getProviderAuditDetail);
+
+    router
+        .get("/test/adapterQuery")
+        .handler(this::handeRPCTest)
+        .failureHandler(validationsFailureHandler);
+  }
+
+
+  private void handeRPCTest(RoutingContext routingContext) {
+    HttpServerRequest request = routingContext.request();
+    HttpServerResponse response = routingContext.response();
+    String instanceID = request.getHeader(HEADER_HOST);
+    MultiMap params = getQueryParams(routingContext, response).get();
+    NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
+    // create json
+    QueryMapper queryMapper = new QueryMapper();
+    JsonObject json = queryMapper.toJson(ngsildquery, true);
+
+    brokerService.executeAdapterQuery(json, handler -> {
+      if (handler.succeeded()) {
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .setStatusCode(200)
+            .end(handler.result().toString());
+      } else {
+        LOGGER.error(handler);
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .setStatusCode(400)
+            .end(handler.cause().getMessage().toString());
+      }
+
+    });
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
@@ -284,7 +320,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private void executeSearchQuery(RoutingContext context, JsonObject json,
-                                  HttpServerResponse response) {
+      HttpServerResponse response) {
     databaseService.searchQuery(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Search Success");
@@ -307,7 +343,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private void executeCountQuery(RoutingContext context, JsonObject json,
-                                 HttpServerResponse response) {
+      HttpServerResponse response) {
     databaseService.countQuery(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
@@ -329,7 +365,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private Optional<MultiMap> getQueryParams(RoutingContext routingContext,
-                                            HttpServerResponse response) {
+      HttpServerResponse response) {
     MultiMap queryParams = null;
     try {
       queryParams = MultiMap.caseInsensitiveMultiMap();
@@ -354,7 +390,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private void handleResponse(HttpServerResponse response, HttpStatusCode statusCode,
-                              ResponseUrn urn, String message) {
+      ResponseUrn urn, String message) {
     response.putHeader(CONTENT_TYPE, APPLICATION_JSON).setStatusCode(statusCode.getValue())
         .end(generateResponse(statusCode, urn, message).toString());
   }
