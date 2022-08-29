@@ -194,7 +194,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     QueryMapper queryMapper = new QueryMapper();
     JsonObject json = queryMapper.toJson(ngsildquery, true);
 
-    brokerService.executeAdapterQuery(json, handler -> {
+    brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
             .setStatusCode(200)

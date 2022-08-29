@@ -66,9 +66,11 @@ public class DatabrokerServiceImpl implements DatabrokerService {
         .replyTo(replyQueue)
         .build();
 
+    String routingKey = request.getJsonArray("id").getString(0);
+
     LOGGER.debug("queue declared : {}", replyQueue);
     Buffer buffer = Buffer.buffer(request.toString());
-    client.basicPublish("rpc-adapter-requests", "#", props, buffer, publishHandler -> {
+    client.basicPublish("rpc-adapter-requests", routingKey, props, buffer, publishHandler -> {
       if (publishHandler.succeeded()) {
         LOGGER.debug("published with cid: {}", corelationId);
         client.basicConsumer("rpc_responses", queueOption, rabbitMQConsumerResult -> {
@@ -159,15 +161,18 @@ public class DatabrokerServiceImpl implements DatabrokerService {
         .build();
 
     LOGGER.debug("queue declared : {}", replyQueue);
+    String routingKey = request.getJsonArray("id").getString(0);
+    LOGGER.debug("routing key : {}", routingKey);
     Buffer buffer = Buffer.buffer(request.toString());
-    Future<Void> publishFut = client.basicPublish("rpc-adapter-requests", "#", props, buffer);
+    Future<Void> publishFut =
+        client.basicPublish("rpc-adapter-requests", routingKey, props, buffer);
 
     client.basicConsumer(replyQueueName, queueOption, rabbitMQConsumerResult -> {
       if (rabbitMQConsumerResult.succeeded()) {
         // LOGGER.info("message consumed : {}", rabbitMQConsumerResult.result());
         RabbitMQConsumer rmqConsumer = rabbitMQConsumerResult.result();
 
-        long timerId = vertx.setTimer(5000, timeout -> {
+        long timerId = vertx.setTimer(10000, timeout -> {
           LOGGER.info("max wait time elapsed for consumer, cancelling consumer");
           rmqConsumer.cancel();
           JsonObject json = new JsonObject();
@@ -195,16 +200,16 @@ public class DatabrokerServiceImpl implements DatabrokerService {
             JsonObject json = new JsonObject(msg.body());
             LOGGER.debug("Got message: " + json);
             if (reply_correlationId.equals(corelationId)) {
-              LOGGER.info("ack mode");
               client.basicAck(deliveryTag, false, asyncResult -> {
-                LOGGER.info("response received for consumer, cancelling consumer");
+                LOGGER.info("[ACK] Response received for correlationId : {}, cancelling consumer",
+                    corelationId);
                 vertx.cancelTimer(timerId);
                 rmqConsumer.cancel();
                 handler.handle(Future.succeededFuture(json));
               });
             } else {
               client.basicNack(deliveryTag, true, true, resultHandler -> {
-                LOGGER.info("nack for corelationId : {}", reply_correlationId);
+                LOGGER.info("[Nack] corelationId : {}", reply_correlationId);
               });
             }
           } else {
