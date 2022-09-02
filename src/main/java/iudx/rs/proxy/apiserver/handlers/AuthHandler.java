@@ -5,11 +5,12 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_METHOD;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ENTITIES_URL_REGEX;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.EXPIRY;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_TOKEN;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IDS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_CONSUMER_AUDIT_URL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_PROVIDER_AUDIT_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_DETAIL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
@@ -38,7 +39,7 @@ public class AuthHandler implements Handler<RoutingContext> {
 
   private static final Logger LOGGER = LogManager.getLogger(AuthHandler.class);
 
-   static AuthenticationService authenticator;
+  static AuthenticationService authenticator;
   private final String AUTH_INFO = "authInfo";
   private HttpServerRequest request;
 
@@ -95,7 +96,6 @@ public class AuthHandler implements Handler<RoutingContext> {
             return;
           }
           context.next();
-          return;
         });
   }
 
@@ -127,7 +127,7 @@ public class AuthHandler implements Handler<RoutingContext> {
   /**
    * extract id from request (path/query or body )
    *
-   * @param ctx current routing context
+   * @param ctx     current routing context
    * @param forPath endpoint called for
    * @return id extraced fro path if present
    */
@@ -159,6 +159,10 @@ public class AuthHandler implements Handler<RoutingContext> {
       path = NGSILD_TEMPORAL_URL;
     } else if (url.matches(ENTITIES_URL_REGEX)) {
       path = NGSILD_ENTITIES_URL;
+    } else if (url.matches(IUDX_CONSUMER_AUDIT_URL)) {
+      path = IUDX_CONSUMER_AUDIT_URL;
+    } else if (url.matches(IUDX_PROVIDER_AUDIT_URL)) {
+      path = IUDX_PROVIDER_AUDIT_URL;
     }
     return path;
   }

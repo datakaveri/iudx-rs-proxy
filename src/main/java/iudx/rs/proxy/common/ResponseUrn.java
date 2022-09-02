@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 public enum ResponseUrn {
 
   SUCCESS_URN("urn:dx:rs:success", "successful operations"),
-  INVALID_PARAM_URN("urn:dx:rs:invalidParamameter", "Invalid parameter passed"),
+  INVALID_PARAM_URN("urn:dx:rs:invalidParameter", "Invalid parameter passed"),
   INVALID_GEO_REL_URN("urn:dx:rs:invalidGeoRel", "Invalid geo relation value"),
   INVALID_TEMPORAL_PARAM_URN("urn:dx:rs:invalidTemporalParam", "Invalid temporal parameter"),
   INVALID_TEMPORAL_REL_URN("urn:dx:rs:invalidTemporalRelationParam", "Invalid temporal param value"),
@@ -29,8 +29,9 @@ public enum ResponseUrn {
 
   // extra urn
   INVALID_ID_VALUE_URN("urn:dx:rs:invalidIdValue", "Invalid id"),
+  INVALID_PROVIDER_ID_VALUE_URN("urn:dx:rs:invalidIdValue", "Invalid id"),
   INVALID_PAYLOAD_FORMAT_URN("urn:dx:rs:invalidPayloadFormat", "Invalid json format in post request [schema mismatch]"),
-  INVALID_PARAM_VALUE_URN("urn:dx:rs:invalidParamameterValue", "Invalid parameter value passed"),
+  INVALID_PARAM_VALUE_URN("urn:dx:rs:invalidParameterValue", "Invalid parameter value passed"),
   BAD_REQUEST_URN("urn:dx:rs:badRequest","bad request parameter"),
   INVALID_HEADER_VALUE_URN("urn:dx:rs:invalidHeaderValue","Invalid header value"),
   DB_ERROR_URN("urn:dx:rs:DatabaseError","Database error"),

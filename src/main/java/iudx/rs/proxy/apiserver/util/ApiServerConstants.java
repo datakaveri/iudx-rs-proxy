@@ -1,10 +1,10 @@
 package iudx.rs.proxy.apiserver.util;
 
+import io.vertx.core.http.HttpMethod;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import io.vertx.core.http.HttpMethod;
 import java.util.regex.Pattern;
 
 public class ApiServerConstants {
@@ -34,17 +34,15 @@ public class ApiServerConstants {
   public static final String NGSILD_ENTITIES_URL = NGSILD_BASE_PATH + "/entities";
   public static final String ENTITIES_URL_REGEX = NGSILD_ENTITIES_URL + "(.*)";
   public static final String NGSILD_TEMPORAL_URL = NGSILD_BASE_PATH + "/temporal/entities";
-
+  // path regex
+  public static final String TEMPORAL_URL_REGEX = NGSILD_TEMPORAL_URL + "(.*)";
+  public static final String IUDX_CONSUMER_AUDIT_URL = NGSILD_BASE_PATH + "/consumer/audit";
   // date-time format
-
+  public static final String IUDX_PROVIDER_AUDIT_URL = NGSILD_BASE_PATH + "/provider/audit";
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
   public static final String ID = "id";
   public static final String IDS = "ids";
-
-  // path regex
-  public static final String TEMPORAL_URL_REGEX = NGSILD_TEMPORAL_URL + "(.*)";
-
   // ngsi-ld/IUDX query paramaters
   public static final String NGSILDQUERY_ID = "id";
   public static final String NGSILDQUERY_IDPATTERN = "idpattern";
@@ -61,10 +59,8 @@ public class ApiServerConstants {
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";
   public static final String NGSILDQUERY_TIMEPROPERTY = "timeproperty";
   public static final String NGSILDQUERY_MAXDISTANCE = "maxdistance";
-  public static final String NGSILDQUERY_MINDISTANCE = "mindistance";
   public static final String IUDXQUERY_OPTIONS = "options";
   public static final String NGSILDQUERY_ENTITIES = "entities";
-  public static final String NGSILDQUERY_GEOQ = "geoQ";
   public static final String NGSILDQUERY_TEMPORALQ = "temporalQ";
   public static final String NGSILDQUERY_TIME_PROPERTY = "timeProperty";
   public static final String NGSILDQUERY_FROM = "offset";
@@ -73,77 +69,29 @@ public class ApiServerConstants {
 
   //json fields
   public static final String JSON_INSTANCEID = "instanceID";
-  public static final String JSON_CONSUMER = "consumer";
-  public static final String JSON_PROVIDER = "provider";
   public static final String JSON_TYPE = "type";
-  public static final String JSON_NAME = "name";
   public static final String JSON_ENTITIES = "entities";
   public static final String JSON_ID = "id";
   public static final String JSON_ATTRIBUTE_FILTER = "attrs";
-  public static final String JSON_NEAR = "near";
-  public static final String JSON_LAT = "lat";
-  public static final String JSON_LON = "lon";
-  public static final String JSON_RADIUS = "radius";
-  public static final String JSON_GEOMETRY = "geometry";
-  public static final String JSON_COORDINATES = "coordinates";
-  public static final String JSON_GEOREL = "georel";
-  public static final String JSON_WITHIN = "within";
-  public static final String JSON_MAXDISTANCE = "maxdistance";
-  public static final String JSON_MINDISTANCE = "mindistance";
   public static final String JSON_DURING = "during";
   public static final String JSON_TIME = "time";
   public static final String JSON_ENDTIME = "endtime";
   public static final String JSON_TIMEREL = "timerel";
   public static final String JSON_ATTR_QUERY = "attr-query";
-  public static final String JSON_GEOPROPERTY = "geoproperty";
   public static final String JSON_ATTRIBUTE = "attribute";
   public static final String JSON_OPERATOR = "operator";
   public static final String JSON_VALUE = "value";
   public static final String JSON_TITLE = "title";
   public static final String JSON_DETAIL = "detail";
-  public static final String JSON_EXCHANGE_NAME = "exchangeName";
-  public static final String JSON_QUEUE_NAME = "queueName";
-  public static final String JSON_VHOST_NAME = "vHostName";
-  public static final String JSON_VHOST = "vHost";
-  public static final String JSON_VHOST_ID = "vhostId";
-  public static final String DOMAIN = "domain";
-  public static final String USERSHA = "userSha";
-  public static final String JSON_ALIAS = "alias";
-  public static final String JSON_STREAMING_TYPE = "streaming";
-  public static final String JSON_EXCHANGE = "exchange";
-  public static final String JSON_QUEUE = "queue";
-  public static final String JSON_USERNAME = "username";
-  public static final String JSON_APIKEY = "apiKey";
-  public static final String JSON_STATUS = "status";
-  public static final String JSON_STATUS_HEARTBEAT = "heartbeat";
-  public static final String JSON_STATUS_SERVERISSUE = "Server Issue";
-  public static final String JSON_STATUS_DATAISSUE = "Server Issue";
-  public static final String JSON_STREAMING_NAME = "test-streaming-name";
-  public static final String JSON_SUBS_ID = "subscriptionID";
   public static final String JSON_COUNT = "Count";
-  public static final String JSON_URL = "url";
-  public static final String JSON_METHOD = "method";
-  public static final String JSON_PASSWORD = "password";
-  public static final String RESOURCE_SERVER = "resourceServer";
-  public static final String RESOURCE_GROUP = "resourceGroup";
-  public static final String RESOURCE_NAME = "resourceName";
-  public static final String EXPIRY = "expiry";
   public static final String IID = "iid";
   public static final String API = "api";
   public static final String USER_ID = "userid";
 
-
-  // Geometry
-  public static final String GEOM_POINT = "point";
-
   // searchtype
   public static final String JSON_SEARCH_TYPE = "searchType";
   public static final String JSON_TEMPORAL_SEARCH = "temporalSearch_";
-  public static final String JSON_GEO_SEARCH = "geoSearch_";
-  public static final String JSON_RESPONSE_FILTER_SEARCH = "responseFilter_";
   public static final String JSON_ATTRIBUTE_SEARCH = "attributeSearch_";
-  public static final String JSON_LATEST_SEARCH = "latestSearch_";
-
 
   // request/response params
   public static final String CONTENT_TYPE = "content-type";
@@ -167,7 +115,7 @@ public class ApiServerConstants {
   public static final Pattern ID_REGEX =
       Pattern.compile(
           "^[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
-  public static final String RESPONSE_SIZE="response_size";
+  public static final String RESPONSE_SIZE = "response_size";
 
   public static final double VALIDATION_ALLOWED_DIST = 1000.0;
   public static final int VALIDATION_PAGINATION_LIMIT_MAX = 5000;
