@@ -50,6 +50,7 @@
       "meteringDatabasePort": 1234,
       "meteringDatabaseName": "",
       "meteringDatabaseUserName": "",
+      "meteringDatabaseTableName": "",
       "meteringDatabasePassword": "",
       "meteringPoolSize": 25
     }

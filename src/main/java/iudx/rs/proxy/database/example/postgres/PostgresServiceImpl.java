@@ -21,11 +21,9 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.serviceproxy.ServiceException;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
 import iudx.rs.proxy.common.Response;
 import iudx.rs.proxy.common.ResponseUrn;
-import iudx.rs.proxy.common.ServiceExceptionMessage;
 import iudx.rs.proxy.database.DatabaseService;
 
 public class PostgresServiceImpl implements DatabaseService {

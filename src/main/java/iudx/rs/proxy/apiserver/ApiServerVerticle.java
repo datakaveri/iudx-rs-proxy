@@ -19,6 +19,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_UR
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
+import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
@@ -63,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -97,6 +99,28 @@ public class ApiServerVerticle extends AbstractVerticle {
           responseHeaderHandler.next();
         });
 
+    HttpStatusCode[] statusCodes = HttpStatusCode.values();
+    Stream.of(statusCodes)
+        .forEach(
+            code -> {
+              router.errorHandler(
+                  code.getValue(),
+                  errorHandler -> {
+                    HttpServerResponse response = errorHandler.response();
+                    if (response.headWritten()) {
+                      try {
+                        response.close();
+                      } catch (RuntimeException e) {
+                        LOGGER.error("Error : " + e);
+                      }
+                      return;
+                    }
+                    response
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(code.getValue())
+                        .end(errorResponse(code));
+                  });
+            });
     router.route().handler(BodyHandler.create());
 
     isSSL = config().getBoolean("ssl");
