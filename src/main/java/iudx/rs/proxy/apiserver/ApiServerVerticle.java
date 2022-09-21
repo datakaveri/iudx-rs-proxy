@@ -18,6 +18,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_UR
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
+import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
@@ -68,6 +69,11 @@ import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
