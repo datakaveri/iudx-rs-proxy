@@ -1,0 +1,16 @@
+{
+	"dataBaseHost" : "",
+	"dataBasePort" : 0,
+	"dataBaseUser" : "",
+	"dataBasePassword" : "",
+	"index" : "",
+
+	"postgersDatabaseName" : "",
+	"postgersUser" : "",
+	"postgersPassword" : "",
+	"postgersHost" : "",
+	"postgersPort" : 0,
+	"postgreTableName": ""
+}
+
+
