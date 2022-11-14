@@ -1,22 +1,50 @@
 package iudx.rs.proxy.metering;
 
+import static iudx.rs.proxy.metering.util.Constants.API;
+import static iudx.rs.proxy.metering.util.Constants.CONSUMER_ID;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_IP;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_NAME;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_PASSWORD;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_PORT;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_TABLE_NAME;
+import static iudx.rs.proxy.metering.util.Constants.DATABASE_USERNAME;
+import static iudx.rs.proxy.metering.util.Constants.DETAIL;
+import static iudx.rs.proxy.metering.util.Constants.DURING;
+import static iudx.rs.proxy.metering.util.Constants.ENDPOINT;
+import static iudx.rs.proxy.metering.util.Constants.END_TIME;
+import static iudx.rs.proxy.metering.util.Constants.ID;
+import static iudx.rs.proxy.metering.util.Constants.IID;
+import static iudx.rs.proxy.metering.util.Constants.INVALID_DATE_DIFFERENCE;
+import static iudx.rs.proxy.metering.util.Constants.INVALID_DATE_TIME;
+import static iudx.rs.proxy.metering.util.Constants.INVALID_PROVIDER_ID;
+import static iudx.rs.proxy.metering.util.Constants.INVALID_PROVIDER_REQUIRED;
+import static iudx.rs.proxy.metering.util.Constants.POOL_SIZE;
+import static iudx.rs.proxy.metering.util.Constants.PROVIDER_ID;
+import static iudx.rs.proxy.metering.util.Constants.RESOURCE_ID;
+import static iudx.rs.proxy.metering.util.Constants.RESPONSE_LIMIT_EXCEED;
+import static iudx.rs.proxy.metering.util.Constants.RESPONSE_SIZE;
+import static iudx.rs.proxy.metering.util.Constants.START_TIME;
+import static iudx.rs.proxy.metering.util.Constants.SUCCESS;
+import static iudx.rs.proxy.metering.util.Constants.TIME_NOT_FOUND;
+import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION;
+import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION_NOT_FOUND;
+import static iudx.rs.proxy.metering.util.Constants.TITLE;
+import static iudx.rs.proxy.metering.util.Constants.USERID_NOT_FOUND;
+import static iudx.rs.proxy.metering.util.Constants.USER_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import iudx.rs.proxy.configuration.Configuration;
+import java.util.UUID;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.UUID;
-
-import static iudx.rs.proxy.metering.util.Constants.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(VertxExtension.class)
 class MeteringServiceImplTest {
@@ -41,13 +69,13 @@ class MeteringServiceImplTest {
     vertxObj = vertx;
     config = new Configuration();
     JsonObject dbConfig = config.configLoader(4, vertx);
-    databaseIP = dbConfig.getString("meteringDatabaseIP");
-    databasePort = dbConfig.getInteger("meteringDatabasePort");
-    databaseName = dbConfig.getString("meteringDatabaseName");
-    databaseUserName = dbConfig.getString("meteringDatabaseUserName");
-    databasePassword = dbConfig.getString("meteringDatabasePassword");
-    databasePoolSize = dbConfig.getInteger("meteringPoolSize");
-    databaseTableName = dbConfig.getString("meteringDatabaseTableName");
+    databaseIP = dbConfig.getString(DATABASE_IP);
+    databasePort = dbConfig.getInteger(DATABASE_PORT);
+    databaseName = dbConfig.getString(DATABASE_NAME);
+    databaseUserName = dbConfig.getString(DATABASE_USERNAME);
+    databasePassword = dbConfig.getString(DATABASE_PASSWORD);
+    databaseTableName = dbConfig.getString(DATABASE_TABLE_NAME);
+    databasePoolSize = dbConfig.getInteger(POOL_SIZE);
     meteringService = new MeteringServiceImpl(dbConfig, vertxObj);
     userId = UUID.randomUUID().toString();
     id = "89a36273d77dac4cf38114fca1bbe64392547f86";
@@ -56,13 +84,12 @@ class MeteringServiceImplTest {
 
   private JsonObject readConsumerRequest() {
     JsonObject jsonObject = new JsonObject();
-    jsonObject.put(USER_ID, "844e251b-574b-46e6-9247-f76f1f70a637");
-    jsonObject.put(RESOURCE_ID,
-        "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055");
-    jsonObject.put(START_TIME, "2022-03-20T05:30:00+05:30[Asia/Kolkata]");
-    jsonObject.put(END_TIME, "2022-03-30T02:00:00+05:30[Asia/Kolkata]");
+    jsonObject.put(USER_ID, "15c7506f-c800-48d6-adeb-0542b03947c6");
+    jsonObject.put(RESOURCE_ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/");
+    jsonObject.put(START_TIME, "2022-05-29T05:30:00+05:30[Asia/Kolkata]");
+    jsonObject.put(END_TIME, "2022-06-04T02:00:00+05:30[Asia/Kolkata]");
     jsonObject.put(TIME_RELATION, DURING);
-    jsonObject.put(API, "/ngsi-ld/v1/entities");
+    jsonObject.put(API, "/ngsi-ld/v1/subscription");
     jsonObject.put(ENDPOINT, "/ngsi-ld/v1/consumer/audit");
 
     return jsonObject;
@@ -103,7 +130,6 @@ class MeteringServiceImplTest {
                   testContext.completeNow();
                 })));
   }
-
 
 
   @Test
@@ -191,7 +217,7 @@ class MeteringServiceImplTest {
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response);
-                  assertTrue(response.getString(TITLE).equals(SUCCESS));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -208,7 +234,7 @@ class MeteringServiceImplTest {
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response);
-                  assertTrue(response.getString(TITLE).equals(SUCCESS));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -225,7 +251,7 @@ class MeteringServiceImplTest {
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response);
-                  assertTrue(response.getString(TITLE).equals(SUCCESS));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -241,7 +267,7 @@ class MeteringServiceImplTest {
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response);
-                  assertTrue(response.getString(TITLE).equals(SUCCESS));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -261,7 +287,8 @@ class MeteringServiceImplTest {
                 () -> {
                   LOGGER.debug(
                       "RESPONSE " + new JsonObject(response.getMessage()).getString(DETAIL));
-                  assertEquals(SUCCESS, new JsonObject(response.getMessage()).getString(TITLE));
+                  assertEquals(RESPONSE_LIMIT_EXCEED,
+                      new JsonObject(response.getMessage()).getString(DETAIL));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -276,12 +303,10 @@ class MeteringServiceImplTest {
 
     meteringService.executeReadQuery(
         jsonObject,
-        vertxTestContext.failing(
+        vertxTestContext.succeeding(
             response -> vertxTestContext.verify(
                 () -> {
-                  LOGGER.debug(
-                      "RESPONSE " + new JsonObject(response.getMessage()).getString(DETAIL));
-                  assertEquals(SUCCESS, new JsonObject(response.getMessage()).getString(TITLE));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -293,14 +318,14 @@ class MeteringServiceImplTest {
     request.put(USER_ID, "15c7506f-c800-48d6-adeb-0542b03947c6");
     request.put(ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/");
     request.put(API, "/ngsi-ld/v1/subscription");
-    request.put(RESPONSE_SIZE,12);
+    request.put(RESPONSE_SIZE, 12);
     meteringService.executeWriteQuery(
         request,
         vertxTestContext.succeeding(
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response.getString("title"));
-                  assertTrue(response.getString("title").equals("Success"));
+                  assertEquals(SUCCESS, response.getString("title"));
                   vertxTestContext.completeNow();
                 })));
   }
@@ -356,12 +381,11 @@ class MeteringServiceImplTest {
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response);
-                  assertTrue(response.getString(TITLE).equals(SUCCESS));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
 
-  @Disabled
   @Test
   @DisplayName("Testing count query for given time,api and providerId.")
   void readForGivenTimeApiAndProviderID(VertxTestContext vertxTestContext) {
@@ -375,9 +399,33 @@ class MeteringServiceImplTest {
             response -> vertxTestContext.verify(
                 () -> {
                   LOGGER.debug("RESPONSE" + response);
-                  assertTrue(response.getString(TITLE).equals(SUCCESS));
+                  assertEquals(SUCCESS, response.getString(TITLE));
                   vertxTestContext.completeNow();
                 })));
   }
 
+  @Test
+  @DisplayName("Testing read query for given time,api and resourceId where count > 10000")
+  void invalidReadForGivenTimeApiAndID(VertxTestContext vertxTestContext) {
+    JsonObject jsonObject = readConsumerRequest();
+    jsonObject.put(START_TIME, "2022-05-01T14:20:00+05:30[Asia/Kolkata]");
+    jsonObject.put(END_TIME, "2022-05-15T14:19:00+05:30[Asia/Kolkata]");
+    jsonObject.put(API, "/ngsi-ld/v1/entities");
+    jsonObject.put(RESOURCE_ID,
+        "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta");
+
+    meteringService.executeReadQuery(
+        jsonObject,
+        vertxTestContext.failing(
+            response ->
+                vertxTestContext.verify(
+                    () -> {
+                      LOGGER.debug("RESPONSE " + response);
+                      assertEquals(
+                          RESPONSE_LIMIT_EXCEED,
+                          new JsonObject(response.getMessage()).getString(DETAIL));
+                      vertxTestContext.completeNow();
+                    })));
+
+  }
 }

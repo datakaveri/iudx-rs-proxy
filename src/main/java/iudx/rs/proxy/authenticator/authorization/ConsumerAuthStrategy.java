@@ -1,8 +1,8 @@
 package iudx.rs.proxy.authenticator.authorization;
 
-import static iudx.rs.proxy.apiserver.util.RequestType.ENTITY;
 import static iudx.rs.proxy.authenticator.authorization.Api.ENTITIES;
 import static iudx.rs.proxy.authenticator.authorization.Api.TEMPORAL;
+import static iudx.rs.proxy.authenticator.authorization.Api.CONSUMER_AUDIT;
 import static iudx.rs.proxy.authenticator.authorization.Method.GET;
 
 import io.vertx.core.json.JsonArray;
@@ -23,6 +23,7 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     // api access list/rules
     List<AuthorizationRequest> apiAccessList = new ArrayList<>();
     apiAccessList.add(new AuthorizationRequest(GET, TEMPORAL));
+    apiAccessList.add(new AuthorizationRequest(GET, CONSUMER_AUDIT));
     apiAccessList.add(new AuthorizationRequest(GET, ENTITIES));
 
     consumerAuthorizationRules.put(IudxAccess.API.getAccess(), apiAccessList);

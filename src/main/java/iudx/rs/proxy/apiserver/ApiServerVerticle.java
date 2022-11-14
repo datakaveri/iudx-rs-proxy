@@ -10,6 +10,8 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_CONSUMER_AUDIT_URL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_PROVIDER_AUDIT_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
@@ -24,11 +26,15 @@ import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
+
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -61,6 +67,8 @@ import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
+
+import java.util.Objects;
 
 public class ApiServerVerticle extends AbstractVerticle {
 
@@ -109,8 +117,7 @@ public class ApiServerVerticle extends AbstractVerticle {
       keystore = config().getString("keystore");
       keystorePassword = config().getString("keystorePassword");
 
-      serverOptions
-          .setSsl(true)
+      serverOptions.setSsl(true)
           .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
 
     } else {
@@ -131,23 +138,21 @@ public class ApiServerVerticle extends AbstractVerticle {
     FailureHandler validationsFailureHandler = new FailureHandler();
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
-    router
-        .get(NGSILD_ENTITIES_URL)
-        .handler(entityValidationHandler)
-        .handler(AuthHandler.create(vertx))
-        .handler(this::handleEntitiesQuery)
+    router.get(NGSILD_ENTITIES_URL).handler(entityValidationHandler)
+        .handler(AuthHandler.create(vertx)).handler(this::handleEntitiesQuery)
         .failureHandler(validationsFailureHandler);
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
 
-    router
-        .get(NGSILD_TEMPORAL_URL)
-        .handler(temporalValidationHandler)
-        .handler(AuthHandler.create(vertx))
-        .handler(this::handleTemporalQuery)
+    router.get(NGSILD_TEMPORAL_URL).handler(temporalValidationHandler)
+        .handler(AuthHandler.create(vertx)).handler(this::handleTemporalQuery)
         .failureHandler(validationsFailureHandler);
 
+    router.get(IUDX_CONSUMER_AUDIT_URL).handler(AuthHandler.create(vertx))
+        .handler(this::getConsumerAuditDetail);
+    router.get(IUDX_PROVIDER_AUDIT_URL).handler(AuthHandler.create(vertx))
+        .handler(this::getProviderAuditDetail);
 
     router
         .get("/test/adapterQuery")
@@ -391,6 +396,88 @@ public class ApiServerVerticle extends AbstractVerticle {
     } catch (DecodeException ex) {
       LOGGER.error("ERROR : Expecting Json from backend service [ jsonFormattingException ]");
       handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
+    }
+  }
+
+  private Future<Void> getConsumerAuditDetail(RoutingContext routingContext) {
+    LOGGER.debug("Info: getConsumerAuditDetail Started. ");
+    Promise<Void> promise = Promise.promise();
+    JsonObject entries = new JsonObject();
+    JsonObject consumer = (JsonObject) routingContext.data().get("authInfo");
+    HttpServerRequest request = routingContext.request();
+    HttpServerResponse response = routingContext.response();
+
+    entries.put("userid", consumer.getString("userid"));
+    entries.put("endPoint", consumer.getString("apiEndpoint"));
+    entries.put("startTime", request.getParam("time"));
+    entries.put("endTime", request.getParam("endTime"));
+    entries.put("timeRelation", request.getParam("timerel"));
+    entries.put("options", request.headers().get("options"));
+    entries.put("resourceId", request.getParam("id"));
+    entries.put("api", request.getParam("api"));
+
+    {
+      LOGGER.debug(entries);
+      meteringService.executeReadQuery(entries, handler -> {
+        if (handler.succeeded()) {
+          LOGGER.info("Success: Search Success ");
+          if (Objects.equals(request.headers().get("options"), "count") && Integer.parseInt(
+              handler.result().getJsonArray(RESULTS).getJsonObject(0).getString(TOTAL_HITS)) == 0) {
+            handleSuccessResponse(response, ResponseType.NoContent.getCode(),
+                handler.result().toString());
+          } else {
+            LOGGER.debug("Table Reading Done.");
+            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+          }
+        } else if (handler.failed()) {
+          LOGGER.error("Fail: Search Fail " + handler.cause().getMessage());
+          LOGGER.debug(handler instanceof ServiceException);
+          processBackendResponse(response, handler.cause().getMessage());
+        }
+      });
+      return promise.future();
+    }
+  }
+
+  private Future<Void> getProviderAuditDetail(RoutingContext routingContext) {
+    LOGGER.trace("Info: getProviderAuditDetail Started.");
+    Promise<Void> promise = Promise.promise();
+    JsonObject entries = new JsonObject();
+    JsonObject provider = (JsonObject) routingContext.data().get("authInfo");
+    HttpServerRequest request = routingContext.request();
+    HttpServerResponse response = routingContext.response();
+
+    entries.put("endPoint", provider.getString("apiEndpoint"));
+    entries.put("userid", provider.getString("userid"));
+    entries.put("iid", provider.getString("iid"));
+    entries.put("startTime", request.getParam("time"));
+    entries.put("endTime", request.getParam("endTime"));
+    entries.put("timeRelation", request.getParam("timerel"));
+    entries.put("providerID", request.getParam("providerID"));
+    entries.put("consumerID", request.getParam("consumer"));
+    entries.put("resourceId", request.getParam("id"));
+    entries.put("api", request.getParam("api"));
+    entries.put("options", request.headers().get("options"));
+
+    {
+      LOGGER.debug(entries);
+      meteringService.executeReadQuery(entries, handler -> {
+        if (handler.succeeded()) {
+          LOGGER.info("Success: Search Success ");
+          if (Objects.equals(request.headers().get("options"), "count") && Integer.parseInt(
+              handler.result().getJsonArray(RESULTS).getJsonObject(0).getString(TOTAL_HITS)) == 0) {
+            handleSuccessResponse(response, ResponseType.NoContent.getCode(),
+                handler.result().toString());
+          } else {
+            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+          }
+        } else if (handler.failed()) {
+          LOGGER.error("Fail: Search Fail " + handler.cause().getMessage());
+          LOGGER.debug(handler instanceof ServiceException);
+          processBackendResponse(response, handler.cause().getMessage());
+        }
+      });
+      return promise.future();
     }
   }
 
