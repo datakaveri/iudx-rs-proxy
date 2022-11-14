@@ -18,6 +18,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_UR
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
+
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
@@ -25,11 +26,13 @@ import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
+
 import static iudx.rs.proxy.metering.util.Constants.RESULTS;
 import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
+
 
 import java.util.Objects;
 import java.util.List;
@@ -69,6 +72,7 @@ import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -76,6 +80,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 public class ApiServerVerticle extends AbstractVerticle {
 
