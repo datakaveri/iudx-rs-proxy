@@ -65,6 +65,7 @@ public class ApiServerConstants {
   public static final String NGSILDQUERY_TIME_PROPERTY = "timeProperty";
   public static final String NGSILDQUERY_FROM = "offset";
   public static final String NGSILDQUERY_SIZE = "limit";
+  public static final String NGSILDQUERY_GEOQ = "geoQ";
   public static final String IUDX_SEARCH_TYPE = "searchType";
 
   //json fields

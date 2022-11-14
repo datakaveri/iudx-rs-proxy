@@ -6,9 +6,14 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_SEARCH_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.MSG_BAD_QUERY;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ATTRIBUTE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_COORDINATES;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ENDTIME;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ENTITIES;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_FROM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOMETRY;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOPROPERTY;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOQ;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOREL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_IDPATTERN;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_OPERATOR;
@@ -32,7 +37,9 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/** This class is used to validate NGSI-LD request and request parameters. */
+/**
+ * This class is used to validate NGSI-LD request and request parameters.
+ */
 public class ParamsValidator {
   private static final Logger LOGGER = LogManager.getLogger(ParamsValidator.class);
   private static final Set<String> validParams = new HashSet<String>();
@@ -44,12 +51,16 @@ public class ParamsValidator {
     validParams.add(NGSILDQUERY_IDPATTERN);
     validParams.add(NGSILDQUERY_ATTRIBUTE);
     validParams.add(NGSLILDQUERY_Q);
-    validParams.add(NGSILDQUERY_OPERATOR);
+    validParams.add(NGSILDQUERY_GEOREL);
+    validParams.add(NGSILDQUERY_GEOMETRY);
+    validParams.add(NGSILDQUERY_COORDINATES);
+    validParams.add(NGSILDQUERY_GEOPROPERTY);
     validParams.add(NGSILDQUERY_TIMEPROPERTY);
     validParams.add(NGSILDQUERY_TIMEREL);
     validParams.add(NGSILDQUERY_TIME);
     validParams.add(NGSILDQUERY_ENDTIME);
     validParams.add(NGSILDQUERY_ENTITIES);
+    validParams.add(NGSILDQUERY_GEOQ);
     validParams.add(NGSILDQUERY_TEMPORALQ);
 
     // Need to check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
@@ -103,17 +114,15 @@ public class ParamsValidator {
 
     Promise<Boolean> promise = Promise.promise();
     if (validateParams(paramsMap)) {
-      isValidQueryWithFilters(paramsMap)
-          .onComplete(
-              handler -> {
-                if (handler.succeeded()) {
-                  {
-                    promise.complete(true);
-                  }
-                } else {
-                  promise.fail(handler.cause().getMessage());
-                }
-              });
+      isValidQueryWithFilters(paramsMap).onComplete(handler -> {
+        if (handler.succeeded()) {
+          {
+            promise.complete(true);
+          }
+        } else {
+          promise.fail(handler.cause().getMessage());
+        }
+      });
     } else {
       promise.fail(MSG_BAD_QUERY);
     }
@@ -123,23 +132,22 @@ public class ParamsValidator {
   private Future<Boolean> isValidQueryWithFilters(MultiMap paramsMap) {
     Promise<Boolean> promise = Promise.promise();
     Future<List<String>> filtersFuture = catalogueService.getApplicableFilters(paramsMap.get("id"));
-    filtersFuture.onComplete(
-        handler -> {
-          if (handler.succeeded()) {
-            List<String> filters = filtersFuture.result();
-            if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
-              promise.fail("Temporal parameters are not supported by RS group/Item.");
-              return;
-            }
-            if (isAttributeQuery(paramsMap) && !filters.contains("ATTR")) {
-              promise.fail("Attribute parameters are not supported by RS group/Item.");
-              return;
-            }
-            promise.complete(true);
-          } else {
-            promise.fail("fail to get filters for validation");
-          }
-        });
+    filtersFuture.onComplete(handler -> {
+      if (handler.succeeded()) {
+        List<String> filters = filtersFuture.result();
+        if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
+          promise.fail("Temporal parameters are not supported by RS group/Item.");
+          return;
+        }
+        if (isAttributeQuery(paramsMap) && !filters.contains("ATTR")) {
+          promise.fail("Attribute parameters are not supported by RS group/Item.");
+          return;
+        }
+        promise.complete(true);
+      } else {
+        promise.fail("fail to get filters for validation");
+      }
+    });
     return promise.future();
   }
 

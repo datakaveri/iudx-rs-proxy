@@ -9,10 +9,8 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_CONSUMER_AUDIT_URL;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_PROVIDER_AUDIT_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
@@ -20,6 +18,8 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_UR
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
+
+import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
@@ -27,14 +27,18 @@ import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
 
+import static iudx.rs.proxy.metering.util.Constants.RESULTS;
+import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
+import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 
+
+import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-
+import java.util.stream.Stream;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -68,7 +72,15 @@ import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 
-import java.util.Objects;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class ApiServerVerticle extends AbstractVerticle {
 
@@ -103,6 +115,28 @@ public class ApiServerVerticle extends AbstractVerticle {
           responseHeaderHandler.next();
         });
 
+    HttpStatusCode[] statusCodes = HttpStatusCode.values();
+    Stream.of(statusCodes)
+        .forEach(
+            code -> {
+              router.errorHandler(
+                  code.getValue(),
+                  errorHandler -> {
+                    HttpServerResponse response = errorHandler.response();
+                    if (response.headWritten()) {
+                      try {
+                        response.close();
+                      } catch (RuntimeException e) {
+                        LOGGER.error("Error : " + e);
+                      }
+                      return;
+                    }
+                    response
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(code.getValue())
+                        .end(errorResponse(code));
+                  });
+            });
     router.route().handler(BodyHandler.create());
 
     isSSL = config().getBoolean("ssl");

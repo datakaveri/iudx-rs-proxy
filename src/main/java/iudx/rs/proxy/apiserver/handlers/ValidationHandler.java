@@ -32,7 +32,6 @@ public class ValidationHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext context) {
-    LOGGER.info("In validator");
     ValidatorsHandlersFactory validationFactory = new ValidatorsHandlersFactory();
     MultiMap parameters = context.request().params();
     Map<String, String> pathParams = context.pathParams();
@@ -48,7 +47,6 @@ public class ValidationHandler implements Handler<RoutingContext> {
       }*/
     }
     context.next();
-    return;
   }
 
  /* private void error(RoutingContext context) {
