@@ -1,5 +1,7 @@
 package iudx.rs.proxy.databroker;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +19,7 @@ import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
 import iudx.rs.proxy.common.ResponseUrn;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
 
 
 public class DatabrokerServiceImpl implements DatabrokerService {
@@ -151,6 +154,8 @@ public class DatabrokerServiceImpl implements DatabrokerService {
       Handler<AsyncResult<JsonObject>> handler) {
     final String corelationId = UUID.randomUUID().toString();
     final String replyQueueName = UUID.randomUUID().toString();
+    Map<String, Object> map = new HashMap<>();
+    map.put(HEADER_PUBLIC_KEY,request.getValue(HEADER_PUBLIC_KEY));
     Future<DeclareOk> replyQueueDeclareFuture =
         client.queueDeclare(replyQueueName, false, true, true);
 
@@ -158,6 +163,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
     AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
         .correlationId(corelationId)
         .replyTo(replyQueueName)
+        .headers(map)
         .build();
 
     LOGGER.debug("queue declared : {}", replyQueue);
@@ -211,9 +217,11 @@ public class DatabrokerServiceImpl implements DatabrokerService {
               client.basicNack(deliveryTag, true, true, resultHandler -> {
                 LOGGER.info("[Nack] corelationId : {}", reply_correlationId);
               });
+              handler.handle(Future.failedFuture("Failed to get the response"));
             }
           } else {
             LOGGER.info("Empty message received by adapter");
+            handler.handle(Future.failedFuture("Empty message received by adapter"));
           }
         });
       } else {

@@ -1,41 +1,16 @@
 package iudx.rs.proxy.apiserver.validation;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ATTRIBUTE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_COORDINATES;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ENDTIME;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_FROM;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOMETRY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOPROPERTY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOREL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_MAXDISTANCE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_OPERATOR;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_SIZE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIME;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIMEREL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSLILDQUERY_Q;
-
 import io.vertx.core.MultiMap;
 import iudx.rs.proxy.apiserver.util.RequestType;
-import iudx.rs.proxy.apiserver.validation.types.AttrsTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.CoordinatesTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.DateTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.DistanceTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.GeoPropertyTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.GeoRelTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.GeometryTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.IDTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.OptionsTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.PaginationLimitTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.PaginationOffsetTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.QTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.TimeRelTypeValidator;
-import iudx.rs.proxy.apiserver.validation.types.Validator;
+import iudx.rs.proxy.apiserver.validation.types.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
 
 public class ValidatorsHandlersFactory {
 
@@ -81,6 +56,9 @@ public class ValidatorsHandlersFactory {
     validators.add(new PaginationLimitTypeValidator(parameters.get(NGSILDQUERY_SIZE), false));
     validators.add(new PaginationOffsetTypeValidator(parameters.get(NGSILDQUERY_FROM), false));
 
+    //optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY),false));
+
     return validators;
 
   }
@@ -103,6 +81,9 @@ public class ValidatorsHandlersFactory {
     validators.add(new TimeRelTypeValidator(parameters.get(NGSILDQUERY_TIMEREL), true));
     validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_TIME), true));
     validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_ENDTIME), false));
+
+    //optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY),false));
 
     return validators;
   }

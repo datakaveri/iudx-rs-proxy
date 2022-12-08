@@ -19,6 +19,8 @@ public class ApiServerConstants {
   public static final String HEADER_REFERER = "Referer";
   public static final String HEADER_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
   public static final String HEADER_OPTIONS = "options";
+  public static final String HEADER_PUBLIC_KEY = "publicKey";
+
 
   public static final Set<String> ALLOWED_HEADERS =
       new HashSet<>(Arrays.asList(HEADER_ACCEPT, HEADER_TOKEN, HEADER_CONTENT_LENGTH,
