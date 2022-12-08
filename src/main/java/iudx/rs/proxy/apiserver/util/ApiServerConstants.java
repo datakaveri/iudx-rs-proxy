@@ -116,6 +116,8 @@ public class ApiServerConstants {
   public static final Pattern ID_REGEX =
       Pattern.compile(
           "^[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
+  public static final String ENCODED_PUBLIC_KEY_REGEX = "^[a-zA-Z0-9_-]{42,43}={0,2}$";
+
   public static final String RESPONSE_SIZE = "response_size";
 
   public static final double VALIDATION_ALLOWED_DIST = 1000.0;
