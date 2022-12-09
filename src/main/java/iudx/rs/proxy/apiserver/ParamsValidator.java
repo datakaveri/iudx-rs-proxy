@@ -1,31 +1,5 @@
 package iudx.rs.proxy.apiserver;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_OPTIONS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_TOKEN;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_SEARCH_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.MSG_BAD_QUERY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ATTRIBUTE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_COORDINATES;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ENDTIME;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ENTITIES;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_FROM;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOMETRY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOPROPERTY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOQ;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_GEOREL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_IDPATTERN;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_OPERATOR;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_SIZE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TEMPORALQ;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIME;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIMEPROPERTY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIMEREL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TIME_PROPERTY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILDQUERY_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSLILDQUERY_Q;
-
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
@@ -36,6 +10,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 
 /**
  * This class is used to validate NGSI-LD request and request parameters.
@@ -79,6 +55,8 @@ public class ParamsValidator {
     validHeaders.add(HEADER_TOKEN);
     validHeaders.add("User-Agent");
     validHeaders.add("Content-Type");
+    validHeaders.add(HEADER_PUBLIC_KEY);
+
   }
 
   private final CatalogueService catalogueService;

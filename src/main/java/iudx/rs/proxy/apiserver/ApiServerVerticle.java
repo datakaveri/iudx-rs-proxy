@@ -1,22 +1,8 @@
 package iudx.rs.proxy.apiserver;
 
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_HEADERS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_METHODS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_CONSUMER_AUDIT_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_PROVIDER_AUDIT_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
@@ -30,8 +16,6 @@ import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
 import static iudx.rs.proxy.metering.util.Constants.RESULTS;
 import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
 
 
 import java.util.Objects;
@@ -257,9 +241,9 @@ public class ApiServerVerticle extends AbstractVerticle {
             json.put("applicableFilters", filtersHandler.result());
             if (json.containsKey(IUDXQUERY_OPTIONS) &&
                 JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
-              executeCountQuery(routingContext, json, response);
+              adapterResponseForCountQuery(routingContext, json, response);
             } else {
-              executeSearchQuery(routingContext, json, response);
+              adapterResponseForSearchQuery(routingContext, json, response);
             }
           } else if (validationHandler.failed()) {
             LOGGER.error("Fail: Validation failed");
@@ -314,9 +298,9 @@ public class ApiServerVerticle extends AbstractVerticle {
             json.put("applicableFilters", filtersHandler.result());
             if (json.containsKey(IUDXQUERY_OPTIONS) &&
                 JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
-              executeCountQuery(routingContext, json, response);
+              adapterResponseForCountQuery(routingContext, json, response);
             } else {
-              executeSearchQuery(routingContext, json, response);
+              adapterResponseForSearchQuery(routingContext, json, response);
             }
           } else {
             LOGGER.error("catalogue item/group doesn't have filters.");
@@ -375,6 +359,58 @@ public class ApiServerVerticle extends AbstractVerticle {
     });
   }
 
+  /**
+   * To get encrypted response from the adapter
+   * @param context Routing Context
+   * @param json Count Request
+   * @param response Encrypted data within the results
+   */
+  private void adapterResponseForCountQuery(RoutingContext context, JsonObject json,
+                                            HttpServerResponse response) {
+//    json.put("publicKey", "Some_value");
+
+    String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
+    json.put(HEADER_PUBLIC_KEY, publicKey);
+    brokerService.executeAdapterQueryRPC(json, handler -> {
+      if (handler.succeeded()) {
+        LOGGER.info("Success: Count Success");
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setStatusCode(200)
+                .end(handler.result().toString());
+      } else {
+        LOGGER.error("Fail: Count Fail");
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setStatusCode(400)
+                .end(handler.cause().getMessage());
+      }
+    });
+  }
+
+  /**
+   * To get encrypted response from the adapter
+   * @param context Routing Context
+   * @param json Search Request
+   * @param response Encrypted data within the results
+   */
+  private void adapterResponseForSearchQuery(RoutingContext context, JsonObject json,
+                                             HttpServerResponse response) {
+    String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
+    json.put(HEADER_PUBLIC_KEY, publicKey);
+    brokerService.executeAdapterQueryRPC(json, handler -> {
+      if (handler.succeeded()) {
+        LOGGER.info("Success: Search Success");
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setStatusCode(200)
+                .end(handler.result().toString());
+      } else {
+        LOGGER.error("Fail: Search Fail");
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setStatusCode(400)
+                .end(handler.cause().getMessage());
+      }
+    });
+
+  }
   private Optional<MultiMap> getQueryParams(RoutingContext routingContext,
       HttpServerResponse response) {
     MultiMap queryParams = null;

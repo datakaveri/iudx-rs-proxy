@@ -16,6 +16,8 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
+
 public class ValidationHandler implements Handler<RoutingContext> {
 
 
@@ -35,6 +37,7 @@ public class ValidationHandler implements Handler<RoutingContext> {
     ValidatorsHandlersFactory validationFactory = new ValidatorsHandlersFactory();
     MultiMap parameters = context.request().params();
     Map<String, String> pathParams = context.pathParams();
+    parameters.set(HEADER_PUBLIC_KEY,context.request().getHeader(HEADER_PUBLIC_KEY));
     parameters.addAll(pathParams);
     
     List<Validator> validations = validationFactory.build(requestType, parameters);
