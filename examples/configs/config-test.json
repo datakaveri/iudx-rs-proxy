@@ -15,7 +15,8 @@
       "verticleInstances": 8,
       "catServerHost": "",
       "catServerPort": 1,
-      "port": 1
+      "port": 1,
+      "basePath": ""
     },
     {
       "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",

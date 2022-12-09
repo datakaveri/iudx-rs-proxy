@@ -33,14 +33,14 @@ public class ApiServerConstants {
 
   //path regex
   public static final String NGSILD_BASE_PATH = "/ngsi-ld/v1";
-  public static final String NGSILD_ENTITIES_URL = NGSILD_BASE_PATH + "/entities";
+  public static final String NGSILD_ENTITIES_URL = "/entities";
   public static final String ENTITIES_URL_REGEX = NGSILD_ENTITIES_URL + "(.*)";
-  public static final String NGSILD_TEMPORAL_URL = NGSILD_BASE_PATH + "/temporal/entities";
+  public static final String NGSILD_TEMPORAL_URL ="/temporal/entities";
   // path regex
   public static final String TEMPORAL_URL_REGEX = NGSILD_TEMPORAL_URL + "(.*)";
-  public static final String IUDX_CONSUMER_AUDIT_URL = NGSILD_BASE_PATH + "/consumer/audit";
+  public static final String IUDX_CONSUMER_AUDIT_URL =  "/consumer/audit";
   // date-time format
-  public static final String IUDX_PROVIDER_AUDIT_URL = NGSILD_BASE_PATH + "/provider/audit";
+  public static final String IUDX_PROVIDER_AUDIT_URL =  "/provider/audit";
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
   public static final String ID = "id";

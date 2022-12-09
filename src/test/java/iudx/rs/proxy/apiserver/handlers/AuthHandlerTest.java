@@ -76,7 +76,7 @@ class AuthHandlerTest {
     @Test
     public void testCreate(VertxTestContext vertxTestContext) {
         AuthHandler.authenticator = mock(AuthenticationService.class);
-        assertNotNull(AuthHandler.create(Vertx.vertx()));
+        assertNotNull(AuthHandler.create(Vertx.vertx(),jsonObject));
         vertxTestContext.completeNow();
     }
      @Test

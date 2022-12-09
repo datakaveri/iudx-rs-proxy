@@ -42,9 +42,10 @@ public class AuthHandler implements Handler<RoutingContext> {
   static AuthenticationService authenticator;
   private final String AUTH_INFO = "authInfo";
   private HttpServerRequest request;
-
-  public static AuthHandler create(Vertx vertx) {
+  private static String basePath;
+  public static AuthHandler create(Vertx vertx, JsonObject config) {
     authenticator = AuthenticationService.createProxy(vertx, AUTH_SERVICE_ADDRESS);
+    basePath = config.getString("basePath");
     return new AuthHandler();
   }
 
@@ -155,14 +156,14 @@ public class AuthHandler implements Handler<RoutingContext> {
   private String getNormalizedPath(String url) {
     LOGGER.debug("URL : " + url);
     String path = null;
-    if (url.matches(TEMPORAL_URL_REGEX)) {
-      path = NGSILD_TEMPORAL_URL;
-    } else if (url.matches(ENTITIES_URL_REGEX)) {
-      path = NGSILD_ENTITIES_URL;
-    } else if (url.matches(IUDX_CONSUMER_AUDIT_URL)) {
-      path = IUDX_CONSUMER_AUDIT_URL;
-    } else if (url.matches(IUDX_PROVIDER_AUDIT_URL)) {
-      path = IUDX_PROVIDER_AUDIT_URL;
+    if (url.matches(basePath + TEMPORAL_URL_REGEX)) {
+      path = basePath + NGSILD_TEMPORAL_URL;
+    } else if (url.matches(basePath + ENTITIES_URL_REGEX)) {
+      path = basePath + NGSILD_ENTITIES_URL;
+    } else if (url.matches(basePath + IUDX_CONSUMER_AUDIT_URL)) {
+      path = basePath + IUDX_CONSUMER_AUDIT_URL;
+    } else if (url.matches(basePath + IUDX_PROVIDER_AUDIT_URL)) {
+      path = basePath + IUDX_PROVIDER_AUDIT_URL;
     }
     return path;
   }

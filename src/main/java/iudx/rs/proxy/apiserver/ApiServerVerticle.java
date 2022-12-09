@@ -80,7 +80,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   private DatabaseService databaseService;
   private MeteringService meteringService;
   private DatabrokerService brokerService;
-
+  private String basePath;
   @Override
   public void start() throws Exception {
     catalogueService = new CatalogueService(vertx, config());
@@ -88,6 +88,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
+    basePath = config().getString("basePath");
     router = Router.router(vertx);
     router.route().handler(
         CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
@@ -156,20 +157,20 @@ public class ApiServerVerticle extends AbstractVerticle {
     FailureHandler validationsFailureHandler = new FailureHandler();
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
-    router.get(NGSILD_ENTITIES_URL).handler(entityValidationHandler)
+    router.get(basePath + NGSILD_ENTITIES_URL).handler(entityValidationHandler)
         .handler(AuthHandler.create(vertx)).handler(this::handleEntitiesQuery)
         .failureHandler(validationsFailureHandler);
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
 
-    router.get(NGSILD_TEMPORAL_URL).handler(temporalValidationHandler)
+    router.get(basePath + NGSILD_TEMPORAL_URL).handler(temporalValidationHandler)
         .handler(AuthHandler.create(vertx)).handler(this::handleTemporalQuery)
         .failureHandler(validationsFailureHandler);
 
-    router.get(IUDX_CONSUMER_AUDIT_URL).handler(AuthHandler.create(vertx))
+    router.get(basePath + IUDX_CONSUMER_AUDIT_URL).handler(AuthHandler.create(vertx))
         .handler(this::getConsumerAuditDetail);
-    router.get(IUDX_PROVIDER_AUDIT_URL).handler(AuthHandler.create(vertx))
+    router.get(basePath + IUDX_PROVIDER_AUDIT_URL).handler(AuthHandler.create(vertx))
         .handler(this::getProviderAuditDetail);
 
     router
