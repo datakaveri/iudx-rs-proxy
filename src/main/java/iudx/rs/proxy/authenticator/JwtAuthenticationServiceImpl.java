@@ -137,7 +137,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   Future<String> isOpenResource(String id) {
     LOGGER.trace("isOpenResource() started");
     Promise<String> promise = Promise.promise();
-
     String ACL = resourceIdCache.getIfPresent(id);
     if (ACL != null) {
       LOGGER.debug("Cache Hit");

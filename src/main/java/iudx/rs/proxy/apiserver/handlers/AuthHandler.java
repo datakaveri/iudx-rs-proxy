@@ -1,23 +1,6 @@
 package iudx.rs.proxy.apiserver.handlers;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_METHOD;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ENTITIES_URL_REGEX;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_TOKEN;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IDS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_CONSUMER_AUDIT_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDX_PROVIDER_AUDIT_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_DETAIL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_ENTITIES_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.NGSILD_TEMPORAL_URL;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TEMPORAL_URL_REGEX;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.common.Constants.AUTH_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TOKEN_URN;
 import static iudx.rs.proxy.common.ResponseUrn.RESOURCE_NOT_FOUND_URN;
@@ -27,6 +10,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import iudx.rs.proxy.authenticator.AuthenticationService;
 import iudx.rs.proxy.common.HttpStatusCode;
@@ -51,13 +35,17 @@ public class AuthHandler implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext context) {
     request = context.request();
-    JsonObject requestJson = context.getBodyAsJson();
 
-    if (requestJson == null) {
-      requestJson = new JsonObject();
+    RequestBody requestBody = context.body();
+    JsonObject requestJson=null;
+    if(request!=null) {
+      if(requestBody.asJsonObject()!=null) {
+        requestJson=requestBody.asJsonObject().copy();
+      }
     }
-
-    LOGGER.debug("Info : path " + request.path());
+    if(requestJson==null) {
+      requestJson=new JsonObject();
+    }
 
     String token = request.headers().get(HEADER_TOKEN);
     final String path = getNormalizedPath(request.path());
@@ -72,7 +60,7 @@ public class AuthHandler implements Handler<RoutingContext> {
     LOGGER.debug("Info :" + context.request().path());
     LOGGER.debug("Info :" + context.request().path().split("/").length);
 
-    String id = getId(path);
+    String id = getId(context);
     authInfo.put(ID, id);
 
     JsonArray ids = new JsonArray();
@@ -80,9 +68,7 @@ public class AuthHandler implements Handler<RoutingContext> {
     for (String i : idArray) {
       ids.add(i);
     }
-
     requestJson.put(IDS, ids);
-
     authenticator.tokenIntrospect(
         requestJson,
         authInfo,
@@ -131,19 +117,36 @@ public class AuthHandler implements Handler<RoutingContext> {
    * @param forPath endpoint called for
    * @return id extraced fro path if present
    */
-  private String getId(String path) {
-
-    String pathId = getId4rmRequest();
-    String id = "";
-    if (pathId != null && !pathId.isBlank()) {
-      id = pathId;
-    }
+  private String getId(RoutingContext context) {
+    String paramId = getId4rmRequest();
+    String bodyId = getId4rmBody(context);
+    String id;
+      if (paramId != null && !paramId.isBlank()) {
+        id = paramId;
+      } else {
+        id = bodyId;
+      }
     return id;
   }
 
   private String getId4rmRequest() {
     LOGGER.info("from request " + request.getParam(ID));
     return request.getParam(ID);
+  }
+
+  private String getId4rmBody(RoutingContext context) {
+    JsonObject body = context.body().asJsonObject();
+    String id = null;
+    if (body != null) {
+      JsonArray array = body.getJsonArray(JSON_ENTITIES);
+      if (array != null) {
+        JsonObject json = array.getJsonObject(0);
+        if (json != null) {
+          id = json.getString(ID);
+        }
+      }
+    }
+    return id;
   }
 
   /**
@@ -163,6 +166,10 @@ public class AuthHandler implements Handler<RoutingContext> {
       path = IUDX_CONSUMER_AUDIT_URL;
     } else if (url.matches(IUDX_PROVIDER_AUDIT_URL)) {
       path = IUDX_PROVIDER_AUDIT_URL;
+    } else if (url.matches(NGSILD_POST_ENTITIES_QUERY_PATH)) {
+      path = NGSILD_POST_ENTITIES_QUERY_PATH;
+    }else if(url.matches(NGSILD_POST_TEMPORAL_QUERY_PATH)){
+      path = NGSILD_POST_TEMPORAL_QUERY_PATH;
     }
     return path;
   }

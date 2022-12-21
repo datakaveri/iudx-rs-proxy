@@ -57,7 +57,7 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
     assertTrue(json.getJsonArray(NGSILDQUERY_ATTRIBUTE) instanceof JsonArray);
     testContext.completeNow();
 }
-   /* @Test
+  /*  @Test
     @Description("QueryMapper test for Circle geo-query")
     public void testToJson4CircleQuery(Vertx vertx, VertxTestContext testContext) {
         // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
@@ -80,8 +80,8 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
         testContext.completeNow();
     }
-
 */
+
   /*  @Test
     @Description("QueryMapper test for geo-query")
     public void testToJson4GeoQuery(Vertx vertx, VertxTestContext testContext) {
@@ -242,7 +242,7 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         testContext.completeNow();
     }
 
-   /* @Test
+   @Test
     @Description("QueryMapper test for invalid geo-query")
     public void testIncompleteGeoQuery(Vertx vertx, VertxTestContext testContext) {
         // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
@@ -261,6 +261,31 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         assertEquals(
                 "incomplete geo-query geoproperty, geometry, georel, coordinates all are mandatory.",
                 ex.getMessage());
+        testContext.completeNow();
+    }
+    /*@Test
+    @Description("QueryMapper test for Circle geo-query")
+    public void testToJson4CircleQuery(Vertx vertx, VertxTestContext testContext) {
+        // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
+        MultiMap map = MultiMap.caseInsensitiveMultiMap();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put(NGSILDQUERY_ID, "id1");
+        jsonObject.put(NGSILDQUERY_ATTRIBUTE, "attr1");
+        jsonObject.put(NGSILDQUERY_GEOREL, "near;maxdistance=360");
+        jsonObject.put(NGSILDQUERY_GEOMETRY, "point");
+        jsonObject.put(NGSILDQUERY_COORDINATES, "[8.6846,49.40606]");
+        jsonObject.put(NGSILDQUERY_GEOPROPERTY, "location");
+        NGSILDQueryParams params = new NGSILDQueryParams(jsonObject);
+
+        JsonObject json = qm.toJson(params, false);
+        System.out.println("json: "+json);
+
+        assertTrue(json.containsKey(JSON_LAT));
+        assertTrue(json.containsKey(JSON_LON));
+        assertTrue(json.containsKey(JSON_RADIUS));
+        assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
+        assertFalse(json.containsKey(NGSILDQUERY_TIME));
+        assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
         testContext.completeNow();
     }
 */

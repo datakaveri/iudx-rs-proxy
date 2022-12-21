@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -56,6 +57,8 @@ class AuthHandlerTest {
 
     AuthHandler authHandler;
     JsonObject jsonObject;
+    @Mock
+    RequestBody requestBody;
 
     @BeforeEach
     public void setUp(VertxTestContext vertxTestContext) {
@@ -80,15 +83,16 @@ class AuthHandlerTest {
         vertxTestContext.completeNow();
     }
      @Test
-    @DisplayName("Test handler for succeeded authHandler")
-    public void testHandleSuccess( VertxTestContext vertxTestContext){
-        when(routingContext.getBodyAsJson()).thenReturn(jsonObject);
-        when(httpServerRequest.path()).thenReturn("Dummy url");
-        AuthHandler.authenticator = mock(AuthenticationService.class);
-        when(httpServerRequest.headers()).thenReturn(map);
-        when(map.get(anyString())).thenReturn("Dummy Token");
-        when(asyncResult.succeeded()).thenReturn(true);
-        when(asyncResult.result()).thenReturn(jsonObject);
+     @DisplayName("Test handler for succeeded authHandler")
+     public void testHandleSuccess(VertxTestContext vertxTestContext) {
+         when(routingContext.body()).thenReturn(requestBody);
+         when(requestBody.asJsonObject()).thenReturn(jsonObject);
+         when(httpServerRequest.path()).thenReturn("Dummy url");
+         AuthHandler.authenticator = mock(AuthenticationService.class);
+         when(httpServerRequest.headers()).thenReturn(map);
+         when(map.get(anyString())).thenReturn("Dummy Token");
+         when(asyncResult.succeeded()).thenReturn(true);
+         when(asyncResult.result()).thenReturn(jsonObject);
 
         doAnswer(new Answer<AsyncResult<JsonObject>>() {
             @Override
@@ -104,7 +108,7 @@ class AuthHandlerTest {
         assertEquals("Dummy Token", routingContext.request().headers().get(ApiServerConstants.HEADER_TOKEN));
         assertEquals("GET", routingContext.request().method().toString());*/
         verify(AuthHandler.authenticator, times(1)).tokenIntrospect(any(), any(), any());
-        verify(routingContext, times(1)).getBodyAsJson();
+        verify(routingContext, times(2)).body();
 
         vertxTestContext.completeNow();
     }
@@ -117,7 +121,8 @@ class AuthHandlerTest {
         jsonObject.put("Dummy Key", "Dummy Value");
 
 
-        when(routingContext.getBodyAsJson()).thenReturn(jsonObject);
+        when(routingContext.body()).thenReturn(requestBody);
+        when(requestBody.asJsonObject()).thenReturn(jsonObject);
         when(httpServerRequest.path()).thenReturn("Dummy Path");
         AuthHandler.authenticator = mock(AuthenticationService.class);
         when(httpServerRequest.headers()).thenReturn(map);
@@ -144,7 +149,7 @@ class AuthHandlerTest {
         verify(httpServerResponse, times(1)).setStatusCode(anyInt());
         verify(httpServerResponse, times(1)).putHeader(anyString(), anyString());
         verify(httpServerResponse, times(1)).end(anyString());
-        verify(routingContext, times(1)).getBodyAsJson();
+        verify(routingContext, times(2)).body();
 
         vertxTestContext.completeNow();
 
@@ -158,7 +163,8 @@ class AuthHandlerTest {
         JsonObject jsonObject = mock(JsonObject.class);
         Map<String, String> stringMap = mock(Map.class);
 
-        when(routingContext.getBodyAsJson()).thenReturn(jsonObject);
+        when(routingContext.body()).thenReturn(requestBody);
+        when(requestBody.asJsonObject()).thenReturn(jsonObject);
         when(httpServerRequest.path()).thenReturn(str);
 
        when(routingContext.pathParams()).thenReturn(stringMap);
@@ -192,7 +198,7 @@ class AuthHandlerTest {
         verify(httpServerResponse, times(1)).setStatusCode(anyInt());
         verify(httpServerResponse, times(1)).putHeader(anyString(), anyString());
         verify(httpServerResponse, times(1)).end(anyString());
-        verify(routingContext, times(1)).getBodyAsJson();
+        verify(routingContext, times(2)).body();
 
         vertxTestContext.completeNow();
     }

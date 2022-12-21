@@ -42,10 +42,11 @@ import java.util.UUID;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
+@Disabled
 @ExtendWith(VertxExtension.class)
 class MeteringServiceImplTest {
 
