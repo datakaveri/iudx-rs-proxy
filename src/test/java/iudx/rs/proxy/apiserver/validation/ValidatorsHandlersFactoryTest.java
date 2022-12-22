@@ -28,59 +28,59 @@ class ValidatorsHandlersFactoryTest {
     @Mock
     Vertx vertx;
 
+
     @BeforeEach
     public void setUp(){
         validatorsHandlersFactory = new ValidatorsHandlersFactory();
     }
 
-   /* @Test
+    @Test
     @DisplayName("getAdminCrudPathDeleteValidations Test")
     public void getAdminCrudPathDeleteValidationsTest(VertxTestContext vertxTestContext){
         MultiMap params = MultiMap.caseInsensitiveMultiMap();
         MultiMap headers = MultiMap.caseInsensitiveMultiMap();
         JsonObject jsonObject = mock(JsonObject.class);
 
-        var validator =validatorsHandlersFactory.build(RequestType.ENTITY,params);
+        var validator =validatorsHandlersFactory.build(vertx,RequestType.ENTITY,params,headers,jsonObject);
 
-        assertEquals(1,validator.size());
+        assertEquals(13,validator.size());
         vertxTestContext.completeNow();
-    }*/
+    }
 
-    /*@Test
-    @DisplayName("getEntityQueryValidations Test")
-    public void getEntityQueryValidationsTest(VertxTestContext vertxTestContext){
+  @Test
+  @DisplayName("getPostEntityQueryValidations Test")
+  public void getPostEntityQueryValidationsTest(VertxTestContext vertxTestContext){
+      MultiMap params = MultiMap.caseInsensitiveMultiMap();
+      MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+      JsonObject jsonObject = mock(JsonObject.class);
+
+      var validator =validatorsHandlersFactory.build(vertx, RequestType.POST_ENTITIES,params,headers,jsonObject);
+
+      assertEquals(3,validator.size());
+      vertxTestContext.completeNow();
+  }
+    @Test
+    @DisplayName("getPostTemporalPathValidations Test")
+    public void getPostTemporalPathValidationsTest(VertxTestContext vertxTestContext){
         MultiMap params = MultiMap.caseInsensitiveMultiMap();
         MultiMap headers = MultiMap.caseInsensitiveMultiMap();
         JsonObject jsonObject = mock(JsonObject.class);
 
-        var validator =validatorsHandlersFactory.build( RequestType.ENTITY,params);
-
-        assertEquals(1,validator.size());
+        var validator =validatorsHandlersFactory.build(vertx, RequestType.POST_TEMPORAL,params,headers,jsonObject);
+        assertEquals(3,validator.size());
         vertxTestContext.completeNow();
-    }*/
-
-   /* @Test
-    @DisplayName("getAdminCrudPathValidations Test")
-    public void getAdminCrudPathValidationsTest(VertxTestContext vertxTestContext){
+    }
+    @Test
+    @DisplayName("getTemporalQueryValidations Test")
+    public void getTemporalValidationsTest(VertxTestContext vertxTestContext){
         MultiMap params = MultiMap.caseInsensitiveMultiMap();
         MultiMap headers = MultiMap.caseInsensitiveMultiMap();
         JsonObject jsonObject = mock(JsonObject.class);
 
-       var validator =validatorsHandlersFactory.build(RequestType.ENTITY,params);
-        assertEquals(12,validator.size());
-        vertxTestContext.completeNow();
-    }*/
-   /* @Test
-    @DisplayName("getEntityPathValidations Test")
-    public void getEntityPathValidationsTest(VertxTestContext vertxTestContext){
-        MultiMap params = MultiMap.caseInsensitiveMultiMap();
-        MultiMap headers = MultiMap.caseInsensitiveMultiMap();
-        JsonObject jsonObject = mock(JsonObject.class);
+        var validator =validatorsHandlersFactory.build(vertx, RequestType.TEMPORAL,params,headers,jsonObject);
 
-      *//* var validator =validatorsHandlersFactory.build(RequestType.TEMPORAL,params);
-       assertEquals(13,validator.size());*//*
+        assertEquals(14,validator.size());
         vertxTestContext.completeNow();
-    }*/
-
+    }
 
 }

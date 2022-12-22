@@ -50,7 +50,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   final String path;
   final String audience;
   final CacheService cache;
-  WebClient catWebClient;
+  static WebClient catWebClient;
   // resourceGroupCache will contain ACL info about all resource group in a resource server
   Cache<String, String> resourceGroupCache = CacheBuilder.newBuilder().maximumSize(1000)
       .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES).build();
@@ -252,7 +252,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   }
 
 
-  private Future<Boolean> isResourceExist(String id, String groupACL) {
+  Future<Boolean> isResourceExist(String id, String groupACL) {
     LOGGER.trace("isResourceExist() started");
     Promise<Boolean> promise = Promise.promise();
     String resourceExist = resourceIdCache.getIfPresent(id);
@@ -286,7 +286,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     return promise.future();
   }
 
-  private Future<String> getGroupAccessPolicy(String groupId) {
+  Future<String> getGroupAccessPolicy(String groupId) {
     LOGGER.trace("getGroupAccessPolicy() started");
     Promise<String> promise = Promise.promise();
     String groupACL = resourceGroupCache.getIfPresent(groupId);
