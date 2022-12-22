@@ -247,9 +247,11 @@
 						<exclude>**/*CacheServiceVertxProxyHandler.class</exclude>
 						<exclude>**/*MeteringServiceVertxProxyHandler.class</exclude>
 						<exclude>**/*AuthenticationServiceVertxProxyHandler.class</exclude>
-
 						<exclude>**/database/**</exclude>
-						<!-- <exclude>**/metering/**</exclude>-->
+						<exclude>**/metering/**</exclude>
+						<exclude>**/databroker/**</exclude>
+						<!-- class present in generated-sources -->
+						<exclude>**/JwtDataConverter.class</exclude>
 
 
 					</excludes>

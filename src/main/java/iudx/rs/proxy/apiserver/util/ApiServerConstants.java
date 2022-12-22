@@ -41,6 +41,11 @@ public class ApiServerConstants {
   public static final String IUDX_CONSUMER_AUDIT_URL = NGSILD_BASE_PATH + "/consumer/audit";
   // date-time format
   public static final String IUDX_PROVIDER_AUDIT_URL = NGSILD_BASE_PATH + "/provider/audit";
+  public static final String NGSILD_POST_ENTITIES_QUERY_PATH =
+          NGSILD_BASE_PATH + "/entityOperations/query";
+  public static final String NGSILD_POST_TEMPORAL_QUERY_PATH =
+          NGSILD_BASE_PATH + "/temporal/entityOperations/query";
+
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
   public static final String ID = "id";
@@ -61,6 +66,7 @@ public class ApiServerConstants {
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";
   public static final String NGSILDQUERY_TIMEPROPERTY = "timeproperty";
   public static final String NGSILDQUERY_MAXDISTANCE = "maxdistance";
+  public static final String NGSILDQUERY_MINDISTANCE = "mindistance";
   public static final String IUDXQUERY_OPTIONS = "options";
   public static final String NGSILDQUERY_ENTITIES = "entities";
   public static final String NGSILDQUERY_TEMPORALQ = "temporalQ";
@@ -135,6 +141,23 @@ public class ApiServerConstants {
 
   public static final String VALIDATION_Q_ATTR_PATTERN = "^[a-zA-Z0-9_]{1,100}+$";
   public static final String MSG_INVALID_PARAM = "Invalid parameter in request.";
+  public static final String JSON_LAT = "lat";
+  public static final String JSON_LON = "lon";
+  public static final String JSON_RADIUS = "radius";
+  public static final String JSON_GEOMETRY = "geometry";
+  public static final String JSON_GEOPROPERTY = "geoproperty";
+  public static final String JSON_COORDINATES = "coordinates";
+  public static final String JSON_GEOREL = "georel";
+  public static final String JSON_WITHIN = "within";
+  public static final String GEOM_POINT = "point";
+  public static final String JSON_NEAR = "near";
+  public static final String JSON_BETWEEN = "between";
+  public static final String JSON_MAXDISTANCE = "maxdistance";
+  public static final String JSON_MINDISTANCE = "mindistance";
+  public static final String JSON_GEO_SEARCH = "geoSearch_";
+  public static final String JSON_LATEST_SEARCH = "latestSearch_";
+
+
 
 
 }

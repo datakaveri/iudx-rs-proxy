@@ -7,7 +7,9 @@ public enum Api {
   CONSUMER_AUDIT("/ngsi-ld/v1/consumer/audit"),
 
   PROVIDER_AUDIT("/ngsi-ld/v1/provider/audit"),
-  TEMPORAL("/ngsi-ld/v1/temporal/entities");
+  TEMPORAL("/ngsi-ld/v1/temporal/entities"),
+    ENTITY_OPERATION("/ngsi-ld/v1/entityoperations/query"),
+    ENTITY_OPERATION_TEMPORAL("/ngsi-ld/v1/temporal/entityoperations/query");
 
  private final String endpoint;
 

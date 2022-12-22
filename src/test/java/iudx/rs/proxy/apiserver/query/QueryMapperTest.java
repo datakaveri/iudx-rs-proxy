@@ -57,7 +57,7 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
     assertTrue(json.getJsonArray(NGSILDQUERY_ATTRIBUTE) instanceof JsonArray);
     testContext.completeNow();
 }
-   /* @Test
+    @Test
     @Description("QueryMapper test for Circle geo-query")
     public void testToJson4CircleQuery(Vertx vertx, VertxTestContext testContext) {
         // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
@@ -81,8 +81,7 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         testContext.completeNow();
     }
 
-*/
-  /*  @Test
+    @Test
     @Description("QueryMapper test for geo-query")
     public void testToJson4GeoQuery(Vertx vertx, VertxTestContext testContext) {
         MultiMap map = MultiMap.caseInsensitiveMultiMap();
@@ -107,7 +106,6 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
         testContext.completeNow();
     }
-*/
   @Test
   @Description("QueryMapper test for temporal queries(during)")
   public void testToJson4TemporalDuringQuery(Vertx vertx, VertxTestContext testContext) {
@@ -242,7 +240,7 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         testContext.completeNow();
     }
 
-   /* @Test
+   @Test
     @Description("QueryMapper test for invalid geo-query")
     public void testIncompleteGeoQuery(Vertx vertx, VertxTestContext testContext) {
         // georel=near;maxDistance==360&geometry=Point&coordinates=%5B8.684783577919006%2C49.406131991436396%5D
@@ -263,7 +261,6 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
                 ex.getMessage());
         testContext.completeNow();
     }
-*/
     @AfterEach
     public void teardown() {
 

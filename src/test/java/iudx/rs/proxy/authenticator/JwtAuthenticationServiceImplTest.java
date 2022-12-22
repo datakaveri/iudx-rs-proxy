@@ -57,6 +57,15 @@ class JwtAuthenticationServiceImplTest {
     HttpRequest<Buffer> httpRequestMock;
     @Mock
     HttpResponse<Buffer> httpResponseMock;
+    @Mock
+    HttpRequest<Buffer> httpRequest;
+    @Mock
+    io.vertx.ext.web.client.HttpResponse<Buffer> httpResponse;
+
+    @Mock
+    AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> asyncResult;
+    static WebClient catWebClient;
+
 
     private static String delegateJwt =
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJhMTNlYjk1NS1jNjkxLTRmZDMtYjIwMC1mMThiYzc4ODEwYjUiLCJpc3MiOiJhdXRoLnRlc3QuY29tIiwiYXVkIjoiZm9vYmFyLml1ZHguaW8iLCJleHAiOjE2MjgxODIzMjcsImlhdCI6MTYyODEzOTEyNywiaWlkIjoicmk6ZXhhbXBsZS5jb20vNzllN2JmYTYyZmFkNmM3NjViYWM2OTE1NGMyZjI0Yzk0Yzk1MjIwYS9yZXNvdXJjZS1ncm91cC9yZXNvdXJjZSIsInJvbGUiOiJkZWxlZ2F0ZSIsImNvbnMiOnsiYWNjZXNzIjpbImFwaSIsInN1YnMiLCJpbmdlc3QiLCJmaWxlIl19fQ.tUoO1L-tXByxNtjY_iK41neeshCiYrNr505wWn1hC1ACwoeL9frebABeFiCqJQGrsBsGOZ1-OACZdHBNcetwyw";
@@ -465,7 +474,7 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
         });
     }
 
-   /* @Test
+  /* @Test
     @DisplayName("failure - is open resource")
     public void failure4openResource(VertxTestContext testContext) {
         JsonObject authInfo = new JsonObject();
@@ -503,14 +512,189 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
         assertEquals(authR1.hashCode(), authR2.hashCode());
     }
 
-  /* @Test
+   @Test
     @DisplayName("authRequest should not equal")
     public void authRequestShouldNotEquals() {
         AuthorizationRequest authR1= new AuthorizationRequest(GET, Api.TEMPORAL);
         AuthorizationRequest authR2= new AuthorizationRequest(GET, Api.ENTITIES);
         Assertions.assertFalse(authR1.equals(authR2));
 
-    }*/
+    }
+  @Test
+  @DisplayName("Testing Failure for isResourceExist method with List of String IDs")
+  public void testIsResourceExistFailure(VertxTestContext vertxTestContext)
+  {
+      String id="Dummy id";
+      String groupACL="Dummy id";
+      JsonObject responseJSonObject=new JsonObject();
+      responseJSonObject.put("type","urn:dx:cat:Success");
+      responseJSonObject.put("totalHits", 10);
+      JwtAuthenticationServiceImpl.catWebClient=mock(WebClient.class);
+      when(JwtAuthenticationServiceImpl.catWebClient.get(anyInt(),anyString(),anyString())).thenReturn(httpRequest);
+      when(httpRequest.addQueryParam(anyString(),anyString())).thenReturn(httpRequest);
+      when(httpRequest.expect(any())).thenReturn(httpRequest);
+      when(asyncResult.result()).thenReturn(httpResponse);
+      when(httpResponse.bodyAsJsonObject()).thenReturn(responseJSonObject);
+      when(httpResponse.statusCode()).thenReturn(400);
+      doAnswer(new Answer<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>() {
+          @Override
+          public AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> answer(InvocationOnMock arg0) throws Throwable {
 
+              ((Handler<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>)arg0.getArgument(0)).handle(asyncResult);
+              return null;
+          }
+      }).when(httpRequest).send(any());
+      jwtAuthenticationService.isResourceExist(id,groupACL).onComplete(handler -> {
+          if (handler.succeeded())
+          {
+              vertxTestContext.failNow("false");
+          }
+          else
+          {
+              vertxTestContext.completeNow();
+          }
+      });
+  }
+    @Test
+    @DisplayName("Testing Failure for isResourceExist method with List of String IDs")
+    public void testIsResourceExistFailure2(VertxTestContext vertxTestContext)
+    {
+        String id="Dummy id";
+        String groupACL="Dummy id";
+        JsonObject responseJSonObject=new JsonObject();
+        responseJSonObject.put("type","dummy");
+        responseJSonObject.put("totalHits", 10);
+        JwtAuthenticationServiceImpl.catWebClient=mock(WebClient.class);
+        when(JwtAuthenticationServiceImpl.catWebClient.get(anyInt(),anyString(),anyString())).thenReturn(httpRequest);
+        when(httpRequest.addQueryParam(anyString(),anyString())).thenReturn(httpRequest);
+        when(httpRequest.expect(any())).thenReturn(httpRequest);
+        when(asyncResult.result()).thenReturn(httpResponse);
+        when(httpResponse.bodyAsJsonObject()).thenReturn(responseJSonObject);
+        when(httpResponse.statusCode()).thenReturn(200);
+        doAnswer(new Answer<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>() {
+            @Override
+            public AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> answer(InvocationOnMock arg0) throws Throwable {
+
+                ((Handler<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>)arg0.getArgument(0)).handle(asyncResult);
+                return null;
+            }
+        }).when(httpRequest).send(any());
+        jwtAuthenticationService.isResourceExist(id,groupACL).onComplete(handler -> {
+            if (handler.succeeded())
+            {
+                vertxTestContext.failNow("Not Found");
+            }
+            else
+            {
+                vertxTestContext.completeNow();
+            }
+        });
+    }
+    @Test
+    @DisplayName("Testing Failure for isResourceExist method with List of String IDs")
+    public void testIsResourceExistFailure3(VertxTestContext vertxTestContext) {
+        String id = "Dummy id";
+        String groupACL = "Dummy id";
+        String resourceACL="SECURE";
+        JsonObject responseJSonObject = new JsonObject();
+        JsonArray jsonarray=new JsonArray();
+        responseJSonObject.put("type", "wrong type");
+        responseJSonObject.put("totalHits", 10);
+//   resourceACL=responseJSonObject.getJsonArray("results").getJsonObject(0).getString("accessPolicy");
+        JwtAuthenticationServiceImpl.catWebClient = mock(WebClient.class);
+        when(JwtAuthenticationServiceImpl.catWebClient.get(anyInt(), anyString(), anyString())).thenReturn(httpRequest);
+        when(httpRequest.addQueryParam(anyString(), anyString())).thenReturn(httpRequest);
+        when(httpRequest.expect(any())).thenReturn(httpRequest);
+        when(asyncResult.result()).thenReturn(httpResponse);
+        when(httpResponse.bodyAsJsonObject()).thenReturn(responseJSonObject);
+        when(httpResponse.statusCode()).thenReturn(200);
+
+
+        doAnswer(new Answer<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>() {
+            @Override
+            public AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> answer(InvocationOnMock arg0) throws Throwable {
+
+                ((Handler<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>) arg0.getArgument(0)).handle(asyncResult);
+                return null;
+            }
+        }).when(httpRequest).send(any());
+        jwtAuthenticationService.isResourceExist(id, groupACL).onComplete(handler -> {
+            if (handler.succeeded()) {
+                vertxTestContext.failNow("Not Found");
+            } else {
+                vertxTestContext.completeNow();
+            }
+        });
+    }
+    @Test
+    @DisplayName("Testing Failure for isResourceExist method with List of String IDs")
+    public void testGroupAccessPolicyFailure2(VertxTestContext vertxTestContext) {
+        String id = "datakaveri.org/04a15c9960ffda227e9546f3f46e629e1fe4132b/rs.iudx.io/pune-env-flood/FWR053";    String groupACL = "Dummy id";
+        String resourceACL="SECURE";
+        JsonObject responseJSonObject = new JsonObject();
+        JsonArray jsonarray=new JsonArray();
+        responseJSonObject.put("type", "urn:dx:cat:Success");
+        responseJSonObject.put("totalHits", 10);
+//   resourceACL=responseJSonObject.getJsonArray("results").getJsonObject(0).getString("accessPolicy");
+        JwtAuthenticationServiceImpl.catWebClient = mock(WebClient.class);
+        when(JwtAuthenticationServiceImpl.catWebClient.get(anyInt(), anyString(), anyString())).thenReturn(httpRequest);
+        when(httpRequest.addQueryParam(anyString(), anyString())).thenReturn(httpRequest);
+        when(httpRequest.expect(any())).thenReturn(httpRequest);
+        when(asyncResult.result()).thenReturn(httpResponse);
+//    when(httpResponse.bodyAsJsonObject()).thenReturn(responseJSonObject);
+        when(httpResponse.statusCode()).thenReturn(400);
+
+
+        doAnswer(new Answer<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>() {
+            @Override
+            public AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> answer(InvocationOnMock arg0) throws Throwable {
+
+                ((Handler<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>) arg0.getArgument(0)).handle(asyncResult);
+                return null;
+            }
+        }).when(httpRequest).send(any());
+        jwtAuthenticationService.getGroupAccessPolicy(id).onComplete(handler -> {
+            if (handler.succeeded()) {
+                vertxTestContext.failNow("Not Found");
+            } else {
+                vertxTestContext.completeNow();
+            }
+        });
+    }
+    @Test
+    @DisplayName("Testing Failure for isResourceExist method with List of String IDs")
+    public void testGroupAccessPolicyFailure(VertxTestContext vertxTestContext) {
+        String id = "datakaveri.org/04a15c9960ffda227e9546f3f46e629e1fe4132b/rs.iudx.io/pune-env-flood/FWR053";    String groupACL = "Dummy id";
+        String resourceACL="SECURE";
+        JsonObject responseJSonObject = new JsonObject();
+        JsonArray jsonarray=new JsonArray();
+        responseJSonObject.put("type", "wrong type");
+        responseJSonObject.put("totalHits", 10);
+//   resourceACL=responseJSonObject.getJsonArray("results").getJsonObject(0).getString("accessPolicy");
+        JwtAuthenticationServiceImpl.catWebClient = mock(WebClient.class);
+        when(JwtAuthenticationServiceImpl.catWebClient.get(anyInt(), anyString(), anyString())).thenReturn(httpRequest);
+        when(httpRequest.addQueryParam(anyString(), anyString())).thenReturn(httpRequest);
+        when(httpRequest.expect(any())).thenReturn(httpRequest);
+        when(asyncResult.result()).thenReturn(httpResponse);
+        when(httpResponse.bodyAsJsonObject()).thenReturn(responseJSonObject);
+        when(httpResponse.statusCode()).thenReturn(200);
+
+
+        doAnswer(new Answer<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>() {
+            @Override
+            public AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> answer(InvocationOnMock arg0) throws Throwable {
+
+                ((Handler<AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>>>) arg0.getArgument(0)).handle(asyncResult);
+                return null;
+            }
+        }).when(httpRequest).send(any());
+        jwtAuthenticationService.getGroupAccessPolicy(id).onComplete(handler -> {
+            if (handler.succeeded()) {
+                vertxTestContext.failNow("Not Found");
+            } else {
+                vertxTestContext.completeNow();
+            }
+        });
+    }
 
 }

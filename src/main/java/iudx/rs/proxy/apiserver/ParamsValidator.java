@@ -3,15 +3,22 @@ package iudx.rs.proxy.apiserver;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.service.CatalogueService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import iudx.rs.proxy.apiserver.validation.types.*;
+import iudx.rs.proxy.common.HttpStatusCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_VALUE_URN;
 
 /**
  * This class is used to validate NGSI-LD request and request parameters.
@@ -38,7 +45,6 @@ public class ParamsValidator {
     validParams.add(NGSILDQUERY_ENTITIES);
     validParams.add(NGSILDQUERY_GEOQ);
     validParams.add(NGSILDQUERY_TEMPORALQ);
-
     // Need to check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
     validParams.add(NGSILDQUERY_TIME_PROPERTY);
     validParams.add(NGSILDQUERY_FROM);
@@ -72,7 +78,6 @@ public class ParamsValidator {
    * @param response HttpServerResponse object
    */
   private boolean validateParams(MultiMap parameterMap) {
-
     final List<Entry<String, String>> entries = parameterMap.entries();
     for (final Entry<String, String> entry : entries) {
       if (!validParams.contains(entry.getKey())) {
@@ -88,7 +93,7 @@ public class ParamsValidator {
    * @param paramsMap map of request parameters
    * @return Future future JsonObject
    */
-  public Future<Boolean> validate(MultiMap paramsMap) {
+ public Future<Boolean> validate(MultiMap paramsMap) {
 
     Promise<Boolean> promise = Promise.promise();
     if (validateParams(paramsMap)) {
@@ -107,6 +112,58 @@ public class ParamsValidator {
     return promise.future();
   }
 
+
+  public Future<Boolean> validate(JsonObject requestJson) {
+    Promise<Boolean> promise = Promise.promise();
+    MultiMap paramsMap = MultiMap.caseInsensitiveMultiMap();
+
+    requestJson.forEach(entry -> {
+      if (entry.getKey().equalsIgnoreCase("geoQ") || entry.getKey().equalsIgnoreCase("temporalQ")) {
+        JsonObject innerObject = (JsonObject) entry.getValue();
+        paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
+        innerObject.forEach(innerentry -> {
+          paramsMap.add(innerentry.getKey().toString(), innerentry.getValue().toString());
+        });
+      } else if (entry.getKey().equalsIgnoreCase("entities")) {
+        paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
+        JsonArray array = (JsonArray) entry.getValue();
+        JsonObject innerObject = array.getJsonObject(0);
+        innerObject.forEach(innerentry -> {
+          paramsMap.add(innerentry.getKey().toString(), innerentry.getValue().toString());
+        });
+      } else {
+        paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
+      }
+
+    });
+
+    String attrs = paramsMap.get(NGSILDQUERY_ATTRIBUTE);
+    String q = paramsMap.get(NGSLILDQUERY_Q);
+    String coordinates = paramsMap.get(NGSILDQUERY_COORDINATES);
+    String geoRel = paramsMap.get(NGSILDQUERY_GEOREL);
+    String[] georelArray = geoRel != null ? geoRel.split(";") : null;
+
+    boolean validations1 =
+            !(new AttrsTypeValidator(attrs, false).isValid())
+                    || !(new QTypeValidator(q, false).isValid())
+                    || !(new CoordinatesTypeValidator(coordinates, false).isValid())
+                    || !(new GeoRelTypeValidator(georelArray != null ? georelArray[0] : null, false)
+                    .isValid())
+                    || !((georelArray != null && georelArray.length == 2)
+                    ? isValidDistance(georelArray[1])
+                    : isValidDistance(null));
+
+    validate(paramsMap).onComplete(handler -> {
+      if (handler.succeeded() && !validations1) {
+        promise.complete(true);
+      } else {
+        promise.fail(MSG_BAD_QUERY);
+      }
+    });
+    return promise.future();
+  }
+
+
   private Future<Boolean> isValidQueryWithFilters(MultiMap paramsMap) {
     Promise<Boolean> promise = Promise.promise();
     Future<List<String>> filtersFuture = catalogueService.getApplicableFilters(paramsMap.get("id"));
@@ -121,7 +178,12 @@ public class ParamsValidator {
           promise.fail("Attribute parameters are not supported by RS group/Item.");
           return;
         }
-        promise.complete(true);
+          if (isSpatialQuery(paramsMap) && !filters.contains("SPATIAL")) {
+              promise.fail("Spatial parameters are not supported by RS group/Item.");
+              return;
+          }
+
+          promise.complete(true);
       } else {
         promise.fail("fail to get filters for validation");
       }
@@ -138,5 +200,31 @@ public class ParamsValidator {
 
   private Boolean isAttributeQuery(MultiMap params) {
     return params.contains(NGSILDQUERY_ATTRIBUTE);
+  }
+    private Boolean isSpatialQuery(MultiMap params) {
+        return params.contains(NGSILDQUERY_GEOREL) || params.contains(NGSILDQUERY_GEOMETRY)
+                || params.contains(NGSILDQUERY_GEOPROPERTY) || params.contains(NGSILDQUERY_COORDINATES);
+
+    }
+  private boolean isValidDistance(String value) {
+    if (value == null) {
+      return true;
+    }
+    Validator validator;
+    try {
+      String[] distanceArray = value.split("=");
+      if (distanceArray.length == 2) {
+        String distanceValue = distanceArray[1];
+        validator = new DistanceTypeValidator(distanceValue, false);
+        return validator.isValid();
+      } else {
+        throw new DxRuntimeException(HttpStatusCode.BAD_REQUEST.getValue(), INVALID_GEO_VALUE_URN,
+                INVALID_GEO_VALUE_URN.getMessage());
+      }
+    } catch (Exception ex) {
+      LOGGER.error(ex);
+      throw new DxRuntimeException(HttpStatusCode.BAD_REQUEST.getValue(), INVALID_GEO_VALUE_URN,
+              INVALID_GEO_VALUE_URN.getMessage());
+    }
   }
 }

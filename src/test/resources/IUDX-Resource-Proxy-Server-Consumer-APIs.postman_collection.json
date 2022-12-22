@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3c5e821c-fc14-4374-abee-bcfd3b50a2b3",
+		"_postman_id": "948dece4-36f5-4fb4-89af-89c2d8e07e3e",
 		"name": "TEST-SERVER-IUDX-RS-PROXY-APIs Final",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -4016,6 +4016,81 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "200 (success) multi attribute",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
+									"    pm.expect(resultsjsonData).to.have.property(\"referenceLevel\", 15.9);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{openResourceToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&q=referenceLevel>15.0;currentLevel==1.01;measuredDistance>=14.89",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+								},
+								{
+									"key": "q",
+									"value": "referenceLevel>15.0;currentLevel==1.01;measuredDistance>=14.89"
+								},
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"event": [
@@ -5553,6 +5628,78 @@
 								{
 									"key": "options",
 									"value": "count"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) multi attribute",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"     pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 19);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{openResourceToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&q=referenceLevel>15.0;currentLevel==1.01;measuredDistance>=14.89&options=count",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+								},
+								{
+									"key": "q",
+									"value": "referenceLevel>15.0;currentLevel==1.01;measuredDistance>=14.89"
+								},
+								{
+									"key": "options",
+									"value": "count"
+								},
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
 								}
 							]
 						}
@@ -10578,6 +10725,4666 @@
 									"key": "id",
 									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Complex Search (Post queries)",
+			"item": [
+				{
+					"name": "200 (success) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 12.2);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=10\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [31.178,72.834],\n        \"georel\": \"near;maxDistance=10\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQuery\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "abc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-10-19T14:20:00Z\",\n        \"endtime\": \"2020-10-19T15:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2021-12-01T14:20:00Z\",\n        \"endtime\": \"2021-12-01T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid param) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerelation\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "abc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid date format) temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18Z14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-10-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerelation\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid date format) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19z14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - temporal (before) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-10-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"attrs\":\"id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - temporal (before) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-01-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"attrs\":\"id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - temporal (before) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerelation\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"attrs\":\"id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - temporal (before) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"attrs\":\"id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid date format) - temporal (before) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response",
+									"var jsonData = pm.response.json(); ",
+									"tests[\"Validate response\"] = jsonData.title === \"Bad Request\";"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19X14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"attrs\":\"id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401(not authorized) - temporal (before) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"attrs\":\"id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 43.0);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-10-18T14:20:00Z\",\n        \"endtime\": \"2020-10-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"attrs\":\"id,speed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2021-12-18T14:20:00Z\",\n        \"endtime\": \"2021-12-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"attrs\":\"id,speed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params)  - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQuery\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"attrs\":\"id,speed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found)  - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"attrs\":\"id,speed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized ) - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"attrs\":\"id,speed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"    pm.expect(resultsjsonData).to.have.property(\"speed\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,31],[72.842,31.2],[72.923,30.8],[72.74,30.34],[72.9,30.1],[72.67,30],[72.719,31]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georelation\": \"within\",\n        \"geoproperty\": \"geoJsonLocation\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 45.7);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,31.2],[72.8297,31.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georelation\": \"within\",\n        \"geoproperty\": \"geoJsonLocation\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"    pm.expect(resultsjsonData).to.have.property(\"speed\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.833994,21.17798],[72.833978,21.178005]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,31.2],[72.923,30.8],[72.74,30.34],[72.9,30.1],[72.67,30]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20]],\n        \"georelation\": \"intersects\",\n        \"geoproperty\": \"geoJsonLocation\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Complex Count (Post queries)",
+			"item": [
+				{
+					"name": "200 (success) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 82710);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [31.178,72.834],\n        \"georel\": \"near;maxDistance=10\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQuery\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (circle)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "abc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 123805);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-10-18T14:20:00Z\",\n        \"endtime\": \"2020-10-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2021-12-01T14:20:00Z\",\n        \"endtime\": \"2021-12-01T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid param) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerelation\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "abc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid date format) temporal (between)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18Z14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 864619);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-10-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerelation\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid date format) - temporal (before)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2020-09-19z14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - complex - geo - (circle) + temporal (between) + attribute (>)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 3402);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-10-18T14:20:00Z\",\n        \"endtime\": \"2020-10-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - complex - geo - (circle) + temporal (between) + attribute (>)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2021-12-18T14:20:00Z\",\n        \"endtime\": \"2021-12-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params)  - complex - geo - (circle) + temporal (between) + attribute (>)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQuery\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found)  - complex - geo - (circle) + temporal (between) + attribute (>)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized ) - complex - geo - (circle) + temporal (between) + attribute (>)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=1000\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2020-09-18T14:20:00Z\",\n        \"endtime\": \"2020-09-19T14:20:00Z\",\n        \"timeProperty\": \"observationDateTime\"\n    },\n    \"q\":\"speed>30.0\",\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/temporal/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"temporal",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 158349);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,31],[72.842,31.2],[72.923,30.8],[72.74,30.34],[72.9,30.1],[72.67,30],[72.719,31]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georelation\": \"within\",\n        \"geoproperty\": \"geoJsonLocation\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (Polygon)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Polygon\",\n        \"coordinates\": [[[72.719,21],[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20],[72.719,21]]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 288);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,31.2],[72.8297,31.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georelation\": \"within\",\n        \"geoproperty\": \"geoJsonLocation\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (bbox)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [[72.8296,21.2],[72.8297,21.15]],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    const resultsjsonData = body.results[0];",
+									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 12);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "{{secureResourceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.833994,21.17798],[72.833978,21.178005]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "204 (Empty Response) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"response is 204 (no Content)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,31.2],[72.923,30.8],[72.74,30.34],[72.9,30.1],[72.67,30]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "400 (invalid params) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 400 (Bad Request Data)\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20]],\n        \"georelation\": \"intersects\",\n        \"geoproperty\": \"geoJsonLocation\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "404 (not found) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 404 (Not Found)\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "{{secureResourceToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/non-existing-id\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "401 (not authorized) - Geo-Query (linestring)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 401 (Not Authorized)\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Not Authorized\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"type": "text",
+								"value": "abc"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [[72.842,21.2],[72.923,20.8],[72.74,20.34],[72.9,20.1],[72.67,20]],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    },\n    \"options\":\"count\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/ngsi-ld/v1/entityOperations/query",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entityOperations",
+								"query"
 							]
 						}
 					},

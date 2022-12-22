@@ -176,6 +176,26 @@ public class ApiServerVerticle extends AbstractVerticle {
         .get("/test/adapterQuery")
         .handler(this::handeRPCTest)
         .failureHandler(validationsFailureHandler);
+    // Post Queries
+    ValidationHandler postEntitiesValidationHandler =
+            new ValidationHandler(vertx, RequestType.POST_ENTITIES);
+    router
+            .post(NGSILD_POST_ENTITIES_QUERY_PATH)
+            .consumes(APPLICATION_JSON)
+            .handler(postEntitiesValidationHandler)
+            .handler(AuthHandler.create(vertx))
+            .handler(this::handlePostEntitiesQuery)
+            .failureHandler(validationsFailureHandler);
+
+    ValidationHandler postTemporalValidationHandler =
+            new ValidationHandler(vertx, RequestType.POST_TEMPORAL);
+    router
+            .post(NGSILD_POST_TEMPORAL_QUERY_PATH)
+            .consumes(APPLICATION_JSON)
+            .handler(postTemporalValidationHandler)
+            .handler(AuthHandler.create(vertx))
+            .handler(this::handlePostEntitiesQuery)
+            .failureHandler(validationsFailureHandler);
   }
 
 
@@ -267,7 +287,6 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   public void handleTemporalQuery(RoutingContext routingContext) {
-    LOGGER.trace("Info: handleTemporalQuery method started.");
     /* Handles HTTP request from client */
     HttpServerRequest request = routingContext.request();
     HttpServerResponse response = routingContext.response();
@@ -275,7 +294,6 @@ public class ApiServerVerticle extends AbstractVerticle {
     String instanceID = request.getHeader(HEADER_HOST);
     // get query parameters
     MultiMap params = getQueryParams(routingContext, response).get();
-
     // validate request params
     Future<Boolean> validationResult = validator.validate(params);
 
@@ -549,6 +567,51 @@ public class ApiServerVerticle extends AbstractVerticle {
       });
       return promise.future();
     }
+  }
+
+  private void handlePostEntitiesQuery(RoutingContext routingContext){
+    LOGGER.trace("Info: handlePostEntitiesQuery method started.");
+    HttpServerRequest request = routingContext.request();
+    JsonObject requestJson = routingContext.body().asJsonObject();
+    LOGGER.debug("Info: request Json: " + requestJson);
+    HttpServerResponse response = routingContext.response();
+    MultiMap headerParams = request.headers();
+    // get query paramaters
+    MultiMap params = getQueryParams(routingContext, response).get();
+    // validate request parameters
+    Future<Boolean> validationResult = validator.validate(requestJson);
+    validationResult.onComplete(validationHandler -> {
+      if (validationHandler.succeeded()) {
+        // parse query params
+        NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
+        QueryMapper queryMapper = new QueryMapper();
+        JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
+        LOGGER.debug("json value : "+json);
+        Future<List<String>> filtersFuture =
+                catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
+        String instanceID = request.getHeader(HEADER_HOST);
+        json.put(JSON_INSTANCEID, instanceID);
+        requestJson.put("ids", json.getJsonArray("id"));
+        LOGGER.debug("Info: IUDX query json: " + json);
+        filtersFuture.onComplete(filtersHandler -> {
+          if (filtersHandler.succeeded()) {
+            json.put("applicableFilters", filtersHandler.result());
+            if (json.containsKey(IUDXQUERY_OPTIONS) &&
+                    JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
+              adapterResponseForCountQuery(routingContext, json, response);
+            } else {
+              adapterResponseForSearchQuery(routingContext, json, response);
+            }
+          } else {
+            LOGGER.error("catalogue item/group doesn't have filters.");
+          }
+        });
+      } else if (validationHandler.failed()) {
+        LOGGER.error("Fail: Bad request");
+        handleResponse(response, BAD_REQUEST, INVALID_PARAM_URN,
+                validationHandler.cause().getMessage());
+      }
+    });
   }
 
   private void updateAuditTable(RoutingContext context) {
