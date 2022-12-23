@@ -1,21 +1,19 @@
 package iudx.rs.proxy.apiserver.query;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
-import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.ResponseUrn.INVALID_ATTR_PARAM_URN;
-import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_PARAM_URN;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
-import iudx.rs.proxy.apiserver.util.ApiServerConstants;
-import iudx.rs.proxy.common.ResponseUrn;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
+import static iudx.rs.proxy.common.ResponseUrn.*;
 
 /**
  * QueryMapper class to convert NGSILD query into json object for the purpose of information
@@ -40,17 +38,19 @@ public class QueryMapper {
     LOGGER.debug("Info : params" + params);
     this.isTemporal = isTemporal;
     JsonObject json = new JsonObject();
+    JsonObject geoJson = new JsonObject();
+    JsonObject temporal = new JsonObject();
 
     if (params.getId() != null) {
       JsonArray jsonArray = new JsonArray();
       params.getId().forEach(s -> jsonArray.add(s.toString()));
-      json.put(ApiServerConstants.JSON_ID, jsonArray);
+      json.put(JSON_ID, jsonArray);
       LOGGER.debug("Info : json " + json);
     }
     if (params.getAttrs() != null) {
       JsonArray jsonArray = new JsonArray();
       params.getAttrs().forEach(attribute -> jsonArray.add(attribute));
-      json.put(ApiServerConstants.JSON_ATTRIBUTE_FILTER, jsonArray);
+      json.put(JSON_ATTRIBUTE_FILTER, jsonArray);
       LOGGER.debug("Info : json " + json);
     }
     if (isGeoQuery(params)) {
@@ -66,25 +66,26 @@ public class QueryMapper {
                 && params.getGeoRel().getRelation().equals(JSON_NEAR)
                 && params.getGeoRel().getMaxDistance() != null) {
           String[] coords = params.getCoordinates().replaceAll("\\[|\\]", "").split(",");
-          json.put(JSON_LAT, Double.parseDouble(coords[0]));
-          json.put(JSON_LON, Double.parseDouble(coords[1]));
-          json.put(JSON_RADIUS, params.getGeoRel().getMaxDistance());
+          geoJson.put(JSON_LAT, Double.parseDouble(coords[0]));
+          geoJson.put(JSON_LON, Double.parseDouble(coords[1]));
+          geoJson.put(JSON_RADIUS, params.getGeoRel().getMaxDistance());
         } else {
-          json.put(JSON_GEOMETRY, params.getGeometry());
-          json.put(JSON_COORDINATES, params.getCoordinates());
-          json.put(JSON_GEOREL,
+          geoJson.put(JSON_GEOMETRY, params.getGeometry());
+          geoJson.put(JSON_COORDINATES, params.getCoordinates());
+          geoJson.put(JSON_GEOREL,
                   getOrDefault(params.getGeoRel().getRelation(), JSON_WITHIN));
           if (params.getGeoRel().getMaxDistance() != null) {
-            json.put(JSON_MAXDISTANCE, params.getGeoRel().getMaxDistance());
+            geoJson.put(JSON_MAXDISTANCE, params.getGeoRel().getMaxDistance());
           } else if (params.getGeoRel().getMinDistance() != null) {
-            json.put(JSON_MINDISTANCE, params.getGeoRel().getMinDistance());
+            geoJson.put(JSON_MINDISTANCE, params.getGeoRel().getMinDistance());
           }
         }
-        LOGGER.debug("Info : json " + json);
+        LOGGER.debug("Info : json " + geoJson);
       } else {
         throw new DxRuntimeException(BAD_REQUEST.getValue(), INVALID_GEO_PARAM_URN,
                 "incomplete geo-query geoproperty, geometry, georel, coordinates all are mandatory.");
       }
+      json.put(GEO_QUERY,geoJson);
     }
     if (isTemporal
         && params.getTemporalRelation().getTimeRel() != null
@@ -93,25 +94,27 @@ public class QueryMapper {
       if (params
               .getTemporalRelation()
               .getTimeRel()
-              .equalsIgnoreCase(ApiServerConstants.JSON_DURING)
+              .equalsIgnoreCase(JSON_DURING)
               || params.getTemporalRelation().getTimeRel().equalsIgnoreCase(JSON_BETWEEN)) {
         LOGGER.debug("Info : inside during ");
 
-        json.put(ApiServerConstants.JSON_TIME, params.getTemporalRelation().getTime());
-        json.put(ApiServerConstants.JSON_ENDTIME, params.getTemporalRelation().getEndTime());
-        json.put(ApiServerConstants.JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
+        temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
+        temporal.put(JSON_ENDTIME, params.getTemporalRelation().getEndTime());
+        temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
 
         isValidTimeInterval(
-            ApiServerConstants.JSON_DURING,
-            json.getString(ApiServerConstants.JSON_TIME),
-            json.getString(ApiServerConstants.JSON_ENDTIME));
+            JSON_DURING,
+                temporal.getString(JSON_TIME),
+                temporal.getString(JSON_ENDTIME));
       } else {
         LOGGER.debug("Info : outside during ");
-        json.put(ApiServerConstants.JSON_TIME, params.getTemporalRelation().getTime());
-        json.put(ApiServerConstants.JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
+        temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
+        temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
       }
-      LOGGER.debug("Info : json " + json);
+      LOGGER.debug("Info : json " + temporal);
+      json.put(TEMPORAL_QUERY,temporal);
     }
+
     if (params.getQ() != null) {
       isAttributeSearch = true;
       JsonArray query = new JsonArray();
@@ -119,14 +122,14 @@ public class QueryMapper {
       for (String term : qterms) {
         query.add(getQueryTerms(term));
       }
-      json.put(ApiServerConstants.JSON_ATTR_QUERY, query);
+      json.put(JSON_ATTR_QUERY, query);
     }
     if (params.getGeoProperty() != null) {
-      json.put(JSON_GEOPROPERTY, params.getGeoProperty());
+      geoJson.put(JSON_GEOPROPERTY, params.getGeoProperty());
       LOGGER.debug("Info : json " + json);
     }
     if (params.getOptions() != null) {
-      json.put(ApiServerConstants.IUDXQUERY_OPTIONS, params.getOptions());
+      json.put(IUDXQUERY_OPTIONS, params.getOptions());
       LOGGER.debug("Info : json " + json);
     }
     if (params.getPageFrom() != null) {
@@ -135,7 +138,7 @@ public class QueryMapper {
     if (params.getPageSize() != null) {
       json.put(NGSILDQUERY_SIZE, params.getPageSize());
     }
-    json.put(ApiServerConstants.JSON_SEARCH_TYPE, getSearchType());
+    json.put(JSON_SEARCH_TYPE, getSearchType());
     LOGGER.debug("Info : json " + json);
     return json;
   }
@@ -147,11 +150,11 @@ public class QueryMapper {
   private void isValidTimeInterval(
       String timeRel, String time, String endTime) {
     long totalDaysAllowed = 0;
-    if (timeRel.equalsIgnoreCase(ApiServerConstants.JSON_DURING)) {
+    if (timeRel.equalsIgnoreCase(JSON_DURING)) {
       if (isNullOrEmpty(time) || isNullOrEmpty(endTime)) {
         throw new DxRuntimeException(
             BAD_REQUEST.getValue(),
-            ResponseUrn.INVALID_TEMPORAL_PARAM_URN,
+            INVALID_TEMPORAL_PARAM_URN,
             "time and endTime both are mandatory for during Query.");
       }
 
@@ -163,7 +166,7 @@ public class QueryMapper {
       } catch (Exception ex) {
         throw new DxRuntimeException(
             BAD_REQUEST.getValue(),
-            ResponseUrn.INVALID_TEMPORAL_PARAM_URN,
+            INVALID_TEMPORAL_PARAM_URN,
             "time and endTime both are mandatory for during Query.");
       }
     } else if (timeRel.equalsIgnoreCase("after")) {
@@ -171,8 +174,8 @@ public class QueryMapper {
     } else if (timeRel.equalsIgnoreCase("before")) {
 
     }
-    if (totalDaysAllowed > ApiServerConstants.VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
-      throw new DxRuntimeException(BAD_REQUEST.getValue(), ResponseUrn.INVALID_TEMPORAL_PARAM_URN,
+    if (totalDaysAllowed >VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+      throw new DxRuntimeException(BAD_REQUEST.getValue(),INVALID_TEMPORAL_PARAM_URN,
           "time interval greater than 10 days is not allowed");
     }
   }
@@ -184,19 +187,18 @@ public class QueryMapper {
   private String getSearchType() {
     StringBuilder searchType = new StringBuilder();
     if (isTemporal) {
-      searchType.append(ApiServerConstants.JSON_TEMPORAL_SEARCH);
+      searchType.append(JSON_TEMPORAL_SEARCH);
     }
     else if(!isTemporal){
       searchType.append(JSON_LATEST_SEARCH);
     }
     if (isAttributeSearch) {
-      searchType.append(ApiServerConstants.JSON_ATTRIBUTE_SEARCH);
+      searchType.append(JSON_ATTRIBUTE_SEARCH);
     }
     if (isGeoSearch) {
       searchType.append(JSON_GEO_SEARCH);
     }
     return searchType.substring(0, searchType.length() - 1).toString();
-   // return searchType.substring(0, searchType.length() );
   }
 
   JsonObject getQueryTerms(String queryTerms) {
@@ -210,7 +212,7 @@ public class QueryMapper {
       Character c = queryTerms.charAt(i);
       if (!(Character.isLetter(c) || Character.isDigit(c)) && !specialCharFound) {
         if (allowedSpecialCharacter.contains(c)) {
-          json.put(ApiServerConstants.JSON_ATTRIBUTE, queryTerms.substring(startIndex, i));
+          json.put(JSON_ATTRIBUTE, queryTerms.substring(startIndex, i));
           startIndex = i;
           specialCharFound = true;
         } else {
@@ -220,13 +222,13 @@ public class QueryMapper {
         }
       } else {
         if (specialCharFound && (Character.isLetter(c) || Character.isDigit(c))) {
-          json.put(ApiServerConstants.JSON_OPERATOR, queryTerms.substring(startIndex, i));
-          json.put(ApiServerConstants.JSON_VALUE, queryTerms.substring(i));
+          json.put(JSON_OPERATOR, queryTerms.substring(startIndex, i));
+          json.put(JSON_VALUE, queryTerms.substring(i));
           break;
         }
       }
     }
-    if (!allowedOperators.contains(json.getString(ApiServerConstants.JSON_OPERATOR))) {
+    if (!allowedOperators.contains(json.getString(JSON_OPERATOR))) {
       throw new DxRuntimeException(
           BAD_REQUEST.getValue(), INVALID_ATTR_PARAM_URN, "Operator not allowed.");
     }
@@ -241,8 +243,5 @@ public class QueryMapper {
   private <T> T getOrDefault(T value, T def) {
     return (value == null) ? def : value;
   }
-
-
-
 
 }

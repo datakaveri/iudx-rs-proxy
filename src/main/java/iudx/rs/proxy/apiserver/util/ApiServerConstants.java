@@ -96,6 +96,8 @@ public class ApiServerConstants {
   public static final String IID = "iid";
   public static final String API = "api";
   public static final String USER_ID = "userid";
+  public static final String GEO_QUERY = "geo-query";
+  public static final String TEMPORAL_QUERY = "temporal-query";
 
   // searchtype
   public static final String JSON_SEARCH_TYPE = "searchType";
