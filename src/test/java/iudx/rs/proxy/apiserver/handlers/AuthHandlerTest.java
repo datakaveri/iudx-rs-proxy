@@ -13,6 +13,7 @@ import io.vertx.junit5.VertxTestContext;
 
 import iudx.rs.proxy.apiserver.util.ApiServerConstants;
 import iudx.rs.proxy.authenticator.AuthenticationService;
+import iudx.rs.proxy.common.Api;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,8 @@ class AuthHandlerTest {
     @Test
     public void testCreate(VertxTestContext vertxTestContext) {
         AuthHandler.authenticator = mock(AuthenticationService.class);
-        assertNotNull(AuthHandler.create(Vertx.vertx()));
+        Api api=mock(Api.class);
+        assertNotNull(AuthHandler.create(Vertx.vertx(),api));
         vertxTestContext.completeNow();
     }
      @Test
@@ -87,13 +89,17 @@ class AuthHandlerTest {
      public void testHandleSuccess(VertxTestContext vertxTestContext) {
          when(routingContext.body()).thenReturn(requestBody);
          when(requestBody.asJsonObject()).thenReturn(jsonObject);
-         when(httpServerRequest.path()).thenReturn("Dummy url");
+         when(httpServerRequest.path()).thenReturn("/ngsi-ld/v1/entities");
          AuthHandler.authenticator = mock(AuthenticationService.class);
+         AuthHandler.api=mock(Api.class);
          when(httpServerRequest.headers()).thenReturn(map);
          when(map.get(anyString())).thenReturn("Dummy Token");
          when(asyncResult.succeeded()).thenReturn(true);
          when(asyncResult.result()).thenReturn(jsonObject);
 
+         when(AuthHandler.api.getEntitiesEndpoint()).thenReturn("/ngsi-ld/v1/entities");
+        
+         
         doAnswer(new Answer<AsyncResult<JsonObject>>() {
             @Override
             public AsyncResult<JsonObject> answer(InvocationOnMock arg0) throws Throwable {
@@ -123,8 +129,10 @@ class AuthHandlerTest {
 
         when(routingContext.body()).thenReturn(requestBody);
         when(requestBody.asJsonObject()).thenReturn(jsonObject);
-        when(httpServerRequest.path()).thenReturn("Dummy Path");
+        when(httpServerRequest.path()).thenReturn("/ngsi-ld/v1/entities");
         AuthHandler.authenticator = mock(AuthenticationService.class);
+        AuthHandler.api=mock(Api.class);
+        
         when(httpServerRequest.headers()).thenReturn(map);
         when(map.get(anyString())).thenReturn("Dummy token");
         when(asyncResult.cause()).thenReturn(throwable);
@@ -134,6 +142,9 @@ class AuthHandlerTest {
         when(httpServerResponse.setStatusCode(anyInt())).thenReturn(httpServerResponse);
         when(httpServerResponse.end(anyString())).thenReturn(voidFuture);
         when(asyncResult.succeeded()).thenReturn(false);
+        
+        when(AuthHandler.api.getEntitiesEndpoint()).thenReturn("/ngsi-ld/v1/entities");
+        
         doAnswer((Answer<AsyncResult<JsonObject>>) arg0 -> {
             ((Handler<AsyncResult<JsonObject>>) arg0.getArgument(2)).handle(asyncResult);
             return null;
@@ -142,7 +153,7 @@ class AuthHandlerTest {
 
         authHandler.handle(routingContext);
 
-        assertEquals("Dummy Path", routingContext.request().path());
+        assertEquals("/ngsi-ld/v1/entities", routingContext.request().path());
         assertEquals("Dummy token", routingContext.request().headers().get(HEADER_TOKEN));
         assertEquals("GET", routingContext.request().method().toString());
         verify(AuthHandler.authenticator, times(1)).tokenIntrospect(any(), any(), any());
@@ -165,11 +176,12 @@ class AuthHandlerTest {
 
         when(routingContext.body()).thenReturn(requestBody);
         when(requestBody.asJsonObject()).thenReturn(jsonObject);
-        when(httpServerRequest.path()).thenReturn(str);
+        when(httpServerRequest.path()).thenReturn("/ngsi-ld/v1/entities");
 
        when(routingContext.pathParams()).thenReturn(stringMap);
        lenient().when(routingContext.pathParams().isEmpty()).thenReturn(false);
         AuthHandler.authenticator = mock(AuthenticationService.class);
+        AuthHandler.api=mock(Api.class);
         lenient().when(routingContext.pathParams().containsKey(anyString())).thenReturn(true);
         lenient().when(routingContext.pathParams().get(anyString())).thenReturn("Dummy_value");
         when(httpServerRequest.headers()).thenReturn(map);
@@ -181,6 +193,8 @@ class AuthHandlerTest {
         when(httpServerResponse.setStatusCode(anyInt())).thenReturn(httpServerResponse);
         when(httpServerResponse.end(anyString())).thenReturn(voidFuture);
         when(asyncResult.succeeded()).thenReturn(false);
+        when(AuthHandler.api.getEntitiesEndpoint()).thenReturn("/ngsi-ld/v1/entities");
+
         doAnswer(new Answer<AsyncResult<JsonObject>>() {
             @Override
             public AsyncResult<JsonObject> answer(InvocationOnMock arg0) throws Throwable {

@@ -1,12 +1,14 @@
 package iudx.rs.proxy.authenticator.authorization;
 
+import java.util.Objects;
+
 public final class AuthorizationRequest {
 
 
   private final Method method;
-  private final Api api;
+  private final String api;
 
-  public AuthorizationRequest(final Method method, final Api api) {
+  public AuthorizationRequest(final Method method, final String api) {
     this.method = method;
     this.api = api;
   }
@@ -15,17 +17,19 @@ public final class AuthorizationRequest {
     return method;
   }
 
-  public Api getApi() {
+  public String getApi() {
     return api;
+  }
+  
+
+  @Override
+  public String toString() {
+    return "AuthorizationRequest [method=" + method + ", api=" + api + "]";
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((api == null) ? 0 : api.hashCode());
-    result = prime * result + ((method == null) ? 0 : method.hashCode());
-    return result;
+    return Objects.hash(api, method);
   }
 
   @Override
@@ -37,12 +41,11 @@ public final class AuthorizationRequest {
     if (getClass() != obj.getClass())
       return false;
     AuthorizationRequest other = (AuthorizationRequest) obj;
-    if (api != other.api)
-      return false;
-    if (method != other.method)
-      return false;
-    return true;
+    return Objects.equals(api, other.api) && method == other.method;
   }
+
+  
+  
 
 
 }

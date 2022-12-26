@@ -1,10 +1,32 @@
 package iudx.rs.proxy.authenticator;
+import static iudx.rs.proxy.authenticator.authorization.Method.GET;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import java.net.http.HttpResponse;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import io.micrometer.core.ipc.http.HttpSender;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PubSecKeyOptions;
@@ -14,34 +36,10 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import iudx.rs.proxy.apiserver.util.ApiServerConstants;
-import iudx.rs.proxy.authenticator.authorization.Api;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationRequest;
-import iudx.rs.proxy.authenticator.authorization.Method;
 import iudx.rs.proxy.authenticator.model.JwtData;
 import iudx.rs.proxy.cache.CacheService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
-
-import java.lang.module.Configuration;
-import java.net.http.HttpResponse;
-
-
-import static iudx.rs.proxy.authenticator.authorization.Method.GET;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import iudx.rs.proxy.common.Api;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -66,6 +64,7 @@ class JwtAuthenticationServiceImplTest {
     AsyncResult<io.vertx.ext.web.client.HttpResponse<Buffer>> asyncResult;
     static WebClient catWebClient;
 
+    private static Api apis;
 
     private static String delegateJwt =
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJhMTNlYjk1NS1jNjkxLTRmZDMtYjIwMC1mMThiYzc4ODEwYjUiLCJpc3MiOiJhdXRoLnRlc3QuY29tIiwiYXVkIjoiZm9vYmFyLml1ZHguaW8iLCJleHAiOjE2MjgxODIzMjcsImlhdCI6MTYyODEzOTEyNywiaWlkIjoicmk6ZXhhbXBsZS5jb20vNzllN2JmYTYyZmFkNmM3NjViYWM2OTE1NGMyZjI0Yzk0Yzk1MjIwYS9yZXNvdXJjZS1ncm91cC9yZXNvdXJjZSIsInJvbGUiOiJkZWxlZ2F0ZSIsImNvbnMiOnsiYWNjZXNzIjpbImFwaSIsInN1YnMiLCJpbmdlc3QiLCJmaWxlIl19fQ.tUoO1L-tXByxNtjY_iK41neeshCiYrNr505wWn1hC1ACwoeL9frebABeFiCqJQGrsBsGOZ1-OACZdHBNcetwyw";
@@ -88,7 +87,7 @@ class JwtAuthenticationServiceImplTest {
         authConfig.put("catServerHost", "rs.iudx.io");
         authConfig.put("host", "rs.iudx.io");
         authConfig.put("catServerPort", 8080);
-
+        authConfig.put("dxApiBasePath","/ngsi-ld/v1");
 
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
         jwtAuthOptions.addPubSecKey(
@@ -104,8 +103,11 @@ class JwtAuthenticationServiceImplTest {
         jwtAuthOptions.getJWTOptions().setIgnoreExpiration(true);// ignore token expiration only for test
         JWTAuth jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
 
+        String dxApiBasePath=authConfig.getString("dxApiBasePath");
+        apis=new Api(dxApiBasePath);
+        
         cacheServiceMock=mock(CacheService.class);
-        jwtAuthenticationService = new JwtAuthenticationServiceImpl(vertx, jwtAuth, authConfig,cacheServiceMock);
+        jwtAuthenticationService = new JwtAuthenticationServiceImpl(vertx, jwtAuth, authConfig,cacheServiceMock,apis);
         jwtAuthImplSpy = spy(jwtAuthenticationService);
 
         LOGGER.info("Auth tests setup complete");
@@ -136,6 +138,15 @@ class JwtAuthenticationServiceImplTest {
                 testContext.failNow(handler.cause());
             }
         });
+    }
+    
+    @Test
+    public void test(VertxTestContext testContext) {
+      AuthorizationRequest authReq=new AuthorizationRequest(GET, apis.getEntitiesEndpoint());
+      AuthorizationRequest authReq1=new AuthorizationRequest(GET, "/ngsi-ld/v1/entities");
+      assertEquals(authReq, authReq1);
+      testContext.completeNow();
+      
     }
 
     @Test
@@ -176,8 +187,8 @@ class JwtAuthenticationServiceImplTest {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", id);
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JwtData jwtData = new JwtData();
         jwtData.setIss("auth.test.com");
@@ -207,8 +218,8 @@ class JwtAuthenticationServiceImplTest {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", "datakaveri.org/04a15c9960ffda227e9546f3f46e629e1fe4132b/rs.iudx.io/pune-env-flood/FWR053");
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JwtData jwtData = new JwtData();
         jwtData.setIss("auth.test.com");
@@ -238,8 +249,8 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
     authInfo.put("token", consumerJwt);
     authInfo.put("id", "datakaveri.org/04a15c9960ffda227e9546f3f46e629e1fe4132b/rs.iudx.io/pune-env-flood/FWR053");
-    authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-    authInfo.put("method", HttpSender.Method.GET);
+    authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+    authInfo.put("method", GET);
 
     JwtData jwtData = new JwtData();
     jwtData.setIss("auth.test.com");
@@ -253,11 +264,9 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
     jwtAuthenticationService.validateAccess(jwtData, false, authInfo).onComplete(handler -> {
         if (handler.succeeded()) {
-            testContext.completeNow();
-
+          testContext.completeNow();
         } else {
-            testContext.failNow("invalid access allowed");
-
+          testContext.failNow("invalid access allowed");
         }
     });
 }
@@ -270,8 +279,8 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", "datakaveri.org/04a15c9960ffda227e9546f3f46e629e1fe4132b/rs.iudx.io/pune-env-flood/FWR053");
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JsonObject request = new JsonObject();
 
@@ -308,8 +317,8 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", "example.com/79e7bfa62fad6c765bac69154c2f24c94c95220a/resource-group");
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JsonObject request = new JsonObject();
 
@@ -352,8 +361,8 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", "example.com/79e7bfa62fad6c765bac69154c2f24c94c95220a/resource-group");
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JsonObject request = new JsonObject();
 
@@ -379,8 +388,8 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", "example.com/79e7bfa62fad6c765bac69154c2f24c94c95220a/resource-group");
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JsonObject request = new JsonObject();
 
@@ -451,8 +460,8 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
 
         authInfo.put("token", consumerJwt);
         authInfo.put("id", id);
-        authInfo.put("apiEndpoint", Api.ENTITIES.getApiEndpoint());
-        authInfo.put("method", HttpSender.Method.GET);
+        authInfo.put("apiEndpoint", apis.getEntitiesEndpoint());
+        authInfo.put("method", GET);
 
         JwtData jwtData = new JwtData();
         jwtData.setIss("auth.test.com");
@@ -507,16 +516,16 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
     @Test
     @DisplayName("authRequest should have same hashcode")
     public void authRequestShouldhaveSamehash() {
-        AuthorizationRequest authR1= new AuthorizationRequest( GET, Api.ENTITIES);
-        AuthorizationRequest authR2= new AuthorizationRequest(GET, Api.ENTITIES);
+        AuthorizationRequest authR1= new AuthorizationRequest( GET, apis.getEntitiesEndpoint());
+        AuthorizationRequest authR2= new AuthorizationRequest(GET, apis.getEntitiesEndpoint());
         assertEquals(authR1.hashCode(), authR2.hashCode());
     }
 
    @Test
     @DisplayName("authRequest should not equal")
     public void authRequestShouldNotEquals() {
-        AuthorizationRequest authR1= new AuthorizationRequest(GET, Api.TEMPORAL);
-        AuthorizationRequest authR2= new AuthorizationRequest(GET, Api.ENTITIES);
+        AuthorizationRequest authR1= new AuthorizationRequest(GET, apis.getTemporalEndpoint());
+        AuthorizationRequest authR2= new AuthorizationRequest(GET, apis.getEntitiesEndpoint());
         Assertions.assertFalse(authR1.equals(authR2));
 
     }

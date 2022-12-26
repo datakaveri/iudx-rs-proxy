@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import iudx.rs.proxy.authenticator.AuthenticationService;
+import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import org.apache.logging.log4j.LogManager;
@@ -26,9 +27,11 @@ public class AuthHandler implements Handler<RoutingContext> {
   static AuthenticationService authenticator;
   private final String AUTH_INFO = "authInfo";
   private HttpServerRequest request;
+  static Api api;
 
-  public static AuthHandler create(Vertx vertx) {
+  public static AuthHandler create(Vertx vertx,Api apiEndpoints) {
     authenticator = AuthenticationService.createProxy(vertx, AUTH_SERVICE_ADDRESS);
+    api=apiEndpoints;
     return new AuthHandler();
   }
 
@@ -158,19 +161,23 @@ public class AuthHandler implements Handler<RoutingContext> {
   private String getNormalizedPath(String url) {
     LOGGER.debug("URL : " + url);
     String path = null;
-    if (url.matches(TEMPORAL_URL_REGEX)) {
-      path = NGSILD_TEMPORAL_URL;
-    } else if (url.matches(ENTITIES_URL_REGEX)) {
-      path = NGSILD_ENTITIES_URL;
-    } else if (url.matches(IUDX_CONSUMER_AUDIT_URL)) {
-      path = IUDX_CONSUMER_AUDIT_URL;
-    } else if (url.matches(IUDX_PROVIDER_AUDIT_URL)) {
-      path = IUDX_PROVIDER_AUDIT_URL;
-    } else if (url.matches(NGSILD_POST_ENTITIES_QUERY_PATH)) {
-      path = NGSILD_POST_ENTITIES_QUERY_PATH;
-    }else if(url.matches(NGSILD_POST_TEMPORAL_QUERY_PATH)){
-      path = NGSILD_POST_TEMPORAL_QUERY_PATH;
+    if (url.matches(getpathRegex(api.getTemporalEndpoint()))) {
+      path = api.getTemporalEndpoint();
+    } else if (url.matches(getpathRegex(api.getEntitiesEndpoint()))) {
+      path = api.getEntitiesEndpoint();
+    } else if (url.matches(api.getConsumerAuditEndpoint())) {
+      path = api.getConsumerAuditEndpoint();
+    } else if (url.matches(api.getProviderAuditEndpoint())) {
+      path = api.getProviderAuditEndpoint();
+    } else if (url.matches(api.getPostEntitiesEndpoint())) {
+      path = api.getPostEntitiesEndpoint();
+    }else if(url.matches(api.getPostTemporalEndpoint())){
+      path = api.getPostTemporalEndpoint();
     }
     return path;
+  }
+  
+  private String getpathRegex(String path) {
+    return path+"(.*)";
   }
 }

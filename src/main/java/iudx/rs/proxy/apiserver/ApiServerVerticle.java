@@ -36,6 +36,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -50,6 +51,7 @@ import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
 import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.apiserver.util.RequestType;
+import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
@@ -80,6 +82,8 @@ public class ApiServerVerticle extends AbstractVerticle {
   private DatabaseService databaseService;
   private MeteringService meteringService;
   private DatabrokerService brokerService;
+  
+  private String dxApiBasePath;
 
   @Override
   public void start() throws Exception {
@@ -88,6 +92,12 @@ public class ApiServerVerticle extends AbstractVerticle {
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
+    
+    
+    
+    dxApiBasePath=config().getString("dxApiBasePath");
+    Api apis=new Api(dxApiBasePath);
+    
     router = Router.router(vertx);
     router.route().handler(
         CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
@@ -122,6 +132,46 @@ public class ApiServerVerticle extends AbstractVerticle {
                   });
             });
     router.route().handler(BodyHandler.create());
+    
+    FailureHandler validationsFailureHandler = new FailureHandler();
+
+    ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
+    router.get(apis.getEntitiesEndpoint()).handler(entityValidationHandler)
+        .handler(AuthHandler.create(vertx,apis)).handler(this::handleEntitiesQuery)
+        .failureHandler(validationsFailureHandler);
+
+    ValidationHandler temporalValidationHandler =
+        new ValidationHandler(vertx, RequestType.TEMPORAL);
+
+    router.get(apis.getTemporalEndpoint()).handler(temporalValidationHandler)
+        .handler(AuthHandler.create(vertx,apis)).handler(this::handleTemporalQuery)
+        .failureHandler(validationsFailureHandler);
+
+    router.get(apis.getConsumerAuditEndpoint()).handler(AuthHandler.create(vertx,apis))
+        .handler(this::getConsumerAuditDetail);
+    router.get(apis.getProviderAuditEndpoint()).handler(AuthHandler.create(vertx,apis))
+        .handler(this::getProviderAuditDetail);
+
+    // Post Queries
+    ValidationHandler postEntitiesValidationHandler =
+            new ValidationHandler(vertx, RequestType.POST_ENTITIES);
+    router
+            .post(apis.getPostEntitiesEndpoint())
+            .consumes(APPLICATION_JSON)
+            .handler(postEntitiesValidationHandler)
+            .handler(AuthHandler.create(vertx,apis))
+            .handler(this::handlePostEntitiesQuery)
+            .failureHandler(validationsFailureHandler);
+
+    ValidationHandler postTemporalValidationHandler =
+            new ValidationHandler(vertx, RequestType.POST_TEMPORAL);
+    router
+            .post(apis.getPostTemporalEndpoint())
+            .consumes(APPLICATION_JSON)
+            .handler(postTemporalValidationHandler)
+            .handler(AuthHandler.create(vertx,apis))
+            .handler(this::handlePostEntitiesQuery)
+            .failureHandler(validationsFailureHandler);
 
     isSSL = config().getBoolean("ssl");
     isProduction = config().getBoolean("production");
@@ -134,7 +184,6 @@ public class ApiServerVerticle extends AbstractVerticle {
 
       keystore = config().getString("keystore");
       keystorePassword = config().getString("keystorePassword");
-
       serverOptions.setSsl(true)
           .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
 
@@ -152,76 +201,8 @@ public class ApiServerVerticle extends AbstractVerticle {
     serverOptions.setCompressionSupported(true).setCompressionLevel(5);
     server = vertx.createHttpServer(serverOptions);
     server.requestHandler(router).listen(port);
-
-    FailureHandler validationsFailureHandler = new FailureHandler();
-
-    ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
-    router.get(NGSILD_ENTITIES_URL).handler(entityValidationHandler)
-        .handler(AuthHandler.create(vertx)).handler(this::handleEntitiesQuery)
-        .failureHandler(validationsFailureHandler);
-
-    ValidationHandler temporalValidationHandler =
-        new ValidationHandler(vertx, RequestType.TEMPORAL);
-
-    router.get(NGSILD_TEMPORAL_URL).handler(temporalValidationHandler)
-        .handler(AuthHandler.create(vertx)).handler(this::handleTemporalQuery)
-        .failureHandler(validationsFailureHandler);
-
-    router.get(IUDX_CONSUMER_AUDIT_URL).handler(AuthHandler.create(vertx))
-        .handler(this::getConsumerAuditDetail);
-    router.get(IUDX_PROVIDER_AUDIT_URL).handler(AuthHandler.create(vertx))
-        .handler(this::getProviderAuditDetail);
-
-    router
-        .get("/test/adapterQuery")
-        .handler(this::handeRPCTest)
-        .failureHandler(validationsFailureHandler);
-    // Post Queries
-    ValidationHandler postEntitiesValidationHandler =
-            new ValidationHandler(vertx, RequestType.POST_ENTITIES);
-    router
-            .post(NGSILD_POST_ENTITIES_QUERY_PATH)
-            .consumes(APPLICATION_JSON)
-            .handler(postEntitiesValidationHandler)
-            .handler(AuthHandler.create(vertx))
-            .handler(this::handlePostEntitiesQuery)
-            .failureHandler(validationsFailureHandler);
-
-    ValidationHandler postTemporalValidationHandler =
-            new ValidationHandler(vertx, RequestType.POST_TEMPORAL);
-    router
-            .post(NGSILD_POST_TEMPORAL_QUERY_PATH)
-            .consumes(APPLICATION_JSON)
-            .handler(postTemporalValidationHandler)
-            .handler(AuthHandler.create(vertx))
-            .handler(this::handlePostEntitiesQuery)
-            .failureHandler(validationsFailureHandler);
-  }
-
-
-  private void handeRPCTest(RoutingContext routingContext) {
-    HttpServerRequest request = routingContext.request();
-    HttpServerResponse response = routingContext.response();
-    String instanceID = request.getHeader(HEADER_HOST);
-    MultiMap params = getQueryParams(routingContext, response).get();
-    NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-    // create json
-    QueryMapper queryMapper = new QueryMapper();
-    JsonObject json = queryMapper.toJson(ngsildquery, true);
-
-    brokerService.executeAdapterQueryRPC(json, handler -> {
-      if (handler.succeeded()) {
-        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .setStatusCode(200)
-            .end(handler.result().toString());
-      } else {
-        LOGGER.error(handler);
-        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .setStatusCode(400)
-            .end(handler.cause().getMessage().toString());
-      }
-
-    });
+    LOGGER.debug("port deployed : "+server.actualPort());
+    printDeployedEndpoints(router);
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
@@ -634,5 +615,13 @@ public class ApiServerVerticle extends AbstractVerticle {
     });
 
     promise.future();
+  }
+  
+  private void printDeployedEndpoints(Router router) {
+    for(Route route:router.getRoutes()) {
+      if(route.getPath()!=null) {
+        LOGGER.info("API Endpoints deployed :"+ route.methods() +":"+ route.getPath());
+      }
+    }
   }
 }

@@ -50,13 +50,13 @@ public class Deployer {
       LOGGER.info("Deployed all");
       return;
     }
-    JsonObject config = configs.getJsonArray("modules").getJsonObject(i);
-    config.put("host", configs.getString("host"));
-    String moduleName = config.getString("id");
-    int numInstances = config.getInteger("verticleInstances");
+    JsonObject moduleConfigurations=getConfigForModule(i, configs);
+    moduleConfigurations.put("host", configs.getString("host"));
+    String moduleName = moduleConfigurations.getString("id");
+    int numInstances = moduleConfigurations.getInteger("verticleInstances");
     vertx.deployVerticle(
         moduleName,
-        new DeploymentOptions().setInstances(numInstances).setConfig(config),
+        new DeploymentOptions().setInstances(numInstances).setConfig(moduleConfigurations),
         ar -> {
           if (ar.succeeded()) {
             LOGGER.info("Deployed " + moduleName);
@@ -65,6 +65,12 @@ public class Deployer {
             LOGGER.fatal("Failed to deploy " + moduleName + " cause:", ar.cause());
           }
         });
+  }
+  
+  private static JsonObject getConfigForModule(int moduleIndex,JsonObject configurations) {
+    JsonObject commonConfigs=configurations.getJsonObject("commonConfig");
+    JsonObject config = configurations.getJsonArray("modules").getJsonObject(moduleIndex);
+    return config.mergeIn(commonConfigs, true);
   }
 
   public static ClusterManager getClusterManager(

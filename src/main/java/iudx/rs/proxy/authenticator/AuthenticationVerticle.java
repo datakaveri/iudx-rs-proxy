@@ -15,6 +15,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.serviceproxy.ServiceBinder;
 import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.common.Api;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,6 +39,8 @@ public class AuthenticationVerticle extends AbstractVerticle {
   private MessageConsumer<JsonObject> consumer;
   private WebClient webClient;
   private CacheService cacheService;
+  
+  private String dxApiBasePath;
 
   static WebClient createWebClient(Vertx vertx, JsonObject config) {
     return createWebClient(vertx, config, false);
@@ -84,8 +87,12 @@ public class AuthenticationVerticle extends AbstractVerticle {
               }
               JWTAuth jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
               cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
+              
+              dxApiBasePath=config().getString("dxApiBasePath");
+              Api apis=new Api(dxApiBasePath);
+              
               jwtAuthenticationService =
-                  new JwtAuthenticationServiceImpl(vertx, jwtAuth, config(), cacheService);
+                  new JwtAuthenticationServiceImpl(vertx, jwtAuth, config(), cacheService,apis);
 
               /* Publish the Authentication service with the Event Bus against an address. */
               consumer =
