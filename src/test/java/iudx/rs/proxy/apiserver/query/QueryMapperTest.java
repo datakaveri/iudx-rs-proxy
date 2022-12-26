@@ -7,6 +7,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(VertxExtension.class)
 class QueryMapperTest {
 
-
+    private static final Logger LOGGER = LogManager.getLogger(QueryMapperTest.class);
     private QueryMapper qm;
 
     @BeforeEach
@@ -71,13 +73,14 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         NGSILDQueryParams params = new NGSILDQueryParams(map);
 
         JsonObject json = qm.toJson(params, false);
-
-        assertTrue(json.containsKey(JSON_LAT));
-        assertTrue(json.containsKey(JSON_LON));
-        assertTrue(json.containsKey(JSON_RADIUS));
-        assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
-        assertFalse(json.containsKey(NGSILDQUERY_TIME));
-        assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
+        assertTrue(json.containsKey("geo-query"));
+        JsonObject geoJson=json.getJsonObject("geo-query");
+        assertTrue(geoJson.containsKey(JSON_LAT));
+        assertTrue(geoJson.containsKey(JSON_LON));
+        assertTrue(geoJson.containsKey(JSON_RADIUS));
+        assertFalse(geoJson.containsKey(NGSILDQUERY_TIMEREL));
+        assertFalse(geoJson.containsKey(NGSILDQUERY_TIME));
+        assertFalse(geoJson.containsKey(NGSILDQUERY_ENDTIME));
         testContext.completeNow();
     }
 
@@ -95,12 +98,13 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         NGSILDQueryParams params = new NGSILDQueryParams(map);
 
         JsonObject json = qm.toJson(params, false);
-
+        assertTrue(json.containsKey("geo-query"));
+        JsonObject geoJson=json.getJsonObject("geo-query");
         assertTrue(json.containsKey(NGSILDQUERY_ID));
         assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
-        assertTrue(json.containsKey(NGSILDQUERY_COORDINATES));
-        assertTrue(json.containsKey(NGSILDQUERY_GEOREL));
-        assertTrue(json.containsKey(NGSILDQUERY_GEOMETRY));
+        assertTrue(geoJson.containsKey(NGSILDQUERY_COORDINATES));
+        assertTrue(geoJson.containsKey(NGSILDQUERY_GEOREL));
+        assertTrue(geoJson.containsKey(NGSILDQUERY_GEOMETRY));
         assertFalse(json.containsKey(NGSILDQUERY_TIMEREL));
         assertFalse(json.containsKey(NGSILDQUERY_TIME));
         assertFalse(json.containsKey(NGSILDQUERY_ENDTIME));
@@ -118,12 +122,14 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
       NGSILDQueryParams params = new NGSILDQueryParams(map);
 
       JsonObject json = qm.toJson(params, true);
+      assertTrue(json.containsKey("temporal-query"));
+      JsonObject temporalQuery=json.getJsonObject("temporal-query");
 
       assertTrue(json.containsKey(NGSILDQUERY_ID));
       assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
-      assertTrue(json.containsKey(NGSILDQUERY_TIMEREL));
-      assertTrue(json.containsKey(NGSILDQUERY_TIME));
-      assertTrue(json.containsKey(NGSILDQUERY_ENDTIME));
+      assertTrue(temporalQuery.containsKey(NGSILDQUERY_TIMEREL));
+      assertTrue(temporalQuery.containsKey(NGSILDQUERY_TIME));
+      assertTrue(temporalQuery.containsKey(NGSILDQUERY_ENDTIME));
       testContext.completeNow();
   }
 
@@ -139,10 +145,12 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         NGSILDQueryParams params = new NGSILDQueryParams(map);
 
         JsonObject json = qm.toJson(params, true);
+        assertTrue(json.containsKey("temporal-query"));
+        JsonObject temporalQuery=json.getJsonObject("temporal-query");
         assertTrue(json.containsKey(NGSILDQUERY_ID));
         assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
-        assertTrue(json.containsKey(NGSILDQUERY_TIMEREL));
-        assertTrue(json.containsKey(NGSILDQUERY_TIME));
+        assertTrue(temporalQuery.containsKey(NGSILDQUERY_TIMEREL));
+        assertTrue(temporalQuery.containsKey(NGSILDQUERY_TIME));
         testContext.completeNow();
     }
 
