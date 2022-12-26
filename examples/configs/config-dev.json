@@ -5,6 +5,9 @@
 	],
 	"clusterId": "iudx-rs-proxy-cluster",
 	"host": "",
+	"commonConfig" :  {
+           "dxApiBasePath" : "/ngsi-ld/v1"
+  	},
 	"modules": [
 		{
 			"id": "iudx.rs.proxy.apiserver.ApiServerVerticle",

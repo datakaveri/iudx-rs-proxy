@@ -20,7 +20,6 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import iudx.rs.proxy.authenticator.authorization.Api;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationContextFactory;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationRequest;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationStrategy;
@@ -30,6 +29,7 @@ import iudx.rs.proxy.authenticator.authorization.Method;
 import iudx.rs.proxy.authenticator.model.JwtData;
 import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.cache.cacheImpl.CacheType;
+import iudx.rs.proxy.common.Api;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -51,6 +51,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   final String audience;
   final CacheService cache;
   static WebClient catWebClient;
+  final Api apis;
   // resourceGroupCache will contain ACL info about all resource group in a resource server
   Cache<String, String> resourceGroupCache = CacheBuilder.newBuilder().maximumSize(1000)
       .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES).build();
@@ -61,13 +62,13 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
 
   JwtAuthenticationServiceImpl(Vertx vertx, final JWTAuth jwtAuth, final JsonObject config,
-                               final CacheService cacheService) {
+                               final CacheService cacheService,final Api apis) {
     this.jwtAuth = jwtAuth;
     this.audience = config.getString("host");
     this.host = config.getString("catServerHost");
     this.port = config.getInteger("catServerPort");
     this.path = Constants.CAT_RSG_PATH;
-
+    this.apis=apis;
     WebClientOptions options = new WebClientOptions();
     options.setTrustAll(true).setVerifyHost(false).setSsl(true);
     catWebClient = WebClient.create(vertx, options);
@@ -214,11 +215,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     }
 
     Method method = Method.valueOf(authInfo.getString("method"));
-    Api api = Api.fromEndpoint(authInfo.getString("apiEndpoint"));
+    String api = authInfo.getString("apiEndpoint");
     AuthorizationRequest authRequest = new AuthorizationRequest(method, api);
-
     IudxRole role = IudxRole.fromRole(jwtData.getRole());
-    AuthorizationStrategy authStrategy = AuthorizationContextFactory.create(role);
+    AuthorizationStrategy authStrategy = AuthorizationContextFactory.create(role,apis);
     LOGGER.info("strategy : " + authStrategy.getClass().getSimpleName());
     JwtAuthorization jwtAuthStrategy = new JwtAuthorization(authStrategy);
     LOGGER.info("auth strategy " + jwtAuthStrategy);

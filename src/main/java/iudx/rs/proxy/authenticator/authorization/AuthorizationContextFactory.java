@@ -1,18 +1,16 @@
 package iudx.rs.proxy.authenticator.authorization;
 
+import iudx.rs.proxy.common.Api;
+
 public class AuthorizationContextFactory {
 
-
-  private final static AuthorizationStrategy consumerAuth = new ConsumerAuthStrategy();
-  private final static AuthorizationStrategy providerAuth = new ProviderAuthStrategy();
-
-  public static AuthorizationStrategy create(IudxRole role) {
+  public static AuthorizationStrategy create(IudxRole role,Api apis) {
     switch (role) {
       case CONSUMER: {
-        return consumerAuth;
+        return new ConsumerAuthStrategy(apis);
       }
       case PROVIDER: {
-        return providerAuth;
+        return new ProviderAuthStrategy(apis);
       }
       default:
         throw new IllegalArgumentException(role + "role is not defined in IUDX");
