@@ -16,7 +16,7 @@ class ApiTest {
     {
       
         String basePath="/ngsi-ld/v1";
-        Api api=new Api(basePath);
+        Api api=Api.getInstance(basePath);
         assertEquals("/ngsi-ld/v1/entities",api.getEntitiesEndpoint());
         vertxTestContext.completeNow();
     }

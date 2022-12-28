@@ -96,7 +96,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     
     
     dxApiBasePath=config().getString("dxApiBasePath");
-    Api apis=new Api(dxApiBasePath);
+    Api apis=Api.getInstance(dxApiBasePath);
     
     router = Router.router(vertx);
     router.route().handler(

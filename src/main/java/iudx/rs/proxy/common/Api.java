@@ -5,17 +5,18 @@ public class Api {
   
   private final String dxApiBasePath;
   
-  public Api(String dxApiBasePath) {
+  private Api(String dxApiBasePath) {
     this.dxApiBasePath=dxApiBasePath;
     buildEndpoints();
   }
-  
+
   private StringBuilder entitiesEndpoint;
   private StringBuilder temporalEndpoint;
   private StringBuilder postEntitiesEndpoint;
   private StringBuilder postTemporalEndpoint;
   private StringBuilder consumerAuditEndpoint;
   private StringBuilder providerAuditEndpoint;
+  private static volatile Api apiInstance;
   
   private void buildEndpoints() {
     entitiesEndpoint=new StringBuilder(dxApiBasePath).append(ENTITIES_URL);
@@ -25,7 +26,21 @@ public class Api {
     consumerAuditEndpoint=new StringBuilder(dxApiBasePath).append(CONSUMER_AUDIT_URL);
     providerAuditEndpoint=new StringBuilder(dxApiBasePath).append(PROVIDER_AUDIT_URL);
   }
-  
+
+  public static Api getInstance(String dxApiBasePath)
+  {
+    if (apiInstance == null)
+    {
+      synchronized (Api.class)
+      {
+        if (apiInstance == null)
+        {
+          apiInstance = new Api(dxApiBasePath);
+        }
+      }
+    }
+    return apiInstance;
+  }
   public String getEntitiesEndpoint() {
     return entitiesEndpoint.toString();
   }
