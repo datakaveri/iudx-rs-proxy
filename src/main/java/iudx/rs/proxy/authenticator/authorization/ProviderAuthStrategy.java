@@ -14,11 +14,27 @@ public class ProviderAuthStrategy implements AuthorizationStrategy {
 
   static Map<String, List<AuthorizationRequest>> providerAuthorizationRules = new HashMap<>();
   private final Api apis;
-  public ProviderAuthStrategy(Api apis) {
+  private static volatile ProviderAuthStrategy instance;
+
+  private ProviderAuthStrategy(Api apis) {
     this.apis=apis;
     buildPermissions(apis);
   }
-  
+
+  public static ProviderAuthStrategy getInstance(Api api)
+  {
+    if (instance == null)
+    {
+      synchronized (ProviderAuthStrategy.class)
+      {
+        if (instance == null)
+        {
+          instance = new ProviderAuthStrategy(api);
+        }
+      }
+    }
+    return instance;
+  }
   private void buildPermissions(Api api) {
     
   }

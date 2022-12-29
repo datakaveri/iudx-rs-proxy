@@ -104,7 +104,7 @@ class JwtAuthenticationServiceImplTest {
         JWTAuth jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
 
         String dxApiBasePath=authConfig.getString("dxApiBasePath");
-        apis=new Api(dxApiBasePath);
+        apis=Api.getInstance(dxApiBasePath);
         
         cacheServiceMock=mock(CacheService.class);
         jwtAuthenticationService = new JwtAuthenticationServiceImpl(vertx, jwtAuth, authConfig,cacheServiceMock,apis);

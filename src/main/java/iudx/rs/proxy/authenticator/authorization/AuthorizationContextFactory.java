@@ -7,10 +7,10 @@ public class AuthorizationContextFactory {
   public static AuthorizationStrategy create(IudxRole role,Api apis) {
     switch (role) {
       case CONSUMER: {
-        return new ConsumerAuthStrategy(apis);
+        return ConsumerAuthStrategy.getInstance(apis);
       }
       case PROVIDER: {
-        return new ProviderAuthStrategy(apis);
+        return ProviderAuthStrategy.getInstance(apis);
       }
       default:
         throw new IllegalArgumentException(role + "role is not defined in IUDX");

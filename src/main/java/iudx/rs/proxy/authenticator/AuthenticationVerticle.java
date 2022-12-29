@@ -89,7 +89,7 @@ public class AuthenticationVerticle extends AbstractVerticle {
               cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
               
               dxApiBasePath=config().getString("dxApiBasePath");
-              Api apis=new Api(dxApiBasePath);
+              Api apis=Api.getInstance(dxApiBasePath);
               
               jwtAuthenticationService =
                   new JwtAuthenticationServiceImpl(vertx, jwtAuth, config(), cacheService,apis);
