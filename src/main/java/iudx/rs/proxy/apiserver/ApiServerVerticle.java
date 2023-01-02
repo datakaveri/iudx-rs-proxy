@@ -206,19 +206,14 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
-    /* Handles HTTP request from client */
     JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
     HttpServerRequest request = routingContext.request();
-    /* Handles HTTP response from server to client */
     HttpServerResponse response = routingContext.response();
-    // get query parameters
     MultiMap params = getQueryParams(routingContext, response).get();
     MultiMap headerParams = request.headers();
-    // validate request parameters
     Future<Boolean> validationResult = validator.validate(params);
     validationResult.onComplete(validationHandler -> {
       if (validationHandler.succeeded()) {
-        // parse query params
         NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(params);
         if (isTemporalParamsPresent(ngsildQuery)) {
           DxRuntimeException ex =
@@ -226,15 +221,12 @@ public class ApiServerVerticle extends AbstractVerticle {
                   "Temporal parameters are not allowed in entities query.");
           routingContext.fail(ex);
         }
-        // create json
         QueryMapper queryMapper = new QueryMapper();
         JsonObject json = queryMapper.toJson(ngsildQuery, false);
         Future<List<String>> filtersFuture =
             catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
-        /* HTTP request instance/host details */
         String instanceID = request.getHeader(HEADER_HOST);
         json.put(JSON_INSTANCEID, instanceID);
-        /* HTTP request body as Json */
         JsonObject requestBody = new JsonObject();
         requestBody.put("ids", json.getJsonArray("id"));
         filtersFuture.onComplete(filtersHandler -> {
@@ -268,28 +260,21 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   public void handleTemporalQuery(RoutingContext routingContext) {
-    /* Handles HTTP request from client */
     HttpServerRequest request = routingContext.request();
     HttpServerResponse response = routingContext.response();
-    /* HTTP request instance/host details */
     String instanceID = request.getHeader(HEADER_HOST);
-    // get query parameters
     MultiMap params = getQueryParams(routingContext, response).get();
-    // validate request params
     Future<Boolean> validationResult = validator.validate(params);
 
     validationResult.onComplete(validationHandler -> {
       if (validationHandler.succeeded()) {
-        // parse query params
         NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-        // create json
         QueryMapper queryMapper = new QueryMapper();
         JsonObject json = queryMapper.toJson(ngsildquery, true);
         Future<List<String>> filtersFuture =
             catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
         json.put(JSON_INSTANCEID, instanceID);
         LOGGER.debug("Info: IUDX temporal json query;" + json);
-        /* HTTP request body as Json */
         JsonObject requestBody = new JsonObject();
         requestBody.put("ids", json.getJsonArray("id"));
         filtersFuture.onComplete(filtersHandler -> {
@@ -313,53 +298,9 @@ public class ApiServerVerticle extends AbstractVerticle {
     });
   }
 
-  private void executeSearchQuery(RoutingContext context, JsonObject json,
-      HttpServerResponse response) {
-    databaseService.searchQuery(json, handler -> {
-      if (handler.succeeded()) {
-        LOGGER.info("Success: Search Success");
-        if (handler.result().getLong("totalHits") == 0) {
-          handleSuccessResponse(response, ResponseType.NoContent.getCode(),
-              handler.result().toString());
-          context.data().put(RESPONSE_SIZE, 0);
-          Future.future(fu -> updateAuditTable(context));
-        } else {
-          handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
-          context.data().put(RESPONSE_SIZE, response.bytesWritten());
-          Future.future(fu -> updateAuditTable(context));
-        }
-      } else if (handler.failed()) {
-        LOGGER.error("Fail: Search Fail");
-        LOGGER.debug(handler instanceof ServiceException);
-        processBackendResponse(response, handler.cause().getMessage());
-      }
-    });
-  }
-
-  private void executeCountQuery(RoutingContext context, JsonObject json,
-      HttpServerResponse response) {
-    databaseService.countQuery(json, handler -> {
-      if (handler.succeeded()) {
-        LOGGER.info("Success: Count Success");
-        if (handler.result().getJsonArray("results").getJsonObject(0).getLong("totalHits") == 0) {
-          handleSuccessResponse(response, ResponseType.NoContent.getCode(),
-              handler.result().toString());
-          context.data().put(RESPONSE_SIZE, 0);
-          Future.future(fu -> updateAuditTable(context));
-        } else {
-          handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
-          context.data().put(RESPONSE_SIZE, response.bytesWritten());
-          Future.future(fu -> updateAuditTable(context));
-        }
-      } else if (handler.failed()) {
-        LOGGER.error("Fail: Count Fail");
-        processBackendResponse(response, handler.cause().getMessage());
-      }
-    });
-  }
 
   /**
-   * To get encrypted response from the adapter
+   * To get response from the databroker
    * @param context Routing Context
    * @param json Count Request
    * @param response Encrypted data within the results
@@ -373,9 +314,10 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
+        JsonObject adapterResponse=handler.result();
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .setStatusCode(200)
-                .end(handler.result().toString());
+                .setStatusCode(adapterResponse.getInteger("status"))
+                .end(adapterResponse.toString());
       } else {
         LOGGER.error("Fail: Count Fail");
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -386,7 +328,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   /**
-   * To get encrypted response from the adapter
+   * To get response from the databroker
    * @param context Routing Context
    * @param json Search Request
    * @param response Encrypted data within the results
@@ -398,9 +340,10 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Search Success");
+        JsonObject adapterResponse=handler.result();
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .setStatusCode(200)
-                .end(handler.result().toString());
+                .setStatusCode(adapterResponse.getInteger("status"))
+                .end(adapterResponse.toString());
       } else {
         LOGGER.error("Fail: Search Fail");
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
