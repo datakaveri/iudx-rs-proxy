@@ -9,6 +9,7 @@ import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
+import static iudx.rs.proxy.common.HttpStatusCode.NO_CONTENT;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
@@ -18,6 +19,9 @@ import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.List;
 import java.util.Map;
@@ -388,7 +392,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     handleResponse(response, code, urn, code.getDescription());
   }
 
-  private void processBackendResponse(HttpServerResponse response, String failureMessage) {
+  /*private void processBackendResponse(HttpServerResponse response, String failureMessage) {
     LOGGER.debug("Info : " + failureMessage);
     try {
       JsonObject json = new JsonObject(failureMessage);
@@ -409,8 +413,31 @@ public class ApiServerVerticle extends AbstractVerticle {
       LOGGER.error("ERROR : Expecting Json from backend service [ jsonFormattingException ]");
       handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
     }
-  }
+  }*/
 
+  private void processBackendResponse(HttpServerResponse response, String failureMessage) {
+    LOGGER.debug("Info : " + failureMessage);
+    try {
+      JsonObject json = new JsonObject(failureMessage);
+      int type = json.getInteger(JSON_TYPE);
+      HttpStatusCode status = HttpStatusCode.getByValue(type);
+      String urnTitle = json.getString(JSON_TITLE);
+      ResponseUrn urn;
+      if (urnTitle != null) {
+        urn = ResponseUrn.fromCode(urnTitle);
+      } else {
+        urn = ResponseUrn.fromCode(type + "");
+      }
+      // return urn in body
+      response
+              .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+              .setStatusCode(type)
+              .end(generateResponse(status, urn).toString());
+    } catch (DecodeException ex) {
+      LOGGER.error("ERROR : Expecting Json from backend service [ jsonFormattingException ]");
+      handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
+    }
+  }
   private Future<Void> getConsumerAuditDetail(RoutingContext routingContext) {
     LOGGER.debug("Info: getConsumerAuditDetail Started. ");
     Promise<Void> promise = Promise.promise();
@@ -430,23 +457,28 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     {
       LOGGER.debug(entries);
-      meteringService.executeReadQuery(entries, handler -> {
-        if (handler.succeeded()) {
-          LOGGER.info("Success: Search Success ");
-          if (Objects.equals(request.headers().get("options"), "count") && Integer.parseInt(
-              handler.result().getJsonArray(RESULTS).getJsonObject(0).getString(TOTAL_HITS)) == 0) {
-            handleSuccessResponse(response, ResponseType.NoContent.getCode(),
-                handler.result().toString());
-          } else {
-            LOGGER.debug("Table Reading Done.");
-            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
-          }
-        } else if (handler.failed()) {
-          LOGGER.error("Fail: Search Fail " + handler.cause().getMessage());
-          LOGGER.debug(handler instanceof ServiceException);
-          processBackendResponse(response, handler.cause().getMessage());
-        }
-      });
+      meteringService.executeReadQuery(
+              entries,
+              handler -> {
+                if (handler.succeeded()) {
+                  LOGGER.debug("Table Reading Done.");
+                  JsonObject jsonObject = (JsonObject) handler.result();
+                  String checkType = jsonObject.getString("type");
+                  if (checkType.equalsIgnoreCase("204")) {
+                    handleSuccessResponse(
+                            response, ResponseType.NoContent.getCode(), handler.result().toString());
+                  } else {
+                    handleSuccessResponse(
+                            response, ResponseType.Ok.getCode(), handler.result().toString());
+                  }
+                  promise.complete();
+                } else {
+                  LOGGER.error("Fail msg " + handler.cause().getMessage());
+                  LOGGER.error("Table reading failed.");
+                  processBackendResponse(response, handler.cause().getMessage());
+                  promise.complete();
+                }
+              });
       return promise.future();
     }
   }
@@ -473,22 +505,28 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     {
       LOGGER.debug(entries);
-      meteringService.executeReadQuery(entries, handler -> {
-        if (handler.succeeded()) {
-          LOGGER.info("Success: Search Success ");
-          if (Objects.equals(request.headers().get("options"), "count") && Integer.parseInt(
-              handler.result().getJsonArray(RESULTS).getJsonObject(0).getString(TOTAL_HITS)) == 0) {
-            handleSuccessResponse(response, ResponseType.NoContent.getCode(),
-                handler.result().toString());
-          } else {
-            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
-          }
-        } else if (handler.failed()) {
-          LOGGER.error("Fail: Search Fail " + handler.cause().getMessage());
-          LOGGER.debug(handler instanceof ServiceException);
-          processBackendResponse(response, handler.cause().getMessage());
-        }
-      });
+      meteringService.executeReadQuery(
+              entries,
+              handler -> {
+                if (handler.succeeded()) {
+                  LOGGER.debug("Table Reading Done.");
+                  JsonObject jsonObject = (JsonObject) handler.result();
+                  String checkType = jsonObject.getString("type");
+                  if (checkType.equalsIgnoreCase("204")) {
+                    handleSuccessResponse(
+                            response, ResponseType.NoContent.getCode(), handler.result().toString());
+                  } else {
+                    handleSuccessResponse(
+                            response, ResponseType.Ok.getCode(), handler.result().toString());
+                  }
+                  promise.complete();
+                } else {
+                  LOGGER.error("Fail msg " + handler.cause().getMessage());
+                  LOGGER.error("Table reading failed.");
+                  processBackendResponse(response, handler.cause().getMessage());
+                  promise.complete();
+                }
+              });
       return promise.future();
     }
   }
@@ -543,19 +581,29 @@ public class ApiServerVerticle extends AbstractVerticle {
     JsonObject authInfo = (JsonObject) context.data().get("authInfo");
 
     JsonObject request = new JsonObject();
+
+    ZonedDateTime zst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+    long time = zst.toInstant().toEpochMilli();
+    String isoTime = zst.truncatedTo(ChronoUnit.SECONDS).toString();
+
+    request.put(EPOCH_TIME,time);
+    request.put(ISO_TIME,isoTime);
     request.put(USER_ID, authInfo.getValue(USER_ID));
     request.put(ID, authInfo.getValue(ID));
     request.put(API, authInfo.getValue(API_ENDPOINT));
     request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
-    meteringService.executeWriteQuery(request, handler -> {
-      if (handler.succeeded()) {
-        LOGGER.info("audit table updated");
-        promise.complete();
-      } else {
-        LOGGER.error("failed to update audit table");
-        promise.complete();
-      }
-    });
+
+    meteringService.insertMeteringValuesInRMQ(
+            request,
+            handler -> {
+              if (handler.succeeded()) {
+                LOGGER.info("message published in RMQ.");
+                promise.complete();
+              } else {
+                LOGGER.error("failed to publish message in RMQ.");
+                promise.complete();
+              }
+            });
 
     promise.future();
   }

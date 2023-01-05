@@ -3,6 +3,9 @@ package iudx.rs.proxy.databroker;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import iudx.rs.proxy.common.Response;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.rabbitmq.client.AMQP;
@@ -19,7 +22,9 @@ import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
 import iudx.rs.proxy.common.ResponseUrn;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FAILED;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
+import static iudx.rs.proxy.metering.util.Constants.SUCCESS;
 
 
 public class DatabrokerServiceImpl implements DatabrokerService {
@@ -51,11 +56,11 @@ public class DatabrokerServiceImpl implements DatabrokerService {
   /**
    * create Exchanges, queues and proper bindings for routing, In this case producer and consumer
    * will be before hand know about the exchanges and queus for consuming and pushing messages
-   * 
+   *
    * Issue : negatively acknowledge messages (Nack : in case of correlation id mismatch) there is no
    * way to flag a certain consumer to not consume same message again, thus this creates a repeated
    * consumption of same message (currently tested for single consumer only).
-   * 
+   *
    */
   @Override
   public DatabrokerService executeAdapterQuery(JsonObject request,
@@ -141,13 +146,13 @@ public class DatabrokerServiceImpl implements DatabrokerService {
   /**
    * Create an exclusive queue and pass it as message properties to RMQ. message consumer(adaptor)
    * will look for 'reply_to' property in received message and send response in the same queue.
-   * 
+   *
    * Requeued problem as stated above is not a problem in this since, dedicated queue is used for
    * every request/response
-   * 
+   *
    * Since no dedicated exchange is there for responses, so there might be issue for message
    * tracking (not to sure about it)
-   * 
+   *
    */
   @Override
   public DatabrokerService executeAdapterQueryRPC(JsonObject request,
@@ -231,4 +236,34 @@ public class DatabrokerServiceImpl implements DatabrokerService {
     return this;
   }
 
+  @Override
+  public DatabrokerService publishMessage(
+      JsonObject request,
+      String toExchange,
+      String routingKey,
+      Handler<AsyncResult<JsonObject>> handler) {
+
+    Buffer buffer = Buffer.buffer(request.toString());
+
+    if (!client.isConnected()) client.start();
+
+    client.basicPublish(
+        toExchange,
+        routingKey,
+        buffer,
+        publishHandler -> {
+          if (publishHandler.succeeded()) {
+            JsonObject result = new JsonObject().put("type", SUCCESS);
+            handler.handle(Future.succeededFuture(result));
+          } else {
+            Response respBuilder =
+                new Response.Builder()
+                    .withTitle(FAILED)
+                    .withDetail(publishHandler.cause().getLocalizedMessage())
+                    .build();
+            handler.handle(Future.failedFuture(respBuilder.toString()));
+          }
+        });
+    return this;
+  }
 }

@@ -193,6 +193,11 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-rabbitmq-client</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.ongres.scram</groupId>
+			<artifactId>client</artifactId>
+			<version>2.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -240,7 +245,7 @@
 						<exclude>iudx/rs/proxy/deploy/*.class</exclude>
 						<exclude>**/*AuthenticationService.class</exclude>
 						<exclude>**/*MeteringService.class</exclude>
-					 <exclude>**/*CacheService.class</exclude>
+					 	<exclude>**/*CacheService.class</exclude>
 						<exclude>**/*Method.class</exclude>
 						<exclude>**/*DatabaseService.class</exclude>
 						<exclude>**/*ApiServerConstants.class</exclude>
@@ -248,7 +253,7 @@
 						<exclude>**/*MeteringServiceVertxProxyHandler.class</exclude>
 						<exclude>**/*AuthenticationServiceVertxProxyHandler.class</exclude>
 						<exclude>**/database/**</exclude>
-						<exclude>**/metering/**</exclude>
+						<!--<exclude>**/metering/**</exclude>-->
 						<exclude>**/databroker/**</exclude>
 						<!-- class present in generated-sources -->
 						<exclude>**/JwtDataConverter.class</exclude>

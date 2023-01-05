@@ -57,6 +57,10 @@ public class Response {
       this.status = status;
       return this;
     }
+    public Builder withTitle(String title) {
+      this.title = title;
+      return this;
+    }
 
     public Builder withDetail(String detail) {
       this.detail = detail;
