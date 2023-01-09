@@ -27,4 +27,9 @@ public interface DatabrokerService {
   DatabrokerService executeAdapterQueryRPC(JsonObject request,
       Handler<AsyncResult<JsonObject>> handler);
 
+  @Fluent
+  DatabrokerService publishMessage(JsonObject body, String toExchange,
+                                   String routingKey,
+                                   Handler<AsyncResult<JsonObject>> handler);
+
 }

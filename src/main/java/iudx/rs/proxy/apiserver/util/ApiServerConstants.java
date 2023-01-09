@@ -157,6 +157,10 @@ public class ApiServerConstants {
   public static final String JSON_GEO_SEARCH = "geoSearch_";
   public static final String JSON_LATEST_SEARCH = "latestSearch_";
 
+  public static final String EPOCH_TIME = "epochTime";
+  public static final String ISO_TIME = "isoTime";
+  public static final String FAILED = "Failed";
+  public static final String TABLE_NAME = "tableName";
 
 
 
