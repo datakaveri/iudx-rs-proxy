@@ -193,7 +193,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         }
       } else {
         // since no value in cache, this means client_id is valid and not revoked
-        LOGGER.error("cache call result : [fail] " + handler.cause());
+        LOGGER.info("cache call result : [MISS] " + handler.cause());
         promise.complete(true);
       }
     });

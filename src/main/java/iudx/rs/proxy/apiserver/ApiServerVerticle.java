@@ -53,6 +53,7 @@ import iudx.rs.proxy.apiserver.handlers.ValidationHandler;
 import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
+import iudx.rs.proxy.apiserver.response.ResponseUtil;
 import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.common.Api;
@@ -103,38 +104,8 @@ public class ApiServerVerticle extends AbstractVerticle {
     Api apis=Api.getInstance(dxApiBasePath);
     
     router = Router.router(vertx);
-    router.route().handler(
-        CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
-        .handler(responseHeaderHandler -> {
-          responseHeaderHandler.response()
-              .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
-              .putHeader("Pragma", "no-cache").putHeader("Expires", "0")
-              .putHeader("X-Content-Type-Options", "nosniff");
-          responseHeaderHandler.next();
-        });
-
-    HttpStatusCode[] statusCodes = HttpStatusCode.values();
-    Stream.of(statusCodes)
-        .forEach(
-            code -> {
-              router.errorHandler(
-                  code.getValue(),
-                  errorHandler -> {
-                    HttpServerResponse response = errorHandler.response();
-                    if (response.headWritten()) {
-                      try {
-                        response.close();
-                      } catch (RuntimeException e) {
-                        LOGGER.error("Error : " + e);
-                      }
-                      return;
-                    }
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setStatusCode(code.getValue())
-                        .end(errorResponse(code));
-                  });
-            });
+    attachCORSHandlers(router);
+    attachDefaultResponses(router);
     router.route().handler(BodyHandler.create());
     
     FailureHandler validationsFailureHandler = new FailureHandler();
@@ -146,7 +117,6 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
-
     router.get(apis.getTemporalEndpoint()).handler(temporalValidationHandler)
         .handler(AuthHandler.create(vertx,apis)).handler(this::handleTemporalQuery)
         .failureHandler(validationsFailureHandler);
@@ -207,6 +177,45 @@ public class ApiServerVerticle extends AbstractVerticle {
     server.requestHandler(router).listen(port);
     LOGGER.debug("port deployed : "+server.actualPort());
     printDeployedEndpoints(router);
+  }
+
+  private void attachCORSHandlers(Router router) {
+    router
+        .route()
+          .handler(CorsHandler
+              .create("*")
+                .allowedHeaders(ALLOWED_HEADERS)
+                .allowedMethods(ALLOWED_METHODS))
+          .handler(responseHeaderHandler -> {
+            responseHeaderHandler
+                .response()
+                  .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
+                  .putHeader("Pragma", "no-cache")
+                  .putHeader("Expires", "0")
+                  .putHeader("X-Content-Type-Options", "nosniff");
+            responseHeaderHandler.next();
+          });
+  }
+
+  private void attachDefaultResponses(Router router) {
+    HttpStatusCode[] statusCodes = HttpStatusCode.values();
+    Stream.of(statusCodes).forEach(code -> {
+      router.errorHandler(code.getValue(), errorHandler -> {
+        HttpServerResponse response = errorHandler.response();
+        if (response.headWritten()) {
+          try {
+            response.close();
+          } catch (RuntimeException e) {
+            LOGGER.error("Error : " + e);
+          }
+          return;
+        }
+        response
+            .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+              .setStatusCode(code.getValue())
+              .end(errorResponse(code));
+      });
+    });
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
@@ -345,9 +354,16 @@ public class ApiServerVerticle extends AbstractVerticle {
       if (handler.succeeded()) {
         LOGGER.info("Success: Search Success");
         JsonObject adapterResponse=handler.result();
-        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .setStatusCode(adapterResponse.getInteger("status"))
-                .end(adapterResponse.toString());
+        int status=adapterResponse.getInteger("status");
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
+        response.setStatusCode(adapterResponse.getInteger("status"));
+        if(status==200) {
+          response.end(adapterResponse.toString());
+        }else {
+          JsonObject responseJson=ResponseUtil.generateResponse(HttpStatusCode.getByValue(status));
+          response.end(responseJson.toString());
+        }
+                
       } else {
         LOGGER.error("Fail: Search Fail");
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -391,29 +407,6 @@ public class ApiServerVerticle extends AbstractVerticle {
   private void handleResponse(HttpServerResponse response, HttpStatusCode code, ResponseUrn urn) {
     handleResponse(response, code, urn, code.getDescription());
   }
-
-  /*private void processBackendResponse(HttpServerResponse response, String failureMessage) {
-    LOGGER.debug("Info : " + failureMessage);
-    try {
-      JsonObject json = new JsonObject(failureMessage);
-      String type = json.getString(JSON_TYPE);
-      int status = json.getInteger("status");
-      HttpStatusCode httpStatus = HttpStatusCode.getByValue(status);
-      String urnTitle = type;
-      ResponseUrn urn;
-      if (urnTitle != null) {
-        urn = ResponseUrn.fromCode(urnTitle);
-      } else {
-        urn = ResponseUrn.fromCode(type + "");
-      }
-      // return urn in body
-      response.putHeader(CONTENT_TYPE, APPLICATION_JSON).setStatusCode(status)
-          .end(generateResponse(httpStatus, urn).toString());
-    } catch (DecodeException ex) {
-      LOGGER.error("ERROR : Expecting Json from backend service [ jsonFormattingException ]");
-      handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
-    }
-  }*/
 
   private void processBackendResponse(HttpServerResponse response, String failureMessage) {
     LOGGER.debug("Info : " + failureMessage);
@@ -538,13 +531,10 @@ public class ApiServerVerticle extends AbstractVerticle {
     LOGGER.debug("Info: request Json: " + requestJson);
     HttpServerResponse response = routingContext.response();
     MultiMap headerParams = request.headers();
-    // get query paramaters
     MultiMap params = getQueryParams(routingContext, response).get();
-    // validate request parameters
     Future<Boolean> validationResult = validator.validate(requestJson);
     validationResult.onComplete(validationHandler -> {
       if (validationHandler.succeeded()) {
-        // parse query params
         NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
         QueryMapper queryMapper = new QueryMapper();
         JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
