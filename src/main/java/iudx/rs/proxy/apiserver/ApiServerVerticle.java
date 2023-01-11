@@ -81,7 +81,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   private HttpServer server;
   private Router router;
   private String keystore, keystorePassword;
-  private boolean isSSL, isProduction;
+ // private boolean isSSL, isProduction;
   private ParamsValidator validator;
   private CatalogueService catalogueService;
   private DatabaseService databaseService;
@@ -98,8 +98,6 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
     
-    
-    
     dxApiBasePath=config().getString("dxApiBasePath");
     Api apis=Api.getInstance(dxApiBasePath);
     
@@ -111,20 +109,31 @@ public class ApiServerVerticle extends AbstractVerticle {
     FailureHandler validationsFailureHandler = new FailureHandler();
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
-    router.get(apis.getEntitiesEndpoint()).handler(entityValidationHandler)
-        .handler(AuthHandler.create(vertx,apis)).handler(this::handleEntitiesQuery)
-        .failureHandler(validationsFailureHandler);
+    router
+          .get(apis.getEntitiesEndpoint())
+          .handler(entityValidationHandler)
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::handleEntitiesQuery)
+          .failureHandler(validationsFailureHandler);
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
-    router.get(apis.getTemporalEndpoint()).handler(temporalValidationHandler)
-        .handler(AuthHandler.create(vertx,apis)).handler(this::handleTemporalQuery)
-        .failureHandler(validationsFailureHandler);
+    router
+          .get(apis.getTemporalEndpoint())
+          .handler(temporalValidationHandler)
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::handleTemporalQuery)
+          .failureHandler(validationsFailureHandler);
 
-    router.get(apis.getConsumerAuditEndpoint()).handler(AuthHandler.create(vertx,apis))
-        .handler(this::getConsumerAuditDetail);
-    router.get(apis.getProviderAuditEndpoint()).handler(AuthHandler.create(vertx,apis))
-        .handler(this::getProviderAuditDetail);
+    router
+          .get(apis.getConsumerAuditEndpoint())
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::getConsumerAuditDetail);
+    
+    router
+          .get(apis.getProviderAuditEndpoint())
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::getProviderAuditDetail);
 
     // Post Queries
     ValidationHandler postEntitiesValidationHandler =
@@ -147,23 +156,28 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
-    isSSL = config().getBoolean("ssl");
-    isProduction = config().getBoolean("production");
-    port = config().getInteger("port");
-
     HttpServerOptions serverOptions = new HttpServerOptions();
+    int port = config().getInteger("port");
+    setServerOptions(serverOptions);
+    serverOptions.setCompressionSupported(true).setCompressionLevel(5);
+    server = vertx.createHttpServer(serverOptions);
+    server.requestHandler(router).listen(port);
+    LOGGER.debug("port deployed : "+server.actualPort());
+    printDeployedEndpoints(router);
+  }
 
+  private void setServerOptions(HttpServerOptions serverOptions) {
+    boolean isSSL = config().getBoolean("ssl");
+    boolean isProduction = config().getBoolean("production");
     if (isSSL) {
       LOGGER.info("Info: Starting HTTPs server");
-
       keystore = config().getString("keystore");
       keystorePassword = config().getString("keystorePassword");
-      serverOptions.setSsl(true)
-          .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
-
+      serverOptions
+          .setSsl(true)
+            .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
     } else {
       LOGGER.info("Info: Starting HTTP server");
-
       serverOptions.setSsl(false);
       if (isProduction) {
         port = 80;
@@ -171,12 +185,6 @@ public class ApiServerVerticle extends AbstractVerticle {
         port = 8080;
       }
     }
-
-    serverOptions.setCompressionSupported(true).setCompressionLevel(5);
-    server = vertx.createHttpServer(serverOptions);
-    server.requestHandler(router).listen(port);
-    LOGGER.debug("port deployed : "+server.actualPort());
-    printDeployedEndpoints(router);
   }
 
   private void attachCORSHandlers(Router router) {
@@ -359,8 +367,12 @@ public class ApiServerVerticle extends AbstractVerticle {
         response.setStatusCode(adapterResponse.getInteger("status"));
         if(status==200) {
           response.end(adapterResponse.toString());
+          context.data().put(RESPONSE_SIZE, response.bytesWritten());
+          Future.future(fu -> updateAuditTable(context));
         }else {
-          JsonObject responseJson=ResponseUtil.generateResponse(HttpStatusCode.getByValue(status));
+          HttpStatusCode responseUrn=HttpStatusCode.getByValue(status);
+          String adapterFailureMessage=adapterResponse.getString("detail");
+          JsonObject responseJson=ResponseUtil.generateResponse(responseUrn,adapterFailureMessage);
           response.end(responseJson.toString());
         }
                 
@@ -431,6 +443,7 @@ public class ApiServerVerticle extends AbstractVerticle {
       handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
     }
   }
+
   private Future<Void> getConsumerAuditDetail(RoutingContext routingContext) {
     LOGGER.debug("Info: getConsumerAuditDetail Started. ");
     Promise<Void> promise = Promise.promise();
@@ -448,32 +461,29 @@ public class ApiServerVerticle extends AbstractVerticle {
     entries.put("resourceId", request.getParam("id"));
     entries.put("api", request.getParam("api"));
 
-    {
-      LOGGER.debug(entries);
-      meteringService.executeReadQuery(
-              entries,
-              handler -> {
-                if (handler.succeeded()) {
-                  LOGGER.debug("Table Reading Done.");
-                  JsonObject jsonObject = (JsonObject) handler.result();
-                  String checkType = jsonObject.getString("type");
-                  if (checkType.equalsIgnoreCase("204")) {
-                    handleSuccessResponse(
-                            response, ResponseType.NoContent.getCode(), handler.result().toString());
-                  } else {
-                    handleSuccessResponse(
-                            response, ResponseType.Ok.getCode(), handler.result().toString());
-                  }
-                  promise.complete();
-                } else {
-                  LOGGER.error("Fail msg " + handler.cause().getMessage());
-                  LOGGER.error("Table reading failed.");
-                  processBackendResponse(response, handler.cause().getMessage());
-                  promise.complete();
-                }
-              });
-      return promise.future();
-    }
+
+    LOGGER.debug(entries);
+    meteringService.executeReadQuery(entries, handler -> {
+      if (handler.succeeded()) {
+        LOGGER.debug("Table Reading Done.");
+        JsonObject jsonObject = (JsonObject) handler.result();
+        String checkType = jsonObject.getString("type");
+        if (checkType.equalsIgnoreCase("204")) {
+          handleSuccessResponse(response, ResponseType.NoContent.getCode(),
+              handler.result().toString());
+        } else {
+          handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+        }
+        promise.complete();
+      } else {
+        LOGGER.error("Fail msg " + handler.cause().getMessage());
+        LOGGER.error("Table reading failed.");
+        processBackendResponse(response, handler.cause().getMessage());
+        promise.complete();
+      }
+    });
+    return promise.future();
+
   }
 
   private Future<Void> getProviderAuditDetail(RoutingContext routingContext) {
@@ -496,32 +506,29 @@ public class ApiServerVerticle extends AbstractVerticle {
     entries.put("api", request.getParam("api"));
     entries.put("options", request.headers().get("options"));
 
-    {
-      LOGGER.debug(entries);
-      meteringService.executeReadQuery(
-              entries,
-              handler -> {
-                if (handler.succeeded()) {
-                  LOGGER.debug("Table Reading Done.");
-                  JsonObject jsonObject = (JsonObject) handler.result();
-                  String checkType = jsonObject.getString("type");
-                  if (checkType.equalsIgnoreCase("204")) {
-                    handleSuccessResponse(
-                            response, ResponseType.NoContent.getCode(), handler.result().toString());
-                  } else {
-                    handleSuccessResponse(
-                            response, ResponseType.Ok.getCode(), handler.result().toString());
-                  }
-                  promise.complete();
-                } else {
-                  LOGGER.error("Fail msg " + handler.cause().getMessage());
-                  LOGGER.error("Table reading failed.");
-                  processBackendResponse(response, handler.cause().getMessage());
-                  promise.complete();
-                }
-              });
-      return promise.future();
-    }
+
+    LOGGER.debug(entries);
+    meteringService.executeReadQuery(entries, handler -> {
+      if (handler.succeeded()) {
+        LOGGER.debug("Table Reading Done.");
+        JsonObject jsonObject = (JsonObject) handler.result();
+        String checkType = jsonObject.getString("type");
+        if (checkType.equalsIgnoreCase("204")) {
+          handleSuccessResponse(response, ResponseType.NoContent.getCode(),
+              handler.result().toString());
+        } else {
+          handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+        }
+        promise.complete();
+      } else {
+        LOGGER.error("Fail msg " + handler.cause().getMessage());
+        LOGGER.error("Table reading failed.");
+        processBackendResponse(response, handler.cause().getMessage());
+        promise.complete();
+      }
+    });
+    return promise.future();
+
   }
 
   private void handlePostEntitiesQuery(RoutingContext routingContext){

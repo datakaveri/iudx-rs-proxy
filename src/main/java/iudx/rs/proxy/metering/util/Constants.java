@@ -13,7 +13,7 @@ public class Constants {
   public static final String IUDX_ADAPTOR_URL = "/ngsi-ld/v1";
   public static final String IUDX_PROVIDER_AUDIT_URL = IUDX_ADAPTOR_URL + "/provider/audit";
   public static final String ORIGIN = "origin";
-  public static final String ORIGIN_SERVER = "rs-proxy-server";
+  public static final String ORIGIN_SERVER = "rs-server";
   public static final String PRIMARY_KEY= "primaryKey";
   public static final String EXCHANGE_NAME = "auditing";
   public static final String ROUTING_KEY = "#";
