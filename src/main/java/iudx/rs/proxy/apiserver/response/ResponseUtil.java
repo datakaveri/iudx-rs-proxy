@@ -12,13 +12,29 @@ public class ResponseUtil {
   }
 
   public static JsonObject generateResponse(HttpStatusCode statusCode, ResponseUrn urn, String message) {
-    String type = urn.getUrn();
+    String urnType = urn.getUrn();
     return new RestResponse.Builder()
-        .withType(type)
+        .withType(urnType)
         .withTitle(statusCode.getDescription())
         .withMessage(message)
         .build().toJson();
 
+  }
+  
+  public static JsonObject generateResponse(HttpStatusCode statusCode, String message) {
+    String urn = statusCode.getUrn();
+    message=message.isBlank()?statusCode.getDescription():message;
+    return new RestResponse.Builder()
+        .withType(urn)
+        .withTitle(statusCode.getDescription())
+        .withMessage(message)
+        .build().toJson();
+
+  }
+  
+  public static JsonObject generateResponse(HttpStatusCode statusCode) {
+    String urn = statusCode.getUrn();
+    return generateResponse(statusCode, statusCode.getDescription());
   }
 
 

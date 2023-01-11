@@ -53,6 +53,7 @@ import iudx.rs.proxy.apiserver.handlers.ValidationHandler;
 import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
+import iudx.rs.proxy.apiserver.response.ResponseUtil;
 import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.common.Api;
@@ -80,7 +81,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   private HttpServer server;
   private Router router;
   private String keystore, keystorePassword;
-  private boolean isSSL, isProduction;
+ // private boolean isSSL, isProduction;
   private ParamsValidator validator;
   private CatalogueService catalogueService;
   private DatabaseService databaseService;
@@ -97,64 +98,42 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
     
-    
-    
     dxApiBasePath=config().getString("dxApiBasePath");
     Api apis=Api.getInstance(dxApiBasePath);
     
     router = Router.router(vertx);
-    router.route().handler(
-        CorsHandler.create("*").allowedHeaders(ALLOWED_HEADERS).allowedMethods(ALLOWED_METHODS))
-        .handler(responseHeaderHandler -> {
-          responseHeaderHandler.response()
-              .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
-              .putHeader("Pragma", "no-cache").putHeader("Expires", "0")
-              .putHeader("X-Content-Type-Options", "nosniff");
-          responseHeaderHandler.next();
-        });
-
-    HttpStatusCode[] statusCodes = HttpStatusCode.values();
-    Stream.of(statusCodes)
-        .forEach(
-            code -> {
-              router.errorHandler(
-                  code.getValue(),
-                  errorHandler -> {
-                    HttpServerResponse response = errorHandler.response();
-                    if (response.headWritten()) {
-                      try {
-                        response.close();
-                      } catch (RuntimeException e) {
-                        LOGGER.error("Error : " + e);
-                      }
-                      return;
-                    }
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setStatusCode(code.getValue())
-                        .end(errorResponse(code));
-                  });
-            });
+    attachCORSHandlers(router);
+    attachDefaultResponses(router);
     router.route().handler(BodyHandler.create());
     
     FailureHandler validationsFailureHandler = new FailureHandler();
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
-    router.get(apis.getEntitiesEndpoint()).handler(entityValidationHandler)
-        .handler(AuthHandler.create(vertx,apis)).handler(this::handleEntitiesQuery)
-        .failureHandler(validationsFailureHandler);
+    router
+          .get(apis.getEntitiesEndpoint())
+          .handler(entityValidationHandler)
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::handleEntitiesQuery)
+          .failureHandler(validationsFailureHandler);
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
+    router
+          .get(apis.getTemporalEndpoint())
+          .handler(temporalValidationHandler)
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::handleTemporalQuery)
+          .failureHandler(validationsFailureHandler);
 
-    router.get(apis.getTemporalEndpoint()).handler(temporalValidationHandler)
-        .handler(AuthHandler.create(vertx,apis)).handler(this::handleTemporalQuery)
-        .failureHandler(validationsFailureHandler);
-
-    router.get(apis.getConsumerAuditEndpoint()).handler(AuthHandler.create(vertx,apis))
-        .handler(this::getConsumerAuditDetail);
-    router.get(apis.getProviderAuditEndpoint()).handler(AuthHandler.create(vertx,apis))
-        .handler(this::getProviderAuditDetail);
+    router
+          .get(apis.getConsumerAuditEndpoint())
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::getConsumerAuditDetail);
+    
+    router
+          .get(apis.getProviderAuditEndpoint())
+          .handler(AuthHandler.create(vertx, apis))
+          .handler(this::getProviderAuditDetail);
 
     // Post Queries
     ValidationHandler postEntitiesValidationHandler =
@@ -177,23 +156,28 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
-    isSSL = config().getBoolean("ssl");
-    isProduction = config().getBoolean("production");
-    port = config().getInteger("port");
-
     HttpServerOptions serverOptions = new HttpServerOptions();
+    int port = config().getInteger("port");
+    setServerOptions(serverOptions);
+    serverOptions.setCompressionSupported(true).setCompressionLevel(5);
+    server = vertx.createHttpServer(serverOptions);
+    server.requestHandler(router).listen(port);
+    LOGGER.debug("port deployed : "+server.actualPort());
+    printDeployedEndpoints(router);
+  }
 
+  private void setServerOptions(HttpServerOptions serverOptions) {
+    boolean isSSL = config().getBoolean("ssl");
+    boolean isProduction = config().getBoolean("production");
     if (isSSL) {
       LOGGER.info("Info: Starting HTTPs server");
-
       keystore = config().getString("keystore");
       keystorePassword = config().getString("keystorePassword");
-      serverOptions.setSsl(true)
-          .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
-
+      serverOptions
+          .setSsl(true)
+            .setKeyStoreOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
     } else {
       LOGGER.info("Info: Starting HTTP server");
-
       serverOptions.setSsl(false);
       if (isProduction) {
         port = 80;
@@ -201,12 +185,45 @@ public class ApiServerVerticle extends AbstractVerticle {
         port = 8080;
       }
     }
+  }
 
-    serverOptions.setCompressionSupported(true).setCompressionLevel(5);
-    server = vertx.createHttpServer(serverOptions);
-    server.requestHandler(router).listen(port);
-    LOGGER.debug("port deployed : "+server.actualPort());
-    printDeployedEndpoints(router);
+  private void attachCORSHandlers(Router router) {
+    router
+        .route()
+          .handler(CorsHandler
+              .create("*")
+                .allowedHeaders(ALLOWED_HEADERS)
+                .allowedMethods(ALLOWED_METHODS))
+          .handler(responseHeaderHandler -> {
+            responseHeaderHandler
+                .response()
+                  .putHeader("Cache-Control", "no-cache, no-store,  must-revalidate,max-age=0")
+                  .putHeader("Pragma", "no-cache")
+                  .putHeader("Expires", "0")
+                  .putHeader("X-Content-Type-Options", "nosniff");
+            responseHeaderHandler.next();
+          });
+  }
+
+  private void attachDefaultResponses(Router router) {
+    HttpStatusCode[] statusCodes = HttpStatusCode.values();
+    Stream.of(statusCodes).forEach(code -> {
+      router.errorHandler(code.getValue(), errorHandler -> {
+        HttpServerResponse response = errorHandler.response();
+        if (response.headWritten()) {
+          try {
+            response.close();
+          } catch (RuntimeException e) {
+            LOGGER.error("Error : " + e);
+          }
+          return;
+        }
+        response
+            .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+              .setStatusCode(code.getValue())
+              .end(errorResponse(code));
+      });
+    });
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
@@ -345,9 +362,20 @@ public class ApiServerVerticle extends AbstractVerticle {
       if (handler.succeeded()) {
         LOGGER.info("Success: Search Success");
         JsonObject adapterResponse=handler.result();
-        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .setStatusCode(adapterResponse.getInteger("status"))
-                .end(adapterResponse.toString());
+        int status=adapterResponse.getInteger("status");
+        response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
+        response.setStatusCode(adapterResponse.getInteger("status"));
+        if(status==200) {
+          response.end(adapterResponse.toString());
+          context.data().put(RESPONSE_SIZE, response.bytesWritten());
+          Future.future(fu -> updateAuditTable(context));
+        }else {
+          HttpStatusCode responseUrn=HttpStatusCode.getByValue(status);
+          String adapterFailureMessage=adapterResponse.getString("detail");
+          JsonObject responseJson=ResponseUtil.generateResponse(responseUrn,adapterFailureMessage);
+          response.end(responseJson.toString());
+        }
+                
       } else {
         LOGGER.error("Fail: Search Fail");
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -392,29 +420,6 @@ public class ApiServerVerticle extends AbstractVerticle {
     handleResponse(response, code, urn, code.getDescription());
   }
 
-  /*private void processBackendResponse(HttpServerResponse response, String failureMessage) {
-    LOGGER.debug("Info : " + failureMessage);
-    try {
-      JsonObject json = new JsonObject(failureMessage);
-      String type = json.getString(JSON_TYPE);
-      int status = json.getInteger("status");
-      HttpStatusCode httpStatus = HttpStatusCode.getByValue(status);
-      String urnTitle = type;
-      ResponseUrn urn;
-      if (urnTitle != null) {
-        urn = ResponseUrn.fromCode(urnTitle);
-      } else {
-        urn = ResponseUrn.fromCode(type + "");
-      }
-      // return urn in body
-      response.putHeader(CONTENT_TYPE, APPLICATION_JSON).setStatusCode(status)
-          .end(generateResponse(httpStatus, urn).toString());
-    } catch (DecodeException ex) {
-      LOGGER.error("ERROR : Expecting Json from backend service [ jsonFormattingException ]");
-      handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
-    }
-  }*/
-
   private void processBackendResponse(HttpServerResponse response, String failureMessage) {
     LOGGER.debug("Info : " + failureMessage);
     try {
@@ -438,6 +443,7 @@ public class ApiServerVerticle extends AbstractVerticle {
       handleResponse(response, HttpStatusCode.BAD_REQUEST, BACKING_SERVICE_FORMAT_URN);
     }
   }
+
   private Future<Void> getConsumerAuditDetail(RoutingContext routingContext) {
     LOGGER.debug("Info: getConsumerAuditDetail Started. ");
     Promise<Void> promise = Promise.promise();
@@ -455,32 +461,29 @@ public class ApiServerVerticle extends AbstractVerticle {
     entries.put("resourceId", request.getParam("id"));
     entries.put("api", request.getParam("api"));
 
-    {
-      LOGGER.debug(entries);
-      meteringService.executeReadQuery(
-              entries,
-              handler -> {
-                if (handler.succeeded()) {
-                  LOGGER.debug("Table Reading Done.");
-                  JsonObject jsonObject = (JsonObject) handler.result();
-                  String checkType = jsonObject.getString("type");
-                  if (checkType.equalsIgnoreCase("204")) {
-                    handleSuccessResponse(
-                            response, ResponseType.NoContent.getCode(), handler.result().toString());
-                  } else {
-                    handleSuccessResponse(
-                            response, ResponseType.Ok.getCode(), handler.result().toString());
-                  }
-                  promise.complete();
-                } else {
-                  LOGGER.error("Fail msg " + handler.cause().getMessage());
-                  LOGGER.error("Table reading failed.");
-                  processBackendResponse(response, handler.cause().getMessage());
-                  promise.complete();
-                }
-              });
-      return promise.future();
-    }
+
+    LOGGER.debug(entries);
+    meteringService.executeReadQuery(entries, handler -> {
+      if (handler.succeeded()) {
+        LOGGER.debug("Table Reading Done.");
+        JsonObject jsonObject = (JsonObject) handler.result();
+        String checkType = jsonObject.getString("type");
+        if (checkType.equalsIgnoreCase("204")) {
+          handleSuccessResponse(response, ResponseType.NoContent.getCode(),
+              handler.result().toString());
+        } else {
+          handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+        }
+        promise.complete();
+      } else {
+        LOGGER.error("Fail msg " + handler.cause().getMessage());
+        LOGGER.error("Table reading failed.");
+        processBackendResponse(response, handler.cause().getMessage());
+        promise.complete();
+      }
+    });
+    return promise.future();
+
   }
 
   private Future<Void> getProviderAuditDetail(RoutingContext routingContext) {
@@ -503,32 +506,29 @@ public class ApiServerVerticle extends AbstractVerticle {
     entries.put("api", request.getParam("api"));
     entries.put("options", request.headers().get("options"));
 
-    {
-      LOGGER.debug(entries);
-      meteringService.executeReadQuery(
-              entries,
-              handler -> {
-                if (handler.succeeded()) {
-                  LOGGER.debug("Table Reading Done.");
-                  JsonObject jsonObject = (JsonObject) handler.result();
-                  String checkType = jsonObject.getString("type");
-                  if (checkType.equalsIgnoreCase("204")) {
-                    handleSuccessResponse(
-                            response, ResponseType.NoContent.getCode(), handler.result().toString());
-                  } else {
-                    handleSuccessResponse(
-                            response, ResponseType.Ok.getCode(), handler.result().toString());
-                  }
-                  promise.complete();
-                } else {
-                  LOGGER.error("Fail msg " + handler.cause().getMessage());
-                  LOGGER.error("Table reading failed.");
-                  processBackendResponse(response, handler.cause().getMessage());
-                  promise.complete();
-                }
-              });
-      return promise.future();
-    }
+
+    LOGGER.debug(entries);
+    meteringService.executeReadQuery(entries, handler -> {
+      if (handler.succeeded()) {
+        LOGGER.debug("Table Reading Done.");
+        JsonObject jsonObject = (JsonObject) handler.result();
+        String checkType = jsonObject.getString("type");
+        if (checkType.equalsIgnoreCase("204")) {
+          handleSuccessResponse(response, ResponseType.NoContent.getCode(),
+              handler.result().toString());
+        } else {
+          handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+        }
+        promise.complete();
+      } else {
+        LOGGER.error("Fail msg " + handler.cause().getMessage());
+        LOGGER.error("Table reading failed.");
+        processBackendResponse(response, handler.cause().getMessage());
+        promise.complete();
+      }
+    });
+    return promise.future();
+
   }
 
   private void handlePostEntitiesQuery(RoutingContext routingContext){
@@ -538,13 +538,10 @@ public class ApiServerVerticle extends AbstractVerticle {
     LOGGER.debug("Info: request Json: " + requestJson);
     HttpServerResponse response = routingContext.response();
     MultiMap headerParams = request.headers();
-    // get query paramaters
     MultiMap params = getQueryParams(routingContext, response).get();
-    // validate request parameters
     Future<Boolean> validationResult = validator.validate(requestJson);
     validationResult.onComplete(validationHandler -> {
       if (validationHandler.succeeded()) {
-        // parse query params
         NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
         QueryMapper queryMapper = new QueryMapper();
         JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));

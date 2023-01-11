@@ -171,7 +171,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
         .headers(map)
         .build();
 
-    LOGGER.debug("queue declared : {}", replyQueue);
+    LOGGER.debug("queue declared : {}", replyQueueName);
     String routingKey = request.getJsonArray("id").getString(0);
     LOGGER.debug("routing key : {}", routingKey);
     Buffer buffer = Buffer.buffer(request.toString());
