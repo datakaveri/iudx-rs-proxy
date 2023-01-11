@@ -88,13 +88,10 @@ public class DatabrokerVerticle extends AbstractVerticle {
         .start()
         .onSuccess(rmqClientStarthandler -> {
           brokerService = new DatabrokerServiceImpl(vertx, rmqClient, publishExchange, replyQueue);
-          RPCAdapterConsumer adapterConsumer = new RPCAdapterConsumer(rmqClient);
 
           binder = new ServiceBinder(vertx);
           consumer = binder.setAddress(DATABROKER_SERVICE_ADDRESS).register(DatabrokerService.class,
               brokerService);
-
-          // adapterConsumer.start();
 
           LOGGER.info("Databroker Verticle deployed.");
         }).onFailure(rmqClientStartHandler -> {

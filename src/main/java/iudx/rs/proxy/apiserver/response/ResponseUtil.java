@@ -23,7 +23,7 @@ public class ResponseUtil {
   
   public static JsonObject generateResponse(HttpStatusCode statusCode, String message) {
     String urn = statusCode.getUrn();
-    message=message.isBlank()?statusCode.getDescription():message;
+    message=(message==null || message.isBlank())?statusCode.getDescription():message;
     return new RestResponse.Builder()
         .withType(urn)
         .withTitle(statusCode.getDescription())

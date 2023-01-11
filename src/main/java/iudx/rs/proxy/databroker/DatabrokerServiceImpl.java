@@ -47,7 +47,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
       final String replyQueue) {
     this.vertx = vertx;
     this.client = rabbitMQClient;
-    this.replyQueue = "rpc_responses";
+    this.replyQueue = replyQueue;
     this.publishEx = publishEx;
 
     client.basicQos(1);
@@ -175,12 +175,10 @@ public class DatabrokerServiceImpl implements DatabrokerService {
     String routingKey = request.getJsonArray("id").getString(0);
     LOGGER.debug("routing key : {}", routingKey);
     Buffer buffer = Buffer.buffer(request.toString());
-    Future<Void> publishFut =
-        client.basicPublish("rpc-adapter-requests", routingKey, props, buffer);
+    Future<Void> publishFut =client.basicPublish(publishEx, routingKey, props, buffer);
 
     client.basicConsumer(replyQueueName, queueOption, rabbitMQConsumerResult -> {
       if (rabbitMQConsumerResult.succeeded()) {
-        // LOGGER.info("message consumed : {}", rabbitMQConsumerResult.result());
         RabbitMQConsumer rmqConsumer = rabbitMQConsumerResult.result();
 
         long timerId = vertx.setTimer(10000, timeout -> {
