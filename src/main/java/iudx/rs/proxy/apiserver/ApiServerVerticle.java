@@ -361,7 +361,6 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         JsonObject adapterResponse=handler.result();
-        LOGGER.info(adapterResponse);
         int status=adapterResponse.containsKey("status")?adapterResponse.getInteger("status"):400;
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
         response.setStatusCode(status);
