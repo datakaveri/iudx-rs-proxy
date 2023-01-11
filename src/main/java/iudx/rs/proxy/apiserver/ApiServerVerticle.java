@@ -360,16 +360,18 @@ public class ApiServerVerticle extends AbstractVerticle {
     json.put(HEADER_PUBLIC_KEY, publicKey);
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
-        LOGGER.info("Success: Search Success");
         JsonObject adapterResponse=handler.result();
-        int status=adapterResponse.getInteger("status");
+        LOGGER.info(adapterResponse);
+        int status=adapterResponse.containsKey("status")?adapterResponse.getInteger("status"):400;
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
-        response.setStatusCode(adapterResponse.getInteger("status"));
+        response.setStatusCode(status);
         if(status==200) {
+          LOGGER.info("Success: adapter call Success with {}",status);
           response.end(adapterResponse.toString());
           context.data().put(RESPONSE_SIZE, response.bytesWritten());
           Future.future(fu -> updateAuditTable(context));
         }else {
+          LOGGER.info("Success: adapter call success with {}",status);
           HttpStatusCode responseUrn=HttpStatusCode.getByValue(status);
           String adapterFailureMessage=adapterResponse.getString("detail");
           JsonObject responseJson=ResponseUtil.generateResponse(responseUrn,adapterFailureMessage);
