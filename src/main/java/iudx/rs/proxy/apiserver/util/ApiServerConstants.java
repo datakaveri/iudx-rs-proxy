@@ -161,8 +161,13 @@ public class ApiServerConstants {
   public static final String ISO_TIME = "isoTime";
   public static final String FAILED = "Failed";
   public static final String TABLE_NAME = "tableName";
+
+  // api documentation
   public static final String ROUTE_DOC = "/apis";
   public static final String FORMAT = "text/html";
+  public static final String ROUTE_STATIC_SPEC = "/apis/spec";
+  public static final String FORMAT_JSON = "application/json";
+
 
 
 

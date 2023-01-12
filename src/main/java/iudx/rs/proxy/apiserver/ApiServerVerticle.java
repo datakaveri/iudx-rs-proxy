@@ -156,6 +156,13 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
+    /** Documentation routes */
+    /* Static Resource Handler */
+    /* Get openapiv3 spec */
+    router.get(ROUTE_STATIC_SPEC).produces(FORMAT_JSON).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.sendFile("docs/openapi.yaml");
+    });
     /* Get redoc */
     router.get(ROUTE_DOC).produces(FORMAT).handler(routingContext -> {
       HttpServerResponse response = routingContext.response();
