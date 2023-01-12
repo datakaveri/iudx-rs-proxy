@@ -156,6 +156,12 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
+    /* Get redoc */
+    router.get(ROUTE_DOC).produces(FORMAT).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.sendFile("docs/apidoc.html");
+    });
+
     HttpServerOptions serverOptions = new HttpServerOptions();
     int port = config().getInteger("port");
     setServerOptions(serverOptions);
