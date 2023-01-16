@@ -145,7 +145,7 @@ public class ParamsValidator {
 
     boolean validations1 =
             !(new AttrsTypeValidator(attrs, false).isValid())
-                    || !(new QTypeValidator(q, false).isValid())
+                    //|| !(new QTypeValidator(q, false).isValid()) -- dropped this validation for IPeG
                     || !(new CoordinatesTypeValidator(coordinates, false).isValid())
                     || !(new GeoRelTypeValidator(georelArray != null ? georelArray[0] : null, false)
                     .isValid())
