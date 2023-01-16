@@ -4,7 +4,7 @@
 		"type": {
 			"$id": "#root/type", 
 			"title": "Type",
-			"maxLength":512, 
+			"maxLength":1024, 
 			"type": "string",
 			"default": "",
 			"pattern": "^.*$",
@@ -175,7 +175,7 @@
 			"title": "Q", 
 			"type": "string",
 			"minLength":1,
-			"maxLength":512,
+			"maxLength":2048,
 			"default": "",
 			"pattern": "^.*$"
 		},

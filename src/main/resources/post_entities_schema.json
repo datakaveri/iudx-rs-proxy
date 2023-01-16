@@ -4,7 +4,7 @@
 		"type": {
 			"$id": "#root/type", 
 			"title": "Type",
-			"maxLength":512, 
+			"maxLength":1024, 
 			"type": "string",
 			"default": "",
 			"pattern": "^.*$",
@@ -111,7 +111,7 @@
 					"title": "Georel", 
 					"type": "string",
 					"minLength":1,
-					"maxLength":512,
+					"maxLength":1024,
 					"default": "",
 					"pattern": "^.*$"
 					
@@ -126,14 +126,13 @@
 				}
 			},
 			"additionalProperties":false
-		}
-,
+		},
 		"q": {
 			"$id": "#root/q", 
 			"title": "Q", 
 			"type": "string",
 			"minLength":1,
-			"maxLength":512,
+			"maxLength":2048,
 			"default": "",
 			"pattern": "^.*$"
 		},
@@ -148,7 +147,7 @@
 		"attrs": {
 			"$id": "#root/attrs", 
 			"title": "attrs",
-			"maxLength":512, 
+			"maxLength":1024, 
 			"type": "string",
 			"minLength":1,
 			"default": "",
