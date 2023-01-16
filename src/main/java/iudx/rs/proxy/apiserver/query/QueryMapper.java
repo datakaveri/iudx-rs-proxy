@@ -117,12 +117,13 @@ public class QueryMapper {
 
     if (params.getQ() != null) {
       isAttributeSearch = true;
-      JsonArray query = new JsonArray();
-      String[] qterms = params.getQ().split(";");
-      for (String term : qterms) {
-        query.add(getQueryTerms(term));
-      }
-      json.put(JSON_ATTR_QUERY, query);
+      //TODO: disabled this check for ESDS-IPeG deployment
+//      JsonArray query = new JsonArray();
+//      String[] qterms = params.getQ().split(";");
+//      for (String term : qterms) {
+//        query.add(getQueryTerms(term));
+//      }
+      json.put(JSON_ATTR_QUERY, params.getQ());
     }
     if (params.getGeoProperty() != null) {
       geoJson.put(JSON_GEOPROPERTY, params.getGeoProperty());
