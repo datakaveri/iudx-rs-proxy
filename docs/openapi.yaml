@@ -27,7 +27,6 @@ info:
     # Base path
     Base path is the path on which API is served, relative to the host. It is the initial part of the API. 
     The base path value could be configured according to the deployment.
-
     **Currently, the following APIs have `/ngsi-ld/v1` base path**
     -  **/entities**
     -  **/temporal/entities**
@@ -42,7 +41,7 @@ info:
     All the <b>*Search API*</b>  calls to the resource server proxy should now contain a valid data exchange auth token presented in the query header. To search (or) access an *Open* resource, the consumer should present a valid data exchange Auth token. To search (or) access a *Secure / Closed* resource, a consumer must get a token for the *Secure / Closed* resource along with the associated constraints from the DX(Data exchange) Auth Server. For subscription to a *Secure / Closed / Open* resource, a consumer must get a token along with the associated constraints from the DX(Data exchange) Auth Server.
     
     # Pagination
-    Resource Server Proxy also offers way to paginate the result for queries. If a query returns large number of records then user can use additional parameters in query parameters to limit numbers of records to be returned.
+    Resource server proxy also offers way to paginate the result for queries. If a query returns large number of records then user can use additional parameters in query parameters to limit numbers of records to be returned.
     
     - <b> Pagination is applicable only for</b>
        - <b>/entities</b>
@@ -56,8 +55,9 @@ info:
     
     # Encryption
     All the count and search APIs have a feature for encryption.
-    To get the data in encrypted format, the user could provide a `publicKey` in the header, with the value that is generated from [lazySodium sealed box](https://github.com/terl/lazysodium-java/wiki/Getting-started). 
+    To get the data in encrypted format, the user could provide a `publicKey` in the header, with the value that is generated from [lazySodium sealed box](https://github.com/terl/lazysodium-java/wiki/Getting-started) or [PyNaCl sealed box](https://pynacl.readthedocs.io/en/latest/). 
     The header value should be in _url-safe base64 format_. 
+    Encryption is done by the adapter.
     The encrypted data could be decrypted using the lazysodium sealed box by supplying the private and public key.
     
     **Encryption is applicable only for**
@@ -101,8 +101,9 @@ tags:
       Metering APIs provide the ability to the user (Consumer/Provider) to query the audit data using temporal & resource-id query
 
 servers:
-  - url: 'https://rs.iudx.io/ngsi-ld/v1'
-    description: 'Some description about this'
+  - url: 'https://rs-proxy.iudx.io/ngsi-ld/v1'
+    description: 'Development Server URL'
+
 paths:
 
   /entities/{id}:
@@ -162,10 +163,10 @@ paths:
           description: 'Resource not found'
 
       x-codeSamples:
-        - lang: 'get latest data'
+        - lang: 'cURL'
+          label: 'get latest data'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities/suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta
-
+            {server_url}/entities/iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta
       description: |
         The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server proxy. <br />  To get data a <b> valid data exchange Auth token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
 
@@ -288,24 +289,34 @@ paths:
           description: 'Resource not found'
 
       x-codeSamples:
-        - lang: 'search by attribute'
+        - lang: 'cURL'
+          label: 'search by attribute'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&q=speed%3E30.0
-        - lang: 'search by circle'
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&q=referenceLevel>15.0
+        - lang: 'cURL'
+          label: 'search by circle'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=1000&geometry=Point&coordinates=[21.178,72.834]
-        - lang: 'search by polygon'
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10
+        - lang: 'cURL'
+          label: 'search by polygon'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[82.9738998413086,25.330372970610558],[82.97201156616211,25.28428253090838],[83.02436828613281,25.285524253944203],[83.02007675170898,25.32866622999033],[82.9738998413086,25.330372970610558]]]
-        - lang: 'search by bbox'
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]
+        - lang: 'cURL'
+          label: 'search by bbox'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&geoproperty=location&georel=within&geometry=bbox&coordinates=[[82.97698974609375,25.321994194865383],[83.00411224365234,25.291267057619464]]
-        - lang: 'search by attribute and filter'
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]
+        - lang: 'cURL'
+          label: 'search by linestring'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&q=speed%3E=50&attrs=speed,id
-        - lang: 'count by circle'
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]
+        - lang: 'cURL'
+          label: 'search by attribute and filter'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=100&geometry=Point&coordinates=[25.319768,82.987988]&options=count
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel
+        - lang: 'cURL'
+          label: 'count by circle'
+          source: |
+            {server_url}/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count
 
       deprecated: false
       description: |
@@ -507,27 +518,34 @@ paths:
           description: 'Resource not found'
 
       x-codeSamples:
-        - lang: 'search by between'
+        - lang: 'cURL'
+          label: 'search by between'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&timerel=between&time=2020-06-01T14:20:00Z&endtime=2020-06-06T14:20:00Z
-        - lang: 'search by before'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z
+        - lang: 'cURL'
+          label: 'search by before'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&timerel=before&time=2020-06-01T14:20:01Z
-        - lang: 'search by after'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&timerel=before&time=2020-10-19T12:00:00Z
+        - lang: 'cURL'
+          label: 'search by after'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&timerel=after&time=2020-06-01T14:20:01Z
-        - lang: 'search by after and filter'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&timerel=after&time=2020-10-18T14:20:01Z
+        - lang: 'cURL'
+          label: 'search by between and filter'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&timerel=after&time=2020-06-01T14:20:01Z&attrs=speed,id
-        - lang: 'count by after'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel
+        - lang: 'cURL'
+          label: 'count by after'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&timerel=after&time=2020-06-01T14:20:01Z&options=count
-        - lang: 'complex search'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&timerel=after&time=2020-10-18T14:20:01Z&options=count
+        - lang: 'cURL'
+          label: 'complex search'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=100&geometry=Point&coordinates=[25.319768,82.987988]&timerel=before&time=2020-06-01T14:20:01Z&attrs=speed,id
-        - lang: 'complex count'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed
+        - lang: 'cURL'
+          label: 'complex count'
           source: |
-            https://rs.iudx.io/ngsi-ld/v1/temporal/entities?id=suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=100&geometry=Point&coordinates=[25.319768,82.987988]&timerel=before&time=2020-06-01T14:20:01Z&options=count'
+            {server_url}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count
 
 
       deprecated: false
@@ -542,7 +560,7 @@ paths:
 
         #### Temporal search
         Temporal search accepts time property based queries which are specified in ISO 8601 format. The params and their accepted values are -
-          - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`.
+          - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`. The value `during` could also be used instead of `between`.
           - <b>time</b>: Start time for the temporal query in `ISO 8601` format. 
           - <b>endtime</b>: End time for the temporal query in `ISO 8601` format. Applicable only for `timerel = between`. 
           - Note, The time difference between `time` and `endtime` should be less than `10 days`. For `before` and `after` queries, `10 days` of data `before` or `after` the specified time will be provided.
@@ -618,6 +636,7 @@ paths:
             maxLength: 512
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
 
+
       requestBody:
         description: ''
         content:
@@ -627,16 +646,12 @@ paths:
             example:
               type: Query
               entities:
-                - id: suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta
+                - id: iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta
               geoQ:
                 geometry: Point
-                coordinates:
-                  - 25.319768
-                  - 82.987988000000001
-                georel: near;maxDistance=1000
-                geoproperty: geoJsonLocation
-              q: "speed>=50"
-              attrs: "id,location"
+                coordinates: [21.178,72.834]
+                georel: near;maxDistance=10
+                geoproperty: location
         required: true
 
       responses:
@@ -750,6 +765,7 @@ paths:
             maxLength: 512
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
 
+
       requestBody:
         description: ''
         content:
@@ -759,21 +775,19 @@ paths:
             example:
               type: Query
               entities:
-                - id: suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta
+                - id: iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta
               geoQ:
                 geometry: Point
-                coordinates:
-                  - 25.319768
-                  - 82.987988000000001
+                coordinates: [21.178,72.834]
                 georel: near;maxDistance=1000
-                geoproperty: geoJsonLocation
+                geoproperty: location
               temporalQ:
-                timerel: "between"
-                time: "2020-06-01T14:20:00Z"
-                endtime: "2020-06-03T15:00:00Z"
-                timeProperty: "observationDateTime"
-              q: "speed>=50"
-              attrs: "id,location"
+                timerel: between
+                time: 2020-06-01T14:20:00Z
+                endtime: 2020-06-03T15:00:00Z
+                timeProperty: observationDateTime
+              q: speed>30.0
+              attrs: id,speed
 
         required: true
 
@@ -819,7 +833,7 @@ paths:
         
         #### Temporal search
         Temporal search accepts time property based queries which are specified in ISO 8601 format. The params and their accepted values are -
-          - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`.
+          - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`.The value `during` could also be used instead of `between`.
           - <b>time</b>: Start time for the temporal query in `ISO 8601` format. 
           - <b>endtime</b>: End time for the temporal query in `ISO 8601` format. Applicable only for `timerel = between`. 
           - Note, The time difference between `time` and `endtime` should be less than `10 days`. For `before` and `after` queries, `10 days` of data `before` or `after` the specified time will be provided.
@@ -878,6 +892,98 @@ paths:
           - The value should be equal to `count` and it is <b>case sensitive</b>
       deprecated: false
 
+
+  /consumer/audit:
+    get:
+      tags:
+        - Metering
+      summary: consumer search
+      operationId: consumer search
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: options
+          in: header
+          description: 'options parameter is used for obtaining the number of hits for a query'
+          style: simple
+          schema:
+            type: string
+            enum: [count]
+        - name: id
+          in: query
+          description: 'id of the resource in catalogue'
+          schema:
+            type: string
+            maxLength: 512
+        - name: api
+          in: query
+          description: 'Valid DX(Data exchange) with api [`/entities`, `/temporal/entities`, `/entityOperation/Query`, `/temporal/entityOperation/Query`] having base path as prefix appended to api'
+          schema:
+            type: string
+            maxLength: 512
+        - name: timerel
+          in: query
+          description: 'The temporal relation type of <b>timerel</b> to be performed.'
+          required: true
+          schema:
+            type: string
+            enum: [between]
+        - name: time
+          in: query
+          description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          required: true
+          schema:
+            type: string
+        - name: endtime
+          in: query
+          description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          required: true
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'Request URL'
+          source: |
+            {server_url}/consumer/audit?timerel=between&time=2022-06-20T00:00:00Z&endTime=2022-06-21T16:00:00Z
+
+      responses:
+        200:
+          description: 'search status'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/meteringApiResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/adapterBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: 'Unauthorized'
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+      description: Consumer API can be used by a user having consumer token to get audit details of API's.
+
   /provider/audit:
     get:
       tags:
@@ -910,7 +1016,7 @@ paths:
             maxLength: 512
         - name: api
           in: query
-          description: 'Valid DX(Data exchange) api [`/entities`, `/temporal/entities`, `/entityOperation/Query`, `/temporal/entityOperation/Query`] '
+          description: 'Valid DX(Data exchange) api [`/entities`, `/temporal/entities`, `/entityOperation/Query`, `/temporal/entityOperation/Query`] having base path as prefix appended to api'
           schema:
             type: string
             maxLength: 512
@@ -944,6 +1050,13 @@ paths:
           description: 'Id of the provider'
           schema:
             type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'Request URL'
+          source: |
+            {server_url}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2021-11-20T14:20:00Z&endTime=2021-12-02T14:20:00Z&api=/{basePath}/entityOperations/query&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86
+
       responses:
         200:
           description: 'search status'
@@ -1432,19 +1545,6 @@ components:
           geoproperty: geoJsonLocation
         attrs: resource-id,latitude,longitude
 
-    registeradapterrequest:
-      title: registeradapterrequest
-      required:
-        - entities
-      type: object
-      properties:
-        entities:
-          type: array
-          items:
-            type: string
-      example:
-        entities:
-          - iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information
 
     entityresponse:
       title: entityresponse
@@ -1459,11 +1559,33 @@ components:
           properties:
             id:
               type: string
-            observationDateTime:
+            trip_direction:
               type: string
             trip_id:
               type: string
             route_id:
+              type: string
+            trip_delay:
+              type: string
+            last_stop_arrival_time:
+              type: string
+            actual_trip_start_time:
+              type: string
+            vehicle_label:
+              type: string
+            observationDateTime:
+              type: string
+            speed:
+              type: string
+            license_plate:
+              type: string
+            last_stop_id:
+              type: string
+            location:
+              type: object
+              coordinates:
+                type: array
+            type:
               type: string
         limit:
           type: string
@@ -1472,282 +1594,37 @@ components:
         totalHits:
           type: string
 
+
       example:
         type: urn:dx:rs:success
         title: success
         results: [
-          { "id": "suratmunicipal.org/6db486cb4f720e8585ba1f45a931c63c25dbbbda/rs.iudx.io/surat-itms-realtime-info/surat-itms-live-eta",
-            "observationDateTime": "2020-06-01T14:20:00Z",
-            "trip_id": 23958368,
-            "route_id": 14U
+          {
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "trip_delay": 948,
+            "last_stop_arrival_time": "15:09:58",
+            "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
+            "vehicle_label": "A09",
+            "observationDateTime": "2020-11-03T15:12:08+05:30",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
           }
         ]
         limit: 5000
         offset: 0
         totalHits: 9091
 
-    registeradapter:
-      title: registeradapter
-      required:
-        - username
-        - apiKey
-        - id
-        - URL
-        - port
-        - vHost
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            username:
-              type: string
-            apiKey:
-              type: string
-            id:
-              type: string
-            URL:
-              type: string
-            port:
-              type: string
-            vHost:
-              type: string
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          { "username": "iudx.io/3ae88e7ba006938ffc38203d326b1711b892226d",
-            "apiKey": "123456",
-            "id": "iudx.io/3ae88e7ba006938ffc38203d326b1711b892226d/alias-name-of-application",
-            "URL": "databroker.iudx.io",
-            "port": "24567",
-            "vHost": "IUDX"
-          }
-        ]
-
-    retrieveadapter:
-      title: retrieveadapter
-      required:
-        - database
-        - adaptorLogs
-        - redis-latest
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            database:
-              type: array
-              items:
-                type: string
-            adaptorLogs:
-              type: array
-              items:
-                type: string
-            redis-latest:
-              type: array
-              items:
-                type: string
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          {"database": ["iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.*"],
-           "adaptorLogs": ["iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.dataIssue", "iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.downstreamIssue", "iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.heartbeat"],
-           "redis-latest": ["iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.*"]
-          }]
-
-    deleteadapter:
-      title: deleteadapter
-      required:
-        - type
-        - title
-        - detail
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        detail:
-          type: string
-      example:
-        type: urn:dx:rs:success
-        title: success
-        detail: Adapter deleted
-
-    createstreaming:
-      title: createstreaming
-      required:
-        - username
-        - apiKey
-        - id
-        - URL
-        - port
-        - vHost
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            username:
-              type: string
-            apiKey:
-              type: string
-            id:
-              type: string
-            URL:
-              type: string
-            port:
-              type: string
-            vHost:
-              type: string
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          { "username": "iudx.io/3ae88e7ba006938ffc38203d326b1711b892226d",
-            "apiKey": "123456",
-            "id": "iudx.io/3ae88e7ba006938ffc38203d326b1711b892226d/alias-name-of-application",
-            "URL": "databroker.iudx.io",
-            "port": "24567",
-            "vHost": "IUDX"
-          }
-        ]
-
-
-
-    retrievestreaming:
-      title: retrievestreaming
-      required:
-        - entities
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            entities:
-              type: array
-              items:
-                type: string
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          { "entities":["iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.*"]
-          }
-        ]
-
-    appendstreaming:
-      title: appendstreaming
-      required:
-        - entities
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            entities:
-              type: array
-              items:
-                type: string
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          { "entities":["iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.*"]
-          }
-        ]
-
-    updatestreaming:
-      title: updatestreaming
-      required:
-        - entities
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            entities:
-              type: array
-              items:
-                type: string
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          { "entities":["iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/rs.iudx.io/surat-itms/.*"]
-          }
-        ]
-
-    deletestreaming:
-      title: deletestreaming
-      required:
-        - type
-        - title
-        - detail
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        detail:
-          type: string
-      example:
-        type: urn:dx:rs:success
-        title: success
-        detail: Subscription deleted
-
-    resetpassword:
-      title: resetpassword
-      required:
-        - apiKey
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            username:
-              type: string
-            apiKey:
-              type: string
-      example:
-        type: urn:dx:rs:success
-        title: Successfully changed the password
-        results: [
-          {"username":"asasdasd-asdasd-aada-d23342",
-           "apiKey":"asass8a7s"
-          }
-        ]
 
     meteringApiResponse:
       title: meteringresponse
@@ -1766,37 +1643,36 @@ components:
           properties:
             id:
               type: string
-            time:
-              type: string
             api:
               type: string
-            consumer:
+            userid:
               type: string
+            epochtime:
+              type: integer
+            resourceid:
+              type: string
+            isotime:
+              type: string
+            providerid:
+              type: string
+            size:
+              type: integer
       example:
         type: urn:dx:rs:success
         title: success
         results: [
-          {"id":"15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/",
-           "time":"2020-06-01T14:20:00Z",
-           "api":"/entities",
-           "consumer":"aefvsdfsdf-exvsf-cezxcwscs-adasd"
+          {
+            "id": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055",
+            "api": "/{basePath}/entities",
+            "userid": "15c7506f-c800-48d6-adeb-0542b03947c6",
+            "epochtime": 1655683200000,
+            "resourceid": "34546554",
+            "isotime": "456789",
+            "providerid": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
+            "size": 456
           }
         ]
 
-    unique-attribute:
-      title: unique-attribute
-      required:
-        - id
-        - attribute
-      type: object
-      properties:
-        id:
-          type: string
-        attribute:
-          type: string
-      example:
-        id: iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta
-        attribute: license_plate
 
     standardSuccessResponse:
       title: standardSuccessResponse
