@@ -381,6 +381,7 @@ public class ApiServerVerticle extends AbstractVerticle {
           LOGGER.info("Success: adapter call Success with {}",status);
           adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
           adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
+          adapterResponse.remove("status");
           response.end(adapterResponse.toString());
           context.data().put(RESPONSE_SIZE, response.bytesWritten());
           Future.future(fu -> updateAuditTable(context));
