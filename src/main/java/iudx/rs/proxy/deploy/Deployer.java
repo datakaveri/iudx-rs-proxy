@@ -54,8 +54,8 @@ import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
  * <li>--modules/-m : comma separated list of module names to deploy</li>
  * </ul>
  *
- * e.g. <i>java -jar ./fatjar.jar  --host $(hostname) -c configs/config.json -m iudx.resource.server.database.archives.DatabaseVerticle,iudx.resource.server.authenticator.AuthenticationVerticle
- * ,iudx.resource.server.metering.MeteringVerticle,iudx.resource.server.database.postgres.PostgresVerticle</i>
+ * e.g. <i>java -jar ./fatjar.jar  --host $(hostname) -c configs/config.json -m iudx.rs.proxy.databroker.DatabrokerVerticle,iudx.rs.proxy.server.authenticator.AuthenticationVerticle
+ * </i>
  */
 
 public class Deployer {
@@ -301,7 +301,7 @@ public class Deployer {
   }
 
   public static void main(String[] args) {
-    CLI cli = CLI.create("IUDX Rs").setSummary("A CLI to deploy the resource")
+    CLI cli = CLI.create("IUDX Rs").setSummary("A CLI to deploy the resource proxy server")
         .addOption(new Option().setLongName("help").setShortName("h").setFlag(true)
             .setDescription("display help"))
         .addOption(new Option().setLongName("config").setShortName("c").setRequired(true)
