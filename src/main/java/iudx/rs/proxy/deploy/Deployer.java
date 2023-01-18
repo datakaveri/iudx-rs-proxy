@@ -83,16 +83,6 @@ public class Deployer {
         .setInstances(numInstances)
         .setConfig(moduleConfigurations);
 
-    boolean isWorkerVerticle = moduleConfigurations.getBoolean("isWorkerVerticle");
-    if (isWorkerVerticle) {
-      LOGGER.info("worker verticle : " + moduleConfigurations.getString("id"));
-      deploymentOptions.setWorkerPoolName(moduleConfigurations.getString("threadPoolName"));
-      deploymentOptions.setWorkerPoolSize(moduleConfigurations.getInteger("threadPoolSize"));
-      deploymentOptions.setWorker(true);
-      deploymentOptions.setMaxWorkerExecuteTime(30L);
-      deploymentOptions.setMaxWorkerExecuteTimeUnit(TimeUnit.MINUTES);
-    }
-
     vertx.deployVerticle(moduleName, deploymentOptions, ar -> {
       if (ar.succeeded()) {
         LOGGER.info("Deployed " + moduleName);
@@ -123,13 +113,22 @@ public class Deployer {
     JsonArray configuredModules = configs.getJsonArray("modules");
 
     String moduleName = modules.get(0);
-    JsonObject config = configuredModules.stream().map(obj -> (JsonObject) obj)
-        .filter(obj -> obj.getString("id").equals(moduleName)).findFirst().orElse(new JsonObject());
+    JsonObject config = configuredModules
+        .stream()
+          .map(obj -> (JsonObject) obj)
+          .filter(obj -> obj.getString("id").equals(moduleName))
+          .findFirst()
+          .orElse(new JsonObject());
 
+    
     if (config.isEmpty()) {
       LOGGER.fatal("Failed to deploy " + moduleName + " cause: Not Found");
       return;
     }
+    //get common configs and add this to config object
+    JsonObject commonConfigs=configs.getJsonObject("commonConfig");
+    config.mergeIn(commonConfigs, true);
+    
     int numInstances = config.getInteger("verticleInstances");
     DeploymentOptions deploymentOptions =
         new DeploymentOptions().setInstances(numInstances).setConfig(config);
