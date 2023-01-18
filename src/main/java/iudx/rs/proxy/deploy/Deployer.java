@@ -133,16 +133,6 @@ public class Deployer {
     int numInstances = config.getInteger("verticleInstances");
     DeploymentOptions deploymentOptions =
         new DeploymentOptions().setInstances(numInstances).setConfig(config);
-    boolean isWorkerVerticle = config.getBoolean("isWorkerVerticle");
-    if (isWorkerVerticle) {
-      LOGGER.info("worker verticle : " + config.getString("id"));
-      deploymentOptions.setWorkerPoolName(config.getString("threadPoolName"));
-      deploymentOptions.setWorkerPoolSize(config.getInteger("threadPoolSize"));
-      deploymentOptions.setWorker(true);
-      deploymentOptions.setMaxWorkerExecuteTime(30L);
-      deploymentOptions.setMaxWorkerExecuteTimeUnit(TimeUnit.MINUTES);
-    }
-
     vertx.deployVerticle(moduleName, deploymentOptions, ar -> {
           if (ar.succeeded()) {
             LOGGER.info("Deployed " + moduleName);
@@ -321,7 +311,6 @@ public class Deployer {
       String host = commandLine.getOptionValue("host");
       List<String> passedModules = commandLine.getOptionValues("modules");
       List<String> modules = passedModules.stream().distinct().collect(Collectors.toList());
-
       /* `all` is also passed by default if no -m option given.*/
       if (modules.contains("all")) {
         deploy(configPath, host, List.of());
