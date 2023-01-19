@@ -388,7 +388,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         }else {
           LOGGER.info("Success: adapter call success with {}",status);
           HttpStatusCode responseUrn=HttpStatusCode.getByValue(status);
-          String adapterFailureMessage=adapterResponse.getString("detail");
+          String adapterFailureMessage=adapterResponse.getString("details");
           JsonObject responseJson=ResponseUtil.generateResponse(responseUrn,adapterFailureMessage);
           response.end(responseJson.toString());
         }
