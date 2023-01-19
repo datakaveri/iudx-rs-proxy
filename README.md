@@ -100,6 +100,12 @@ $ export RS_JAVA_OPTS="-Xmx1024m"
 $ java $RS_JAVA_OPTS -jar target/iudx.rs.proxy-dev-0.0.1-SNAPSHOT-fat.jar ...
 ```
 
+### Encryption
+All the count and search APIs have a feature to get encrypted data.
+The user could provide a `publicKey` in the header, with the value that is generated from [lazySodium sealed box](https://github.com/terl/lazysodium-java/wiki/Getting-started) or [PyNaCl sealed box](https://pynacl.readthedocs.io/en/latest/).
+The header value should be in _url-safe base64 format_.
+The encrypted data could be decrypted using the lazysodium sealed box by supplying the private and public key.
+
 ## Contributing
 We follow Git Merge based workflow 
 1. Fork this repo
