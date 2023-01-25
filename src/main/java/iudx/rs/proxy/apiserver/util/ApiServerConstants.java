@@ -114,16 +114,16 @@ public class ApiServerConstants {
   public static final int VALIDATION_ID_MAX_LEN = 512;
   public static final Pattern VALIDATION_ID_PATTERN =
       Pattern.compile(
-          "^[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
+          "^[a-zA-Z0-9.-]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.-]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
   public static final int VALIDATION_MAX_ATTRS = 5;
-  public static final int VALIDATION_MAX_DAYS_INTERVAL_ALLOWED = 10;
+  public static final int VALIDATION_MAX_DAYS_INTERVAL_ALLOWED = 31;
   public static final int VALIDATION_COORDINATE_PRECISION_ALLOWED = 6;
   public static final int VALIDATIONS_MAX_ATTR_LENGTH = 100;
   public static final int VALIDATION_ALLOWED_COORDINATES = 10;
 
   public static final Pattern ID_REGEX =
       Pattern.compile(
-          "^[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
+          "^[a-zA-Z0-9.-]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.-]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
   public static final String ENCODED_PUBLIC_KEY_REGEX = "^[a-zA-Z0-9_-]{42,43}={0,2}$";
 
   public static final String RESPONSE_SIZE = "response_size";
