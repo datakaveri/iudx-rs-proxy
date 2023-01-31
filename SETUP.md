@@ -2,7 +2,7 @@ SETUP GUIDE
 ----
 
 This document contains the installation and configuration processes
-of the external modules of each Verticle in IUDX Resource Server Proxy.
+of the external modules of each Verticle in Data Exchange(DX) Resource Server Proxy.
 
 <p align="center">
 <img src="./docs/rs_overview.png">
@@ -20,12 +20,12 @@ The Resource Server Proxy also connects with various DX dependencies namely
 - Authorization Server : used to download the certificate for token decoding
 - Catalogue Server : used to download the list of resources, access policies and query types supported on a resource.
 
-## Setting up ELK for IUDX Resource Server Proxy
+## Setting up ELK for DX Resource Server Proxy
 - Refer to the docker files available [here](https://github.com/datakaveri/iudx-deployment/blob/master/Docker-Swarm-deployment/single-node/elk) to setup ELK stack
 
 **Note** : Access to HTTP APIs for search functionality should be configured with TLS and RBAC privileges
 
-## Setting up PostgreSQL for IUDX Resource Server Proxy
+## Setting up PostgreSQL for DX Resource Server Proxy
 
 -  Refer to the docker files available [here](https://github.com/datakaveri/iudx-deployment/blob/master/Docker-Swarm-deployment/single-node/postgres) to setup PostgreSQL
 
@@ -46,7 +46,7 @@ In order to connect to the appropriate Database, required information such as da
     "poolSize": "25"
 }
 ```
-#### Schemas for PostgreSQL tables in IUDX Resource Server Proxy
+#### Schemas for PostgreSQL tables in DX Resource Server Proxy
 1. Token Invalidation Table Schema
 ```
 CREATE TABLE IF NOT EXISTS revoked_tokens
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS revoked_tokens
 
 ----
 
-## Setting up ImmuDB for IUDX Resource Server Proxy
+## Setting up ImmuDB for DX Resource Server Proxy
 - Refer to the docker files available [here](https://github.com/datakaveri/iudx-deployment/blob/master/Docker-Swarm-deployment/single-node/immudb) to setup ImmuDB.
 - Refer [this](https://github.com/datakaveri/iudx-deployment/blob/master/Docker-Swarm-deployment/single-node/immudb/docker/immudb-config-generator/immudb-config-generator.py) to create table/user.
 - In order to connect to the appropriate ImmuDB database, required information such as meteringDatabaseIP,meteringDatabasePort etc. should be updated in the MeteringVerticle module available in [config-example.json](example-config/config-dev.json).
@@ -141,7 +141,7 @@ In order to connect to the DX authentication server, required information such a
 **AuthenticationVerticle**
 ```
 {
-    "id": "iudx.resource.server.authenticator.AuthenticationVerticle",
+    "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
     "verticleInstances": <number-of-verticle-instances,
     "audience": <resource-server-host>,
     "keystore": <path/to/keystore.jks>,
