@@ -1,6 +1,7 @@
 package iudx.rs.proxy.metering.util;
 
 import io.vertx.core.json.JsonObject;
+import iudx.rs.proxy.common.Api;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,14 +12,19 @@ import java.time.temporal.ChronoUnit;
 import static iudx.rs.proxy.metering.util.Constants.*;
 
 public class ParamsValidation {
+  private Api api;
 
+  public ParamsValidation(Api api)
+  {
+    this.api = api;
+  }
   private static final Logger LOGGER = LogManager.getLogger(ParamsValidation.class);
 
   public JsonObject paramsCheck(JsonObject request) {
     String providerID = request.getString(PROVIDER_ID);
     String iid = request.getString(IID);
 
-    if (request.getString(ENDPOINT).equals(IUDX_PROVIDER_AUDIT_URL)
+    if (request.getString(ENDPOINT).equals(api.getProviderAuditEndpoint())
         && request.getString(PROVIDER_ID) == null) {
       LOGGER.debug("Info: " + INVALID_PROVIDER_REQUIRED);
       return new JsonObject().put(ERROR, INVALID_PROVIDER_REQUIRED);

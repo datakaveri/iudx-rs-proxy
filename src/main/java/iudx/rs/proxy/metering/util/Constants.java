@@ -10,8 +10,7 @@ public class Constants {
   public static final String TIME_RELATION = "timeRelation";
   public static final String DURING = "during";
   public static final String HEADER_OPTIONS = "options";
-  public static final String IUDX_ADAPTOR_URL = "/ngsi-ld/v1";
-  public static final String IUDX_PROVIDER_AUDIT_URL = IUDX_ADAPTOR_URL + "/provider/audit";
+
   public static final String ORIGIN = "origin";
   public static final String ORIGIN_SERVER = "rs-server";
   public static final String PRIMARY_KEY= "primaryKey";
@@ -19,6 +18,7 @@ public class Constants {
   public static final String ROUTING_KEY = "#";
   public static final String TOTAL = "total";
   public static final String TABLE_NAME = "tableName";
+
 
   /* configs */
   public static final String DATABASE_IP = "meteringDatabaseIP";
