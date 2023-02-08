@@ -206,7 +206,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     Promise<JsonObject> promise = Promise.promise();
     String jwtId = jwtData.getIid().split(":")[1];
 
-    if (openResource && OPEN_ENDPOINTS.contains(authInfo.getString("apiEndpoint"))) {
+    if (openResource && checkOpenEndPoints(authInfo.getString("apiEndpoint"))) {
       LOGGER.info("User access is allowed.");
       JsonObject jsonResponse = new JsonObject();
       jsonResponse.put(JSON_IID, jwtId);
@@ -240,8 +240,19 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     return promise.future();
   }
 
+  private boolean checkOpenEndPoints(String endPoint) {
+    for(String item : OPEN_ENDPOINTS)
+    {
+      if(endPoint.contains(item))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
   Future<Boolean> isValidAudienceValue(JwtData jwtData) {
     Promise<Boolean> promise = Promise.promise();
+    System.out.println("hereeeee audience : " + jwtData.getAud());
     if (audience != null && audience.equalsIgnoreCase(jwtData.getAud())) {
       promise.complete(true);
     } else {

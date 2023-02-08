@@ -37,14 +37,16 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+<<<<<<< refs/remotes/origin/update-files
+=======
+import io.vertx.rabbitmq.RabbitMQClient;
+import iudx.rs.proxy.common.Api;
+>>>>>>> local
 import iudx.rs.proxy.configuration.Configuration;
 import java.util.UUID;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 @Disabled
 @ExtendWith(VertxExtension.class)
@@ -64,9 +66,9 @@ class MeteringServiceImplTest {
   private static String databaseTableName;
   private static Configuration config;
 
-  @BeforeAll
+  @BeforeEach
   @DisplayName("Deploying Verticle")
-  static void startVertex(Vertx vertx, VertxTestContext vertxTestContext) {
+  public void startVertex(Vertx vertx, VertxTestContext vertxTestContext) {
     vertxObj = vertx;
     config = new Configuration();
     JsonObject dbConfig = config.configLoader(4, vertx);
@@ -77,7 +79,7 @@ class MeteringServiceImplTest {
     databasePassword = dbConfig.getString(DATABASE_PASSWORD);
     databaseTableName = dbConfig.getString(DATABASE_TABLE_NAME);
     databasePoolSize = dbConfig.getInteger(POOL_SIZE);
-    meteringService = new MeteringServiceImpl(dbConfig, vertxObj);
+    meteringService = new MeteringServiceImpl(dbConfig, vertxObj, Api.getInstance("/ngsi-ld/v1"));
     userId = UUID.randomUUID().toString();
     id = "89a36273d77dac4cf38114fca1bbe64392547f86";
     vertxTestContext.completeNow();
@@ -118,6 +120,10 @@ class MeteringServiceImplTest {
   @DisplayName("Testing read query with invalid time interval")
   void readFromInvalidTimeInterval(VertxTestContext testContext) {
     JsonObject request = readConsumerRequest();
+<<<<<<< refs/remotes/origin/update-files
+=======
+
+>>>>>>> local
     request.put(START_TIME, "2021-11-01T05:30:00+05:30[Asia/Kolkata]");
     request.put(END_TIME, "2021-11-24T02:00:00+05:30[Asia/Kolkata]");
     meteringService.executeReadQuery(
@@ -132,13 +138,84 @@ class MeteringServiceImplTest {
                 })));
   }
 
+<<<<<<< refs/remotes/origin/update-files
 
+=======
+    when(asyncResult.succeeded()).thenReturn(true);
+    when(asyncResult.result()).thenReturn(json,responseJson);
+    when(json.getJsonArray(anyString())).thenReturn(jsonArray);
+    when(jsonArray.getJsonObject(anyInt())).thenReturn(json);
+    when(json.getInteger(anyString())).thenReturn(39);
+
+    doAnswer(new Answer<AsyncResult<JsonObject>>() {
+      @Override
+      public AsyncResult<JsonObject> answer(InvocationOnMock arg1) throws Throwable {
+        ((Handler<AsyncResult<JsonObject>>) arg1.getArgument(1)).handle(asyncResult);
+        return null;
+      }
+    }).when(MeteringServiceImpl.postgresService).executeQuery(any(), any());
+
+    JsonObject request = read();
+
+    meteringService.executeReadQuery(
+            request,
+            vertxTestContext.succeeding(
+                    response ->
+                            vertxTestContext.verify(
+                                    () -> {
+                                      LOGGER.info(response);
+                                      assertEquals(SUCCESS, response.getString(SUCCESS));
+                                      vertxTestContext.completeNow();
+                                    })));
+  }
+  @Test
+  @DisplayName("Testing read query for given time,api and id.")
+  void readForGivenTimeApiIdConsumerProviderIDZero(VertxTestContext vertxTestContext) {
+    JsonObject responseJson= new JsonObject().put(SUCCESS,"Success");
+    AsyncResult<JsonObject> asyncResult= mock(AsyncResult.class);
+    MeteringServiceImpl.postgresService =mock(DatabaseService.class);
+    JsonObject json= mock(JsonObject.class);
+    JsonArray jsonArray= mock(JsonArray.class);
+
+
+    when(asyncResult.succeeded()).thenReturn(true);
+    when(asyncResult.result()).thenReturn(json,responseJson);
+
+    when(json.getJsonArray(anyString())).thenReturn(jsonArray);
+    when(jsonArray.getJsonObject(anyInt())).thenReturn(json);
+    when(json.getInteger(anyString())).thenReturn(0);
+
+    Mockito.doAnswer(new Answer<AsyncResult<JsonObject>>() {
+      @Override
+      public AsyncResult<JsonObject> answer(InvocationOnMock arg1) throws Throwable {
+        ((Handler<AsyncResult<JsonObject>>) arg1.getArgument(1)).handle(asyncResult);
+        return null;
+      }
+    }).when(MeteringServiceImpl.postgresService).executeQuery(any(), any());
+    JsonObject jsonObject = readProviderRequest();
+
+    meteringService.executeReadQuery(
+            jsonObject,
+            vertxTestContext.succeeding(
+                    response ->
+                            vertxTestContext.verify(
+                                    () -> {
+                                      assertEquals(SUCCESS, response.getString("title"));
+                                      vertxTestContext.completeNow();
+                                    })));
+
+  }
+>>>>>>> local
   @Test
   @DisplayName("Testing read query for missing userId")
   void readForMissingUserId(VertxTestContext vertxTestContext) {
     JsonObject request = readConsumerRequest();
     request.remove(USER_ID);
 
+<<<<<<< refs/remotes/origin/update-files
+=======
+
+>>>>>>> local
     meteringService.executeReadQuery(
         request,
         vertxTestContext.failing(
@@ -207,11 +284,18 @@ class MeteringServiceImplTest {
   }
 
   @Test
+<<<<<<< refs/remotes/origin/update-files
   @DisplayName("Testing read query for given time.")
   void readForGivenTime(VertxTestContext vertxTestContext) {
     JsonObject jsonObject = readConsumerRequest();
     jsonObject.remove(RESOURCE_ID);
     jsonObject.remove(API);
+=======
+  @DisplayName("Testing read query with missing providerId.")
+  void readForMissingProviderId(VertxTestContext vertxTestContext) {
+    JsonObject request = readProviderRequest();
+    request.remove(PROVIDER_ID);
+>>>>>>> local
     meteringService.executeReadQuery(
         jsonObject,
         vertxTestContext.succeeding(
@@ -262,6 +346,7 @@ class MeteringServiceImplTest {
   void readForGivenTimeApiAndID(VertxTestContext vertxTestContext) {
     JsonObject jsonObject = readConsumerRequest();
 
+<<<<<<< refs/remotes/origin/update-files
     meteringService.executeReadQuery(
         jsonObject,
         vertxTestContext.succeeding(
@@ -272,6 +357,11 @@ class MeteringServiceImplTest {
                   vertxTestContext.completeNow();
                 })));
   }
+=======
+
+    when(asyncResult.succeeded()).thenReturn(true);
+    when(asyncResult.result()).thenReturn(json);
+>>>>>>> local
 
 
   @Test
@@ -294,6 +384,7 @@ class MeteringServiceImplTest {
                 })));
   }
 
+<<<<<<< refs/remotes/origin/update-files
   @Test
   @DisplayName("Testing count query for given time,api and id.")
   void countForGivenTimeApiAndIDEmptyResponse(VertxTestContext vertxTestContext) {
@@ -301,6 +392,8 @@ class MeteringServiceImplTest {
     jsonObject.put(START_TIME, "2021-11-19T05:30:00+05:30[Asia/Kolkata]");
     jsonObject.put(END_TIME, "2021-11-21T02:00:00+05:30[Asia/Kolkata]");
     jsonObject.put("options", "count");
+=======
+>>>>>>> local
 
     meteringService.executeReadQuery(
         jsonObject,
@@ -319,6 +412,7 @@ class MeteringServiceImplTest {
     request.put(USER_ID, "15c7506f-c800-48d6-adeb-0542b03947c6");
     request.put(ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/");
     request.put(API, "/ngsi-ld/v1/subscription");
+<<<<<<< refs/remotes/origin/update-files
     request.put(RESPONSE_SIZE, 12);
     meteringService.executeWriteQuery(
         request,
@@ -330,6 +424,10 @@ class MeteringServiceImplTest {
                   vertxTestContext.completeNow();
                 })));
   }
+=======
+    request.put(RESPONSE_SIZE,12);
+    DatabaseService postgresService = mock(DatabaseService.class);
+>>>>>>> local
 
   @Test
   @DisplayName("Testing read query with missing providerId.")
@@ -356,6 +454,7 @@ class MeteringServiceImplTest {
     JsonObject request = readProviderRequest();
     request.put(PROVIDER_ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-tsst-alias");
 
+<<<<<<< refs/remotes/origin/update-files
     meteringService.executeReadQuery(
         request,
         vertxTestContext.failing(
@@ -386,6 +485,8 @@ class MeteringServiceImplTest {
                   vertxTestContext.completeNow();
                 })));
   }
+=======
+>>>>>>> local
 
   @Test
   @DisplayName("Testing count query for given time,api and providerId.")

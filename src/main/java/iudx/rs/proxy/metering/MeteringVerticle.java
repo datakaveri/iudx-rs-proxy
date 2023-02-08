@@ -13,6 +13,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
+import iudx.rs.proxy.common.Api;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,6 +30,7 @@ public class MeteringVerticle extends AbstractVerticle {
   private ServiceBinder binder;
   private MessageConsumer<JsonObject> consumer;
   private MeteringService metering;
+  private Api api;
 
   @Override
   public void start() throws Exception {
@@ -48,9 +50,10 @@ public class MeteringVerticle extends AbstractVerticle {
     propObj.put(DATABASE_USERNAME, databaseUserName);
     propObj.put(DATABASE_PASSWORD, databasePassword);
     propObj.put(POOL_SIZE, poolSize);
+    api = Api.getInstance(config().getString("dxApiBasePath"));
 
     binder = new ServiceBinder(vertx);
-    metering = new MeteringServiceImpl(propObj, vertx);
+    metering = new MeteringServiceImpl(propObj, vertx, api);
     consumer =
         binder.setAddress(METERING_SERVICE_ADDRESS).register(MeteringService.class, metering);
     LOGGER.info("Metering Verticle Started");

@@ -54,8 +54,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
+<<<<<<< refs/remotes/origin/update-files
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+=======
+import iudx.rs.proxy.common.Api;
+>>>>>>> local
 import iudx.rs.proxy.common.Response;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.metering.util.QueryBuilder;
@@ -75,6 +79,12 @@ public class MeteringServiceImpl implements MeteringService {
   public final String _ID_COLUMN;
   private final Vertx vertx;
   private final QueryBuilder queryBuilder = new QueryBuilder();
+<<<<<<< refs/remotes/origin/update-files
+=======
+  private ParamsValidation validation;
+  public static DatabrokerService rmqService;
+  private final ObjectMapper objectMapper = new ObjectMapper();
+>>>>>>> local
   PgConnectOptions connectOptions;
   PoolOptions poolOptions;
   PgPool pool;
@@ -87,7 +97,7 @@ public class MeteringServiceImpl implements MeteringService {
   private int databasePoolSize;
   private String databaseTableName;
 
-  public MeteringServiceImpl(JsonObject propObj, Vertx vertxInstance) {
+  public MeteringServiceImpl(JsonObject propObj, Vertx vertxInstance, Api api) {
 
     if (propObj != null && !propObj.isEmpty()) {
       databaseIP = propObj.getString(DATABASE_IP);
@@ -97,6 +107,7 @@ public class MeteringServiceImpl implements MeteringService {
       databasePassword = propObj.getString(DATABASE_PASSWORD);
       databaseTableName = propObj.getString(DATABASE_TABLE_NAME);
       databasePoolSize = propObj.getInteger(POOL_SIZE);
+      validation = new ParamsValidation(api);
     }
 
     this.connectOptions =
