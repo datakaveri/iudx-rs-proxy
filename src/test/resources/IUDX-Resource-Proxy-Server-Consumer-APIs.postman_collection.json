@@ -46,14 +46,13 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{auth-url}}/auth/v1/token",
+							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
 								"{{auth-url}}"
 							],
 							"path": [
-								"auth",
-								"v1",
+								"{{dxAuthBasePath}}",
 								"token"
 							]
 						}
@@ -113,14 +112,13 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{auth-url}}/auth/v1/token",
+							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
 								"{{auth-url}}"
 							],
 							"path": [
-								"auth",
-								"v1",
+								"{{dxAuthBasePath}}",
 								"token"
 							]
 						}
@@ -191,7 +189,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/auth/v1/token",
+							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
 								"authvertx",
@@ -199,8 +197,7 @@
 								"io"
 							],
 							"path": [
-								"auth",
-								"v1",
+								"{{dxAuthBasePath}}",
 								"token"
 							]
 						}
@@ -271,7 +268,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/auth/v1/token",
+							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
 								"authvertx",
@@ -279,8 +276,7 @@
 								"io"
 							],
 							"path": [
-								"auth",
-								"v1",
+								"{{dxAuthBasePath}}",
 								"token"
 							]
 						}
@@ -351,7 +347,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/auth/v1/token",
+							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
 								"authvertx",
@@ -359,8 +355,7 @@
 								"io"
 							],
 							"path": [
-								"auth",
-								"v1",
+								"{{dxAuthBasePath}}",
 								"token"
 							]
 						}
@@ -431,7 +426,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/auth/v1/token",
+							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
 								"authvertx",
@@ -439,8 +434,7 @@
 								"io"
 							],
 							"path": [
-								"auth",
-								"v1",
+								"{{dxAuthBasePath}}",
 								"token"
 							]
 						}

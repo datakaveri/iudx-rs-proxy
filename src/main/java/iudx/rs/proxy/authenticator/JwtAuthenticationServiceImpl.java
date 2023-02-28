@@ -1,10 +1,5 @@
 package iudx.rs.proxy.authenticator;
 
-import static iudx.rs.proxy.authenticator.Constants.JSON_EXPIRY;
-import static iudx.rs.proxy.authenticator.Constants.JSON_IID;
-import static iudx.rs.proxy.authenticator.Constants.JSON_USERID;
-import static iudx.rs.proxy.authenticator.Constants.OPEN_ENDPOINTS;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.vertx.core.AsyncResult;
@@ -40,6 +35,8 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static iudx.rs.proxy.authenticator.Constants.*;
+
 public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
   private static final Logger LOGGER = LogManager.getLogger(JwtAuthenticationServiceImpl.class);
@@ -52,6 +49,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   final CacheService cache;
   static WebClient catWebClient;
   final Api apis;
+  final String catBasePath;
   // resourceGroupCache will contain ACL info about all resource group in a resource server
   Cache<String, String> resourceGroupCache = CacheBuilder.newBuilder().maximumSize(1000)
       .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES).build();
@@ -67,7 +65,8 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     this.audience = config.getString("audience");
     this.host = config.getString("catServerHost");
     this.port = config.getInteger("catServerPort");
-    this.path = Constants.CAT_RSG_PATH;
+    this.catBasePath = config.getString("dxCatalogueBasePath");
+    this.path = catBasePath + CAT_SEARCH_PATH;
     this.apis=apis;
     WebClientOptions options = new WebClientOptions();
     options.setTrustAll(true).setVerifyHost(false).setSsl(true);

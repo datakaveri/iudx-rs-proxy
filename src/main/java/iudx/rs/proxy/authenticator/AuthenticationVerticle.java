@@ -1,5 +1,6 @@
 package iudx.rs.proxy.authenticator;
 
+import static iudx.rs.proxy.authenticator.Constants.AUTH_CERTIFICATE_PATH;
 import static iudx.rs.proxy.common.Constants.*;
 
 import io.vertx.core.AbstractVerticle;
@@ -117,8 +118,9 @@ public class AuthenticationVerticle extends AbstractVerticle {
   private Future<String> getJwtPublicKey(Vertx vertx, JsonObject config) {
     Promise<String> promise = Promise.promise();
     webClient = createWebClient(vertx, config);
+    String authCert = config.getString("dxAuthBasePath") + AUTH_CERTIFICATE_PATH;
     webClient
-        .get(443, config.getString("authServerHost"), "/auth/v1/cert")
+        .get(443, config.getString("authServerHost"), authCert)
         .send(
             handler -> {
               if (handler.succeeded()) {
