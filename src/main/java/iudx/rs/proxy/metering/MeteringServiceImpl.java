@@ -19,7 +19,7 @@ import iudx.rs.proxy.metering.util.ResponseBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FAILED;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TABLE_NAME;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
@@ -167,6 +167,7 @@ public class MeteringServiceImpl implements MeteringService {
             try {
               var countHandle = countHandler.result().getJsonArray("result");
               total = countHandle.getJsonObject(0).getInteger("count");
+              request.put("totalHits", total);
               if (total == 0) {
                 responseBuilder = new ResponseBuilder(FAILED).setTypeAndTitle(204).setCount(0);
                 handler.handle(Future.succeededFuture(responseBuilder.getResponse()));
@@ -181,13 +182,31 @@ public class MeteringServiceImpl implements MeteringService {
   }
 
   private void readMethod(JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
+    String limit, offset;
+    if (request.getString(LIMITPARAM) == null) {
+      limit = "2000";
+      request.put(LIMITPARAM, limit);
+    } else {
+      limit = request.getString(LIMITPARAM);
+    }
+    if (request.getString(OFFSETPARAM) == null) {
+      offset = "0";
+      request.put(OFFSETPARAM, offset);
+    } else {
+      offset = request.getString(OFFSETPARAM);
+    }
     query = queryBuilder.buildReadQueryFromPG(request);
+    LOGGER.debug("read query = " + query);
     Future<JsonObject> resultsPg = executeQueryDatabaseOperation(query);
     resultsPg.onComplete(
         readHandler -> {
           if (readHandler.succeeded()) {
             LOGGER.info("Read Completed successfully");
-            handler.handle(Future.succeededFuture(readHandler.result()));
+            JsonObject resultJsonObject = readHandler.result();
+            resultJsonObject.put(LIMITPARAM, limit);
+            resultJsonObject.put(OFFSETPARAM, offset);
+            resultJsonObject.put("totalHits", request.getLong("totalHits"));
+            handler.handle(Future.succeededFuture(resultJsonObject));
           } else {
             LOGGER.debug("Could not read from DB : " + readHandler.cause());
             handler.handle(Future.failedFuture(readHandler.cause().getMessage()));

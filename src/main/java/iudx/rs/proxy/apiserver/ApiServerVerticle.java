@@ -485,6 +485,8 @@ public class ApiServerVerticle extends AbstractVerticle {
     entries.put("options", request.headers().get("options"));
     entries.put("resourceId", request.getParam("id"));
     entries.put("api", request.getParam("api"));
+    entries.put(OFFSETPARAM, request.getParam(OFFSETPARAM));
+    entries.put(LIMITPARAM, request.getParam(LIMITPARAM));
 
 
     LOGGER.debug(entries);
@@ -530,6 +532,8 @@ public class ApiServerVerticle extends AbstractVerticle {
     entries.put("resourceId", request.getParam("id"));
     entries.put("api", request.getParam("api"));
     entries.put("options", request.headers().get("options"));
+    entries.put(OFFSETPARAM, request.getParam(OFFSETPARAM));
+    entries.put(LIMITPARAM, request.getParam(LIMITPARAM));
 
 
     LOGGER.debug(entries);
