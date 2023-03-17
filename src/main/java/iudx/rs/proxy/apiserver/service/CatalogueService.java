@@ -1,6 +1,8 @@
 package iudx.rs.proxy.apiserver.service;
 
 import static iudx.rs.proxy.apiserver.util.Util.toList;
+import static iudx.rs.proxy.authenticator.Constants.CAT_ITEM_PATH;
+import static iudx.rs.proxy.authenticator.Constants.CAT_SEARCH_PATH;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -36,8 +38,9 @@ public class CatalogueService {
   private long cacheTimerid;
   private static String catHost;
   private static int catPort;;
-  private static String catSearchPath;
-  private static String catItemPath;
+  private String catBasePath;
+  private String catItemPath;
+  private String catSearchPath;
   private Vertx vertx;
 
   private final Cache<String, List<String>> applicableFilterCache =
@@ -48,8 +51,9 @@ public class CatalogueService {
     this.vertx = vertx;
     catHost = config.getString("catServerHost");
     catPort = config.getInteger("catServerPort");
-    catSearchPath = Constants.CAT_RSG_PATH;
-    catItemPath = Constants.CAT_ITEM_PATH;
+    catBasePath = config.getString("dxCatalogueBasePath");
+    catItemPath = catBasePath + CAT_ITEM_PATH;
+    catSearchPath = catBasePath + CAT_SEARCH_PATH;
 
     WebClientOptions options =
         new WebClientOptions().setTrustAll(true).setVerifyHost(false).setSsl(true);
@@ -189,8 +193,8 @@ public class CatalogueService {
         });
         handler.handle(Future.succeededFuture(filters));
       } else if (catHandler.failed()) {
-        LOGGER.error("catalogue call(/iudx/cat/v1/item) failed for id" + id);
-        handler.handle(Future.failedFuture("catalogue call(/iudx/cat/v1/item) failed for id" + id));
+        LOGGER.error("catalogue call ("+ catItemPath + ") failed for id" + id);
+        handler.handle(Future.failedFuture("catalogue call(" + catItemPath + ") failed for id" + id));
       }
     });
   }

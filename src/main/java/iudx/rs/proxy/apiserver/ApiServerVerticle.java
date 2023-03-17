@@ -87,7 +87,8 @@ public class ApiServerVerticle extends AbstractVerticle {
   private DatabaseService databaseService;
   private MeteringService meteringService;
   private DatabrokerService brokerService;
-  
+  private String dxCatalogueBasePath;
+  private String dxAuthBasePath;
   private String dxApiBasePath;
 
   @Override
@@ -97,8 +98,11 @@ public class ApiServerVerticle extends AbstractVerticle {
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
-    
+
+    /* Get base paths from config */
     dxApiBasePath=config().getString("dxApiBasePath");
+    dxCatalogueBasePath = config().getString("dxCatalogueBasePath");
+    dxAuthBasePath = config().getString("dxAuthBasePath");
     Api apis=Api.getInstance(dxApiBasePath);
     
     router = Router.router(vertx);
