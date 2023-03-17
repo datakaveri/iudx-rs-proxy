@@ -4,7 +4,7 @@
 
 # iudx-resource-proxy-server
 
-The resource server proxy is [IUDXs](https://iudx.org.in) data discovery portal.
+The resource server proxy is [Data Exchange](https://iudx.org.in) data discovery portal.
 The consumers can access data from the resource server proxy using HTTPs.
 
 <p align="center">
@@ -53,14 +53,9 @@ Find the installations of the above along with the configurations to modify the 
    
 ### JAR based
 1. Install java 11 and maven
-2. Set Environment variables
-```
-export RS_URL=https://<rs-domain-name> **Doubt**
-export LOG_LEVEL=INFO
-```
-3. Use maven to package the application as a JAR
+2. Use maven to package the application as a JAR
    `mvn clean package -Dmaven.test.skip=true`
-4. 2 JAR files would be generated in the `target/` directory
+3. 2 JAR files would be generated in the `target/` directory
    - `iudx.rs.proxy-cluster-0.0.1-SNAPSHOT-fat.jar` - clustered vert.x containing micrometer metrics
    - `iudx.rs.proxy-dev-0.0.1-SNAPSHOT-fat.jar` - non-clustered vert.x and does not contain micrometer metrics
 
