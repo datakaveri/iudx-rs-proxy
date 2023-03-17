@@ -9,6 +9,7 @@ docker-compose.temp.yml
 config.properties
 upload-dir/
 temp-dir/
+examples/consumers(adapter)/secrets/
 .idea
 iudx.rs.proxy.iml
 ### STS ###
