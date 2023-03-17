@@ -14,7 +14,7 @@ consumes:
 
 info:
   title: "Data exchange Resource Server Proxy APIs"
-  version: 4.0.0
+  version: 4.5.0
   description: |
     # Introduction
     The Resource Proxy Server is DXs'(Data Exchange) data discovery portal.
