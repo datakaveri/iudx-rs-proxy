@@ -8,7 +8,7 @@ The resource server proxy is [Data Exchange](https://iudx.org.in) data discovery
 The consumers can access data from the resource server proxy using HTTPs.
 
 <p align="center">
-<img src="./docs/rs_overview.png">
+<img src="./docs/RS Proxy.png">
 </p>
 
 
