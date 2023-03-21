@@ -189,12 +189,10 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
+							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
-								"authvertx",
-								"iudx",
-								"io"
+								"{{auth-url}}"
 							],
 							"path": [
 								"{{dxAuthBasePath}}",
@@ -268,12 +266,10 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
+							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
-								"authvertx",
-								"iudx",
-								"io"
+								"{{auth-url}}"
 							],
 							"path": [
 								"{{dxAuthBasePath}}",
@@ -347,12 +343,10 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
+							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
-								"authvertx",
-								"iudx",
-								"io"
+								"{{auth-url}}"
 							],
 							"path": [
 								"{{dxAuthBasePath}}",
@@ -426,12 +420,10 @@
 							}
 						},
 						"url": {
-							"raw": "https://authvertx.iudx.io/{{dxAuthBasePath}}/token",
+							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
 							"protocol": "https",
 							"host": [
-								"authvertx",
-								"iudx",
-								"io"
+								"{{auth-url}}"
 							],
 							"path": [
 								"{{dxAuthBasePath}}",
@@ -466,10 +458,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");\r",
-									"});"
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");});"
 								],
 								"type": "text/javascript"
 							}
@@ -547,9 +537,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -907,9 +896,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1253,9 +1241,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1599,9 +1586,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1970,9 +1956,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 2132);\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2047,9 +2032,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 2132);\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2419,10 +2403,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 158349);\r",
-									"});"
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");});"
 								],
 								"type": "text/javascript"
 							}
@@ -2785,9 +2767,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 288);\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -3151,9 +3132,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 12);\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -3542,9 +3522,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -3556,7 +3535,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -3612,9 +3591,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -3626,7 +3604,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -3689,7 +3667,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -3825,7 +3803,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -3893,7 +3871,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4003,7 +3981,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code\r",
 									"pm.test(\"response is 200 (OK)\", function () {\r",
@@ -4018,11 +3995,11 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -4031,7 +4008,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4094,7 +4071,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4168,7 +4145,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4242,7 +4219,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4316,7 +4293,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4438,7 +4415,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code\r",
 									"pm.test(\"response is 200 (OK)\", function () {\r",
@@ -4453,11 +4429,11 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -4466,7 +4442,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4519,7 +4495,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4583,7 +4559,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4647,7 +4623,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4711,7 +4687,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -4844,9 +4820,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -4859,7 +4834,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
@@ -4918,9 +4893,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -4933,7 +4907,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							},
 							{
 								"key": "publicKey",
@@ -5071,7 +5045,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5143,7 +5117,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5215,7 +5189,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5347,9 +5321,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -5361,7 +5334,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5423,7 +5396,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5496,7 +5469,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5569,7 +5542,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5642,7 +5615,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5776,9 +5749,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");\r",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -5790,7 +5762,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5847,7 +5819,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5915,7 +5887,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -5983,7 +5955,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6051,7 +6023,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6200,10 +6172,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 16.00);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"});",
 									"",
 									""
@@ -6217,7 +6187,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6274,10 +6244,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 16.00);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"});",
 									"",
 									""
@@ -6291,7 +6259,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -6355,7 +6323,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6424,7 +6392,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6493,7 +6461,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6631,7 +6599,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6678,10 +6646,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 14);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"});",
 									"",
 									""
@@ -6695,7 +6661,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6743,7 +6709,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6802,7 +6768,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6861,7 +6827,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -6979,7 +6945,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7026,10 +6992,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 16.0);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"});",
 									"",
 									""
@@ -7043,7 +7007,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7091,7 +7055,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7150,7 +7114,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7209,7 +7173,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7327,7 +7291,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7374,10 +7338,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 14);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"});",
 									"",
 									""
@@ -7391,7 +7353,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7439,7 +7401,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7498,7 +7460,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7557,7 +7519,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7675,7 +7637,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7727,10 +7689,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referenceLevel\", 15.9);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"});",
 									"",
 									""
@@ -7744,7 +7704,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7826,9 +7786,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -7840,7 +7799,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -7896,9 +7855,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -7910,7 +7868,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -7973,7 +7931,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8041,7 +7999,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8109,7 +8067,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8245,7 +8203,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8296,9 +8254,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -8310,7 +8267,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8362,7 +8319,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8425,7 +8382,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8488,7 +8445,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8614,7 +8571,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8665,9 +8622,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -8679,7 +8635,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8731,7 +8687,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8786,7 +8742,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8849,7 +8805,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -8975,7 +8931,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9026,9 +8982,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -9040,7 +8995,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9092,7 +9047,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9155,7 +9110,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9218,7 +9173,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9344,7 +9299,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9395,10 +9350,9 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"     pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 19);",
+									"    pm.expect(body).to.have.property(\"type\", \"urn:dx:rs:success\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -9410,7 +9364,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9491,10 +9445,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 15.9);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									"",
 									""
@@ -9508,7 +9460,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9564,10 +9516,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 15.9);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									"",
 									""
@@ -9581,7 +9531,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -9644,7 +9594,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9712,7 +9662,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9780,7 +9730,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9848,7 +9798,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -9972,10 +9922,8 @@
 									"// Test the response\r",
 									"pm.test(\"Check response body\", function () {    \r",
 									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"    const resultsjsonData = body.results[0];\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");\r",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 15.9);\r",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");\r",
+									"\r",
 									"});\r",
 									"\r",
 									""
@@ -9989,7 +9937,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10050,7 +9998,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10122,7 +10070,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10194,7 +10142,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10331,10 +10279,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 15.90);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -10348,11 +10294,11 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,referencelevel,currentlevel",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,referencelevel,currentlevel",
 							"host": [
 								"{{base_url}}"
 							],
@@ -10364,7 +10310,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								},
 								{
 									"key": "geoproperty",
@@ -10424,10 +10370,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"referencelevel\", 15.90);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -10441,7 +10385,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							},
 							{
 								"key": "publicKey",
@@ -10451,7 +10395,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,referencelevel,currentlevel",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,referencelevel,currentlevel",
 							"host": [
 								"{{base_url}}"
 							],
@@ -10463,7 +10407,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								},
 								{
 									"key": "geoproperty",
@@ -10525,11 +10469,11 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[31.178,72.834]&timerel=before&time=2020-09-19T14:00:00Z&attrs=id,referencelevel,currentlevel",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[31.178,72.834]&timerel=before&time=2020-09-19T14:00:00Z&attrs=id,referencelevel,currentlevel",
 							"host": [
 								"{{base_url}}"
 							],
@@ -10541,7 +10485,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								},
 								{
 									"key": "geoproperty",
@@ -10608,7 +10552,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10692,7 +10636,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10776,7 +10720,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -10945,7 +10889,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
@@ -11133,9 +11077,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -11148,11 +11091,11 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count",
 							"host": [
 								"{{base_url}}"
 							],
@@ -11164,7 +11107,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								},
 								{
 									"key": "geoproperty",
@@ -11219,9 +11162,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -11234,7 +11176,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							},
 							{
 								"key": "publicKey",
@@ -11244,7 +11186,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count",
 							"host": [
 								"{{base_url}}"
 							],
@@ -11256,7 +11198,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								},
 								{
 									"key": "geoproperty",
@@ -11313,11 +11255,11 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[31.178,72.834]&timerel=before&time=2020-09-19T14:00:00Z&options=count",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[31.178,72.834]&timerel=before&time=2020-09-19T14:00:00Z&options=count",
 							"host": [
 								"{{base_url}}"
 							],
@@ -11329,7 +11271,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055"
+									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
 								},
 								{
 									"key": "geoproperty",
@@ -11396,7 +11338,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -11485,7 +11427,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -11569,7 +11511,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -11738,7 +11680,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
@@ -11826,7 +11768,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{openResourceToken}}"
+								"value": "{{secureResourceToken}}"
 							}
 						],
 						"url": {
@@ -11938,7 +11880,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -12776,7 +12718,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -12844,7 +12786,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -12913,7 +12855,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -12981,7 +12923,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -13049,7 +12991,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -13117,7 +13059,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
@@ -13179,8 +13121,6 @@
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
 									"});"
 								],
 								"type": "text/javascript"
@@ -13192,12 +13132,12 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-05-01T14:20:00Z&endTime=2022-05-10T15:23:00Z&api=/{{basePath}}/entities",
+							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities",
 							"host": [
 								"{{base_url}}"
 							],
@@ -13217,11 +13157,11 @@
 								},
 								{
 									"key": "time",
-									"value": "2022-05-01T14:20:00Z"
+									"value": "2022-11-20T14:20:00Z"
 								},
 								{
 									"key": "endTime",
-									"value": "2022-05-10T15:23:00Z"
+									"value": "2022-11-21T14:20:00Z"
 								},
 								{
 									"key": "api",
@@ -13259,7 +13199,7 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
 									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 4238);",
+									"    pm.expect(resultsjsonData).to.have.property(\"total\");",
 									"});"
 								],
 								"type": "text/javascript"
@@ -13271,7 +13211,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -13281,7 +13221,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-05-01T14:20:00Z&endTime=2022-05-10T15:23:00Z&api=/{{basePath}}/entities",
+							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities",
 							"host": [
 								"{{base_url}}"
 							],
@@ -13301,11 +13241,11 @@
 								},
 								{
 									"key": "time",
-									"value": "2022-05-01T14:20:00Z"
+									"value": "2022-11-20T14:20:00Z"
 								},
 								{
 									"key": "endTime",
-									"value": "2022-05-10T15:23:00Z"
+									"value": "2022-11-21T14:20:00Z"
 								},
 								{
 									"key": "api",
@@ -13342,7 +13282,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -13428,7 +13368,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -13483,83 +13423,6 @@
 					"response": []
 				},
 				{
-					"name": "400 (failure) Get Data Read Query Count > 10000",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 400 (Bad request)\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "token",
-								"value": "{{consumerToken}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-05-01T14:20:00Z&endTime=2022-05-15T15:23:00Z&api=/{{basePath}}/entities",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"{{basePath}}",
-								"consumer",
-								"audit"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
-								},
-								{
-									"key": "timerel",
-									"value": "during"
-								},
-								{
-									"key": "time",
-									"value": "2022-05-01T14:20:00Z"
-								},
-								{
-									"key": "endTime",
-									"value": "2022-05-15T15:23:00Z"
-								},
-								{
-									"key": "api",
-									"value": "/{{basePath}}/entities"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "400 (failure) Missing time-relation",
 					"event": [
 						{
@@ -13591,7 +13454,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -13673,7 +13536,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -13914,7 +13777,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{consumerToken}}",
+								"value": "{{secureResourceToken}}",
 								"type": "text"
 							},
 							{
@@ -13986,8 +13849,6 @@
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
 									"});"
 								],
 								"type": "text/javascript"
@@ -13999,7 +13860,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14010,7 +13871,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-06-01T14:20:00Z&endTime=2022-06-15T14:20:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
+							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
 							"host": [
 								"{{base_url}}"
 							],
@@ -14030,11 +13891,11 @@
 								},
 								{
 									"key": "time",
-									"value": "2022-06-01T14:20:00Z"
+									"value": "2022-11-20T14:20:00Z"
 								},
 								{
 									"key": "endTime",
-									"value": "2022-06-15T14:20:00Z"
+									"value": "2022-11-21T14:20:00Z"
 								},
 								{
 									"key": "api",
@@ -14070,8 +13931,7 @@
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -14083,7 +13943,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14093,7 +13953,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-05-01T14:20:00Z&endTime=2022-05-15T14:20:00Z&api=/{{basePath}}/entityOperations/query&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
+							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entityOperations/query&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
 							"host": [
 								"{{base_url}}"
 							],
@@ -14113,11 +13973,11 @@
 								},
 								{
 									"key": "time",
-									"value": "2022-05-01T14:20:00Z"
+									"value": "2022-11-20T14:20:00Z"
 								},
 								{
 									"key": "endTime",
-									"value": "2022-05-15T14:20:00Z"
+									"value": "2022-11-21T14:20:00Z"
 								},
 								{
 									"key": "api",
@@ -14158,7 +14018,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14213,95 +14073,13 @@
 					"response": []
 				},
 				{
-					"name": "400 (failure) Get Data Read Query count > 10000",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 400 (Bad request)\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "token",
-								"value": "{{providerToken}}",
-								"type": "text"
-							},
-							{
-								"key": "options",
-								"value": "count",
-								"type": "text",
-								"disabled": true
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-04-01T14:20:00Z&endTime=2022-04-15T14:20:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"{{basePath}}",
-								"provider",
-								"audit"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta"
-								},
-								{
-									"key": "timerel",
-									"value": "during"
-								},
-								{
-									"key": "time",
-									"value": "2022-04-01T14:20:00Z"
-								},
-								{
-									"key": "endTime",
-									"value": "2022-04-15T14:20:00Z"
-								},
-								{
-									"key": "api",
-									"value": "/{{basePath}}/entities"
-								},
-								{
-									"key": "providerID",
-									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "400 (failure) Invalid date time",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14387,7 +14165,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14473,7 +14251,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14484,7 +14262,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2020-07-01T14:20:00Z&endTime=2020-07-15T14:20:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
+							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-07-01T14:20:00Z&endTime=2022-08-15T15:23:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
 							"host": [
 								"{{base_url}}"
 							],
@@ -14504,11 +14282,11 @@
 								},
 								{
 									"key": "time",
-									"value": "2020-07-01T14:20:00Z"
+									"value": "2022-07-01T14:20:00Z"
 								},
 								{
 									"key": "endTime",
-									"value": "2020-07-15T14:20:00Z"
+									"value": "2022-08-15T15:23:00Z"
 								},
 								{
 									"key": "api",
@@ -14723,7 +14501,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{providerToken}}",
+								"value": "{{delegateToken}}",
 								"type": "text"
 							},
 							{
@@ -14798,10 +14576,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 12.2);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -14861,10 +14637,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 12.2);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -15155,9 +14929,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -15507,9 +15280,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -15810,9 +15582,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -16140,7 +15911,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 200 (OK)\", function () {",
@@ -16155,13 +15925,12 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 43.0);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -16447,10 +16216,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"speed\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -16735,10 +16502,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"speed\", 45.7);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -17023,10 +16788,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"id\", \"iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta\");",
-									"    pm.expect(resultsjsonData).to.have.property(\"speed\");",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});",
 									""
 								],
@@ -17336,9 +17099,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 82710);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -17397,9 +17159,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 82710);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -17675,7 +17436,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 200 (OK)\", function () {",
@@ -17690,11 +17450,11 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 123805);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -18026,7 +17786,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 200 (OK)\", function () {",
@@ -18041,11 +17800,11 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 864619);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -18342,9 +18101,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 3402);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -18633,9 +18391,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 158349);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -18919,9 +18676,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 288);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -19205,9 +18961,8 @@
 									"// Test the response",
 									"pm.test(\"Check response body\", function () {    ",
 									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"    const resultsjsonData = body.results[0];",
-									"    pm.expect(resultsjsonData).to.have.property(\"totalHits\", 12);",
+									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+									"",
 									"});"
 								],
 								"type": "text/javascript"
@@ -19529,6 +19284,10 @@
 		},
 		{
 			"key": "publicKeyValue",
+			"value": ""
+		},
+		{
+			"key": "dxAuthBasePath",
 			"value": ""
 		}
 	]

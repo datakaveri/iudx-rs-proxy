@@ -58,7 +58,7 @@ def on_message_received(ch, method, properties, body):
         requestJson = json.loads(body)
         requestId = requestJson['searchType'];
         dictionary = {'adapter': 'pune-aqm', 'correlation_id': properties.correlation_id, 'reply_to_queue': properties.reply_to,
-                      'id': 'requestId', 'response': requestJson}
+                      'id': 'requestId', 'response': requestJson, 'statusCode': 200}
         jsonString = json.dumps(dictionary, indent=4)
         reply_queue = properties.reply_to
         print(" [INFO] Publishing query response")
@@ -104,7 +104,7 @@ def on_message_received(ch, method, properties, body):
         }
         requestJson = json.loads(body)
         requestId = requestJson['searchType'];
-        dictionary = {'adapter':'pune-aqm','correlation_id':properties.correlation_id, 'reply_to_queue':properties.reply_to, 'id':requestId,'response':requestJson,'results': {'encryptedData':str_encrypted}}
+        dictionary = {'adapter':'pune-aqm', 'correlation_id':properties.correlation_id, 'reply_to_queue':properties.reply_to, 'id':requestId,'response':requestJson,'results': {'encryptedData':str_encrypted}, 'statusCode':200}
         jsonString = json.dumps(dictionary, indent=4)
 
 
