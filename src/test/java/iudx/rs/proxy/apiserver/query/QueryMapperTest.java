@@ -186,8 +186,7 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         assertTrue(json.containsKey(NGSILDQUERY_ID));
         assertTrue(json.containsKey(NGSILDQUERY_ATTRIBUTE));
         assertTrue(json.containsKey(JSON_ATTR_QUERY));
-        assertTrue(json.getJsonArray(JSON_ATTR_QUERY) instanceof JsonArray);
-        assertEquals(json.getJsonArray(JSON_ATTR_QUERY).size(), 2);
+        assertTrue(json.getString(JSON_ATTR_QUERY) != null);
         testContext.completeNow();
     }
 

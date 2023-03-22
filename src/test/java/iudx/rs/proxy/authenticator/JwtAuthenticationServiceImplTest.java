@@ -90,6 +90,7 @@ class JwtAuthenticationServiceImplTest {
         authConfig.put("dxApiBasePath","/ngsi-ld/v1");
         authConfig.put("dxCatalogueBasePath", "/iudx/cat/v1");
         authConfig.put("dxAuthBasePath", "/auth/v1");
+        authConfig.put("audience", "rs.iudx.io");
 
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
         jwtAuthOptions.addPubSecKey(
