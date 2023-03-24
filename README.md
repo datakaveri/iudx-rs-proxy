@@ -18,7 +18,7 @@ The consumers can access data from the resource server proxy using HTTPs.
 - Search and count APIs for searching through available data: Support for Complex (Temporal +  Attribute), Temporal (Before, during, After) and Attribute searches.
 - Integration with authorization server (token introspection) to serve private data as per the access control policies set by the provider
 - Secure data access over TLS 
-- Scalable, service mesh architecture based implementation using open source components: Vert.X API framework, Elasticsearch/Postgres for database.
+- Scalable, service mesh architecture based implementation using open source components: Vert.X API framework, Postgres for database.
 - Hazelcast and Zookeeper based cluster management and service discovery
 
 
