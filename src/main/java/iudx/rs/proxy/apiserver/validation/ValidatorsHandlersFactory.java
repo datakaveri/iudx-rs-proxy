@@ -99,7 +99,7 @@ public class ValidatorsHandlersFactory {
     validators.add(new GeoRelTypeValidator(parameters.get(NGSILDQUERY_GEOREL), false));
     validators.add(new GeometryTypeValidator(parameters.get(NGSILDQUERY_GEOMETRY), false));
     validators.add(new GeoPropertyTypeValidator(parameters.get(NGSILDQUERY_GEOPROPERTY), false));
-    validators.add(new QTypeValidator(parameters.get(NGSILDQUERY_OPERATOR), false));
+    validators.add(new QTypeValidator(parameters.get(NGSLILDQUERY_Q), false));
     validators.add(new DistanceTypeValidator(parameters.get(NGSILDQUERY_MAXDISTANCE), false));
     validators.add(new DistanceTypeValidator(parameters.get("maxDistance"), false));
     validators.add(new OptionsTypeValidator(parameters.get(IUDXQUERY_OPTIONS), false));

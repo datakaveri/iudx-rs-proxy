@@ -2,14 +2,25 @@ import pika
 import ssl
 import json
 import base64
+import logging
+from configparser import ConfigParser
 from nacl.public import SealedBox, PublicKey
 
 
-username = ''
-password = ''
-host = 'databroker.iudx.io'
-port = 24567
-vhost = 'IUDX-INTERNAL'
+
+config = ConfigParser(interpolation=None)
+config.read("secrets/config.ini")
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+time_format = "%Y-%m-%dT%H:%M:%SZ"
+time_formatter = "%Y-%m-%d"
+
+
+username = str(config.get('server_setup', 'username'))
+password = str(config.get('server_setup', 'password'))
+host = str(config.get('server_setup', 'host'))
+port = config.get('server_setup', 'port')
+vhost = str(config.get('server_setup', 'vhost'))
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
 ssl_options=pika.SSLOptions(context)
@@ -31,7 +42,7 @@ def on_message_received(ch, method, properties, body):
 
     # Get the JSON message from the body
 
-    json_data = open(r"data_txt.json", "w")
+    json_data = open(r"../data_txt.json", "w")
     json_data.write(body.decode())
     json_data.close()
     # convert properties to dictionary format
@@ -47,7 +58,7 @@ def on_message_received(ch, method, properties, body):
         requestJson = json.loads(body)
         requestId = requestJson['searchType'];
         dictionary = {'adapter': 'pune-aqm', 'correlation_id': properties.correlation_id, 'reply_to_queue': properties.reply_to,
-                      'id': 'requestId', 'response': requestJson}
+                      'id': 'requestId', 'response': requestJson, 'statusCode': 200}
         jsonString = json.dumps(dictionary, indent=4)
         reply_queue = properties.reply_to
         print(" [INFO] Publishing query response")
@@ -70,7 +81,7 @@ def on_message_received(ch, method, properties, body):
 
         # Load the JSON data to a python variable
 
-        with open('data_txt.json') as f:
+        with open('../data_txt.json') as f:
             message = json.load(f)
 
         message_bytes = json.dumps(message).encode()
@@ -93,7 +104,7 @@ def on_message_received(ch, method, properties, body):
         }
         requestJson = json.loads(body)
         requestId = requestJson['searchType'];
-        dictionary = {'adapter':'pune-aqm','correlation_id':properties.correlation_id, 'reply_to_queue':properties.reply_to, 'id':requestId,'response':requestJson,'results': {'encryptedData':str_encrypted}}
+        dictionary = {'adapter':'pune-aqm', 'correlation_id':properties.correlation_id, 'reply_to_queue':properties.reply_to, 'id':requestId,'response':requestJson,'results': {'encryptedData':str_encrypted}, 'statusCode':200}
         jsonString = json.dumps(dictionary, indent=4)
 
 

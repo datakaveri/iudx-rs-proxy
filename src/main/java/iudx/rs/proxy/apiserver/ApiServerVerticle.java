@@ -345,16 +345,16 @@ public class ApiServerVerticle extends AbstractVerticle {
    */
   private void adapterResponseForCountQuery(RoutingContext context, JsonObject json,
                                             HttpServerResponse response) {
-//    json.put("publicKey", "Some_value");
-
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
-        JsonObject adapterResponse=handler.result();
+        JsonObject adapterResponse = handler.result();
+        adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
+        adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .setStatusCode(adapterResponse.getInteger("status"))
+                .setStatusCode(adapterResponse.getInteger("statusCode"))
                 .end(adapterResponse.toString());
       } else {
         LOGGER.error("Fail: Count Fail");
@@ -378,14 +378,14 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         JsonObject adapterResponse=handler.result();
-        int status=adapterResponse.containsKey("status")?adapterResponse.getInteger("status"):400;
+        int status=adapterResponse.containsKey("statusCode")?adapterResponse.getInteger("statusCode"):400;
+        System.out.println("adapter response status code : " + adapterResponse.getInteger("statusCode"));
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
         response.setStatusCode(status);
         if(status==200) {
           LOGGER.info("Success: adapter call Success with {}",status);
           adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
           adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
-          adapterResponse.remove("status");
           response.end(adapterResponse.toString());
           context.data().put(RESPONSE_SIZE, response.bytesWritten());
           Future.future(fu -> updateAuditTable(context));
@@ -398,7 +398,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         }
                 
       } else {
-        LOGGER.error("Fail: Search Fail");
+        LOGGER.error("Failure: Adapter Search Fail");
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setStatusCode(400)
                 .end(handler.cause().getMessage());
