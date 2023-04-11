@@ -345,8 +345,10 @@ public class ApiServerVerticle extends AbstractVerticle {
    */
   private void adapterResponseForCountQuery(RoutingContext context, JsonObject json,
                                             HttpServerResponse response) {
+    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
+    json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment. remove for others
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
@@ -373,8 +375,10 @@ public class ApiServerVerticle extends AbstractVerticle {
    */
   private void adapterResponseForSearchQuery(RoutingContext context, JsonObject json,
                                              HttpServerResponse response) {
+    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
+    json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment. remove for others
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         JsonObject adapterResponse=handler.result();
@@ -632,5 +636,15 @@ public class ApiServerVerticle extends AbstractVerticle {
         LOGGER.info("API Endpoints deployed :"+ route.methods() +":"+ route.getPath());
       }
     }
+  }
+  
+  public String extractPPBNo(JsonObject authInfo) {
+    LOGGER.debug("auth info :{}",authInfo);
+    if(authInfo==null) return "";
+    JsonObject apd=authInfo.getJsonObject("apd");
+    if(apd==null) return  "";
+    String ppbno=apd.getString("ppbNumber");
+    if(ppbno==null) return "";
+    return ppbno;
   }
 }

@@ -12,4 +12,5 @@ public class Constants {
   public static final String JSON_USERID = "userid";
   public static final String JSON_IID = "iid";
   public static final String JSON_EXPIRY = "expiry";
+  public static final String JSON_APD="apd";
 }

@@ -15,6 +15,7 @@ public final class JwtData {
   private String iid;
   private String role;
   private JsonObject cons;
+  private JsonObject apd;
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
@@ -101,13 +102,23 @@ public final class JwtData {
   public void setIat(Integer iat) {
     this.iat = iat;
   }
+  
+  public JsonObject getApd() {
+    return apd;
+  }
+
+  public void setApd(JsonObject apd) {
+    this.apd = apd;
+  }
 
   @Override
   public String toString() {
     return "JwtData [access_token=" + access_token + ", sub=" + sub + ", iss=" + iss + ", aud="
-        + aud + ", exp=" + exp
-        + ", iat=" + iat + ", iid=" + iid + ", role=" + role + ", cons=" + cons + "]";
+        + aud + ", exp=" + exp + ", iat=" + iat + ", iid=" + iid + ", role=" + role + ", cons="
+        + cons + ", apd=" + apd + "]";
   }
+
+  
 
 
 

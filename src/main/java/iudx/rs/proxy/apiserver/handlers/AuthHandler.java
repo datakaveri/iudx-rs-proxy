@@ -79,6 +79,7 @@ public class AuthHandler implements Handler<RoutingContext> {
           if (authHandler.succeeded()) {
             authInfo.put(IID, authHandler.result().getValue(IID));
             authInfo.put(USER_ID, authHandler.result().getValue(USER_ID));
+            authInfo.put("apd", authHandler.result().getValue("apd"));
             context.data().put(AUTH_INFO, authInfo);
           } else {
             processAuthFailure(context, authHandler.cause().getMessage());

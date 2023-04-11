@@ -101,6 +101,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
         JsonObject jsonResponse = new JsonObject();
         jsonResponse.put(JSON_USERID, result.jwtData.getSub());
+        jsonResponse.put(JSON_APD,result.jwtData.getApd());
         jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
             Instant.ofEpochSecond(Long.parseLong(result.jwtData.getExp().toString())),
             ZoneId.systemDefault())).toString());
@@ -210,6 +211,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       JsonObject jsonResponse = new JsonObject();
       jsonResponse.put(JSON_IID, jwtId);
       jsonResponse.put(JSON_USERID, jwtData.getSub());
+      jsonResponse.put(JSON_APD,jwtData.getApd());
       return Future.succeededFuture(jsonResponse);
     }
 
@@ -226,6 +228,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       JsonObject jsonResponse = new JsonObject();
       jsonResponse.put(JSON_USERID, jwtData.getSub());
       jsonResponse.put(JSON_IID, jwtId);
+      jsonResponse.put(JSON_APD,jwtData.getApd());
       jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
           Instant.ofEpochSecond(Long.parseLong(jwtData.getExp().toString())),
           ZoneId.systemDefault())).toString());

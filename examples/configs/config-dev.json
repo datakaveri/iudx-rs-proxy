@@ -23,8 +23,7 @@
 		{
 			"id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
 			"verticleInstances": 1,
-			"keystore": "",
-			"keystorePassword": "",
+			"audience":"",
 			"authServerHost": "",
 			"catServerHost": "",
 			"catServerPort": 1,
