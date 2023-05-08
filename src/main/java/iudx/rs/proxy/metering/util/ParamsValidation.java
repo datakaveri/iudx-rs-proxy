@@ -24,12 +24,6 @@ public class ParamsValidation {
     String providerID = request.getString(PROVIDER_ID);
     String iid = request.getString(IID);
 
-    if (request.getString(ENDPOINT).equals(api.getProviderAuditEndpoint())
-        && request.getString(PROVIDER_ID) == null) {
-      LOGGER.debug("Info: " + INVALID_PROVIDER_REQUIRED);
-      return new JsonObject().put(ERROR, INVALID_PROVIDER_REQUIRED);
-    }
-
     if (request.getString(TIME_RELATION) == null
         || !(request.getString(TIME_RELATION).equals(DURING)
             || request.getString(TIME_RELATION).equals(BETWEEN))) {

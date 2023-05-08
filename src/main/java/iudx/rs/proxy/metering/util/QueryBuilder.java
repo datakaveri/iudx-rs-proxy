@@ -14,11 +14,6 @@ import static iudx.rs.proxy.metering.util.Constants.*;
 public class QueryBuilder {
 
   private static final Logger LOGGER = LogManager.getLogger(QueryBuilder.class);
-
-  private long getEpochTime(ZonedDateTime time) {
-    return time.toInstant().toEpochMilli();
-  }
-
   public JsonObject buildMessageForRMQ(JsonObject request) {
 
     String primaryKey = UUID.randomUUID().toString().replace("-", "");
@@ -41,24 +36,19 @@ public class QueryBuilder {
     String providerID = request.getString(PROVIDER_ID);
     String databaseTableName = request.getString(TABLE_NAME);
     StringBuilder query;
-    ZonedDateTime startZDT = ZonedDateTime.parse(startTime);
-    ZonedDateTime endZDT = ZonedDateTime.parse(endTime);
     String api = request.getString(API);
     String resourceId = request.getString(RESOURCE_ID);
     String consumerID = request.getString(CONSUMER_ID);
     String limit = request.getString(LIMITPARAM);;
     String offset = request.getString(OFFSETPARAM);;
 
-    long fromTime = getEpochTime(startZDT);
-    long toTime = getEpochTime(endZDT);
-
     if (providerID != null) {
       query =
           new StringBuilder(
               PROVIDERID_TIME_INTERVAL_READ_QUERY
                   .replace("$0", databaseTableName)
-                  .replace("$1", Long.toString(fromTime))
-                  .replace("$2", Long.toString(toTime))
+                  .replace("$1", startTime)
+                  .replace("$2", endTime)
                   .replace("$3", providerID));
       if (api != null) {
         query.append(" and api = '$5' ".replace("$5", api));
@@ -74,8 +64,8 @@ public class QueryBuilder {
           new StringBuilder(
               CONSUMERID_TIME_INTERVAL_READ_QUERY
                   .replace("$0", databaseTableName)
-                  .replace("$1", Long.toString(fromTime))
-                  .replace("$2", Long.toString(toTime))
+                  .replace("$1", startTime)
+                  .replace("$2", endTime)
                   .replace("$3", userId));
       if (api != null) {
         query.append(" and api = '$5' ".replace("$5", api));
@@ -99,22 +89,17 @@ public class QueryBuilder {
     String providerID = request.getString(PROVIDER_ID);
     String databaseTableName = request.getString(TABLE_NAME);
     StringBuilder query;
-    ZonedDateTime startZDT = ZonedDateTime.parse(startTime);
-    ZonedDateTime endZDT = ZonedDateTime.parse(endTime);
     String api = request.getString(API);
     String resourceId = request.getString(RESOURCE_ID);
     String consumerID = request.getString(CONSUMER_ID);
-
-    long fromTime = getEpochTime(startZDT);
-    long toTime = getEpochTime(endZDT);
 
     if (providerID != null) {
       query =
           new StringBuilder(
               PROVIDERID_TIME_INTERVAL_COUNT_QUERY
                   .replace("$0", databaseTableName)
-                  .replace("$1", Long.toString(fromTime))
-                  .replace("$2", Long.toString(toTime))
+                  .replace("$1", startTime)
+                  .replace("$2", endTime)
                   .replace("$3", providerID));
       if (api != null) {
         query.append(" and api = '$5' ".replace("$5", api));
@@ -131,8 +116,8 @@ public class QueryBuilder {
           new StringBuilder(
               CONSUMERID_TIME_INTERVAL_COUNT_QUERY
                   .replace("$0", databaseTableName)
-                  .replace("$1", Long.toString(fromTime))
-                  .replace("$2", Long.toString(toTime))
+                  .replace("$1", startTime)
+                  .replace("$2", endTime)
                   .replace("$3", userId));
       if (api != null) {
         query.append(" and api = '$5' ".replace("$5", api));

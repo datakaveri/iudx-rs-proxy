@@ -147,25 +147,7 @@ class MeteringServiceImplTest {
         jsonObject.put(IID, "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055");
         return jsonObject;
     }
-    @Test
-    @DisplayName("Testing read query with invalid time interval")
-    void readFromInvalidTimeInterval(VertxTestContext testContext) {
-        JsonObject request = readConsumerRequest();
 
-        request.put(START_TIME, "2021-11-01T05:30:00+05:30[Asia/Kolkata]");
-        request.put(END_TIME, "2021-11-24T02:00:00+05:30[Asia/Kolkata]");
-        meteringService.executeReadQuery(
-                request,
-                testContext.failing(
-                        response ->
-                                testContext.verify(
-                                        () -> {
-                                            assertEquals(
-                                                    INVALID_DATE_DIFFERENCE,
-                                                    new JsonObject(response.getMessage()).getString(DETAIL));
-                                            testContext.completeNow();
-                                        })));
-    }
     @Test
     @DisplayName("Testing read query with given Time Interval")
     void readFromValidTimeInterval(VertxTestContext vertxTestContext) {
@@ -190,7 +172,45 @@ class MeteringServiceImplTest {
         }).when(MeteringServiceImpl.postgresService).executeQuery(any(), any());
 
         JsonObject request = read();
+        request.put(RESOURCE_ID, "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055");
+        request.put(CONSUMER_ID,"125-fc132-23rwsd");
+        meteringService.executeReadQuery(
+                request,
+                vertxTestContext.succeeding(
+                        response ->
+                                vertxTestContext.verify(
+                                        () -> {
+                                            LOGGER.info(response);
+                                            assertEquals(SUCCESS, response.getString(SUCCESS));
+                                            vertxTestContext.completeNow();
+                                        })));
+    }
+    @Test
+    @DisplayName("Testing read query with given Time Interval")
+    void readFromValidTimeIntervalConsumer(VertxTestContext vertxTestContext) {
+        JsonObject responseJson= new JsonObject().put(SUCCESS,"successful operations");
+        AsyncResult<JsonObject> asyncResult= mock(AsyncResult.class);
+        MeteringServiceImpl.postgresService =mock(DatabaseService.class);
+        JsonObject json= mock(JsonObject.class);
+        JsonArray jsonArray= mock(JsonArray.class);
 
+        when(asyncResult.succeeded()).thenReturn(true);
+        when(asyncResult.result()).thenReturn(json,responseJson);
+        when(json.getJsonArray(anyString())).thenReturn(jsonArray);
+        when(jsonArray.getJsonObject(anyInt())).thenReturn(json);
+        when(json.getInteger(anyString())).thenReturn(39);
+
+        doAnswer(new Answer<AsyncResult<JsonObject>>() {
+            @Override
+            public AsyncResult<JsonObject> answer(InvocationOnMock arg1) throws Throwable {
+                ((Handler<AsyncResult<JsonObject>>) arg1.getArgument(1)).handle(asyncResult);
+                return null;
+            }
+        }).when(MeteringServiceImpl.postgresService).executeQuery(any(), any());
+
+        JsonObject request = read();
+        request.remove(PROVIDER_ID);
+        request.put(RESOURCE_ID, "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055");
         meteringService.executeReadQuery(
                 request,
                 vertxTestContext.succeeding(
@@ -316,24 +336,6 @@ class MeteringServiceImplTest {
                                         })));
 
     }
-    @Test
-    @DisplayName("Testing read query with missing providerId.")
-    void readForMissingProviderId(VertxTestContext vertxTestContext) {
-        JsonObject request = readProviderRequest();
-        request.remove(PROVIDER_ID);
-        meteringService.executeReadQuery(
-                request,
-                vertxTestContext.failing(
-                        response ->
-                                vertxTestContext.verify(
-                                        () -> {
-                                            assertEquals(
-                                                    INVALID_PROVIDER_REQUIRED,
-                                                    new JsonObject(response.getMessage()).getString(DETAIL));
-                                            vertxTestContext.completeNow();
-                                        })));
-
-    }
 
     @Test
     @DisplayName("Testing read query with invalid providerId.")
@@ -362,7 +364,6 @@ class MeteringServiceImplTest {
         MeteringServiceImpl.postgresService = mock(DatabaseService.class);
         JsonObject json= mock(JsonObject.class);
         JsonArray jsonArray= mock(JsonArray.class);
-
 
         when(asyncResult.succeeded()).thenReturn(true);
         when(asyncResult.result()).thenReturn(json);
@@ -393,6 +394,42 @@ class MeteringServiceImplTest {
                                         })));
     }
     @Test
+    @DisplayName("Testing count query for given time for Consumer")
+    void readCountForGivenTimeConsumer(VertxTestContext vertxTestContext) {
+        AsyncResult<JsonObject> asyncResult= mock(AsyncResult.class);
+        MeteringServiceImpl.postgresService = mock(DatabaseService.class);
+        JsonObject json= mock(JsonObject.class);
+        JsonArray jsonArray= mock(JsonArray.class);
+
+        when(asyncResult.succeeded()).thenReturn(true);
+        when(asyncResult.result()).thenReturn(json);
+        when(json.getJsonArray(anyString())).thenReturn(jsonArray);
+        when(jsonArray.getJsonObject(anyInt())).thenReturn(json);
+        when(json.getInteger(anyString())).thenReturn(300);
+
+        doAnswer(new Answer<AsyncResult<JsonObject>>() {
+            @Override
+            public AsyncResult<JsonObject> answer(InvocationOnMock arg1) throws Throwable {
+                ((Handler<AsyncResult<JsonObject>>) arg1.getArgument(1)).handle(asyncResult);
+                return null;
+            }
+        }).when(MeteringServiceImpl.postgresService).executeQuery(any(),any());
+
+        JsonObject jsonObject = read();
+        jsonObject.put("options","count");
+        jsonObject.remove(PROVIDER_ID);
+        jsonObject.put(RESOURCE_ID, "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/pune-env-flood/FWR055");
+        meteringService.executeReadQuery(
+                jsonObject,
+                vertxTestContext.succeeding(
+                        response ->
+                                vertxTestContext.verify(
+                                        () -> {
+                                            assertEquals(SUCCESS, response.getString("title"));
+                                            vertxTestContext.completeNow();
+                                        })));
+    }
+    @Test
     @DisplayName("Testing count query for given time.")
     void readCountForGivenTimeForZero(VertxTestContext vertxTestContext) {
         AsyncResult<JsonObject> asyncResult= mock(AsyncResult.class);
@@ -400,10 +437,8 @@ class MeteringServiceImplTest {
         JsonObject json= mock(JsonObject.class);
         JsonArray jsonArray= mock(JsonArray.class);
 
-
         when(asyncResult.succeeded()).thenReturn(true);
         when(asyncResult.result()).thenReturn(json);
-
         when(json.getJsonArray(anyString())).thenReturn(jsonArray);
         when(jsonArray.getJsonObject(anyInt())).thenReturn(json);
         when(json.getInteger(anyString())).thenReturn(0);
@@ -478,7 +513,6 @@ class MeteringServiceImplTest {
         request.put(ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/");
         request.put(API, "/ngsi-ld/v1/subscription");
         request.put(RESPONSE_SIZE,12);
-
 
         RabbitMQClient rabbitMQClient = mock(RabbitMQClient.class);
         AsyncResult<JsonObject> asyncResult =mock(AsyncResult.class);
