@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "b663460f-0e7e-4599-88c9-5150a90e5c9c",
+		"_postman_id": "067cbe91-3425-4a56-8c29-c8a50d5c2b9b",
 		"name": "TEST-SERVER-IUDX-RS-PROXY-APIs Final",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20457128"
 	},
 	"item": [
 		{
@@ -13137,7 +13138,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities",
+							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities&limit=1500&offset=0",
 							"host": [
 								"{{base_url}}"
 							],
@@ -13168,9 +13169,12 @@
 									"value": "/{{basePath}}/entities"
 								},
 								{
-									"key": "id",
-									"value": "",
-									"disabled": true
+									"key": "limit",
+									"value": "1500"
+								},
+								{
+									"key": "offset",
+									"value": "0"
 								}
 							]
 						}
@@ -13250,11 +13254,6 @@
 								{
 									"key": "api",
 									"value": "/{{basePath}}/entities"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
 								}
 							]
 						}
@@ -13292,7 +13291,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2020-07-01T14:20:00Z&endTime=2020-07-10T15:23:00Z&api=/{{basePath}}/entities&options=count",
+							"raw": "{{base_url}}/{{basePath}}/consumer/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2020-07-01T14:20:00Z&endTime=2020-07-10T15:23:00Z&api=/{{basePath}}/entities&options=count&limit=1000&offset=0",
 							"host": [
 								"{{base_url}}"
 							],
@@ -13327,9 +13326,12 @@
 									"value": "count"
 								},
 								{
-									"key": "id",
-									"value": "",
-									"disabled": true
+									"key": "limit",
+									"value": "1000"
+								},
+								{
+									"key": "offset",
+									"value": "0"
 								}
 							]
 						}
@@ -13411,11 +13413,6 @@
 								{
 									"key": "options",
 									"value": "count"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
 								}
 							]
 						}
@@ -13493,11 +13490,6 @@
 								{
 									"key": "options",
 									"value": "count"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
 								}
 							]
 						}
@@ -13575,11 +13567,6 @@
 								{
 									"key": "options",
 									"value": "count"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
 								}
 							]
 						}
@@ -13652,11 +13639,6 @@
 								{
 									"key": "api",
 									"value": "/{{basePath}}/entities"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
 								}
 							]
 						}
@@ -13734,11 +13716,6 @@
 								{
 									"key": "api",
 									"value": "/{{basePath}}/entities"
-								},
-								{
-									"key": "id",
-									"value": "",
-									"disabled": true
 								}
 							]
 						}
@@ -13871,7 +13848,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
+							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entities&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86&limit=1200&offset=0&consumer=15c7506f-c800-48d6-adeb-0542b03947c6",
 							"host": [
 								"{{base_url}}"
 							],
@@ -13904,6 +13881,18 @@
 								{
 									"key": "providerID",
 									"value": "iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86"
+								},
+								{
+									"key": "limit",
+									"value": "1200"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "consumer",
+									"value": "15c7506f-c800-48d6-adeb-0542b03947c6"
 								}
 							]
 						}
@@ -13953,7 +13942,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entityOperations/query&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86",
+							"raw": "{{base_url}}/{{basePath}}/provider/audit?id=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/rs.iudx.io/surat-itms-realtime-information/surat-itms-live-eta&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/{{basePath}}/entityOperations/query&providerID=iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86&consumer=15c7506f-c800-48d6-adeb-0542b03947c6",
 							"host": [
 								"{{base_url}}"
 							],
@@ -13989,8 +13978,7 @@
 								},
 								{
 									"key": "consumer",
-									"value": "15c7506f-c800-48d6-adeb-0542b03947c6",
-									"disabled": true
+									"value": "15c7506f-c800-48d6-adeb-0542b03947c6"
 								}
 							]
 						}

@@ -24,12 +24,6 @@ public class ParamsValidation {
     String providerID = request.getString(PROVIDER_ID);
     String iid = request.getString(IID);
 
-    if (request.getString(ENDPOINT).equals(api.getProviderAuditEndpoint())
-        && request.getString(PROVIDER_ID) == null) {
-      LOGGER.debug("Info: " + INVALID_PROVIDER_REQUIRED);
-      return new JsonObject().put(ERROR, INVALID_PROVIDER_REQUIRED);
-    }
-
     if (request.getString(TIME_RELATION) == null
         || !(request.getString(TIME_RELATION).equals(DURING)
             || request.getString(TIME_RELATION).equals(BETWEEN))) {
@@ -77,8 +71,7 @@ public class ParamsValidation {
         zonedDateTimeDayDifference,
         zonedDateTimeMinuteDifference);
 
-    if (zonedDateTimeDayDifference > 14
-        || zonedDateTimeDayDifference < 0
+    if (zonedDateTimeDayDifference < 0
         || zonedDateTimeMinuteDifference <= 0) {
       LOGGER.error(INVALID_DATE_DIFFERENCE);
       return new JsonObject().put(ERROR, INVALID_DATE_DIFFERENCE);

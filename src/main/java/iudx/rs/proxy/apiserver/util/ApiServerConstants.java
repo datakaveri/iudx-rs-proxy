@@ -167,6 +167,8 @@ public class ApiServerConstants {
   public static final String FORMAT = "text/html";
   public static final String ROUTE_STATIC_SPEC = "/apis/spec";
   public static final String FORMAT_JSON = "application/json";
+  public static final String LIMITPARAM = "limit";
+  public static final String OFFSETPARAM = "offset";
 
 
 
