@@ -61,7 +61,6 @@ public class AuthHandler implements Handler<RoutingContext> {
         new JsonObject().put(API_ENDPOINT, path).put(HEADER_TOKEN, token).put(API_METHOD, method);
 
     LOGGER.debug("Info :" + context.request().path());
-    LOGGER.debug("Info :" + context.request().path().split("/").length);
 
     String id = getId(context);
     authInfo.put(ID, id);
@@ -117,8 +116,7 @@ public class AuthHandler implements Handler<RoutingContext> {
   /**
    * extract id from request (path/query or body )
    *
-   * @param ctx     current routing context
-   * @param forPath endpoint called for
+   * @param context current routing context
    * @return id extraced fro path if present
    */
   private String getId(RoutingContext context) {

@@ -11,51 +11,51 @@ import io.vertx.core.json.JsonObject;
  */
 public class ServiceExceptionMessage {
 
-  private final String urn;
-  private JsonObject detail;
-
-  private ServiceExceptionMessage(Builder builder) {
-    this.urn = builder.urn;
-    this.detail = builder.detail;
-  }
-
-  public String getUrn() {
-    return urn;
-  }
-
-  public JsonObject toJson() {
-
-    JsonObject json = new JsonObject();
-
-    json.put("urn", this.urn);
-    json.put("detail", this.detail);
-
-    return json;
-  }
-
-  public JsonObject getDetails() {
-    return detail;
-  }
-
-  public static class Builder {
     private final String urn;
     private JsonObject detail;
 
-    public Builder(String urn) {
-      this.urn = urn;
+    private ServiceExceptionMessage(Builder builder) {
+        this.urn = builder.urn;
+        this.detail = builder.detail;
     }
 
-    public Builder withDetails(JsonObject detail) {
-      this.detail = detail;
-      return this;
+    public String getUrn() {
+        return urn;
     }
 
-    public ServiceExceptionMessage build() {
-      ServiceExceptionMessage message = new ServiceExceptionMessage(this);
-      return message;
+    public JsonObject toJson() {
+
+        JsonObject json = new JsonObject();
+
+        json.put("urn", this.urn);
+        json.put("detail", this.detail);
+
+        return json;
     }
 
+    public JsonObject getDetails() {
+        return detail;
+    }
 
-  }
+    public static class Builder {
+        private final String urn;
+        private JsonObject detail;
+
+        public Builder(String urn) {
+            this.urn = urn;
+        }
+
+        public Builder withDetails(JsonObject detail) {
+            this.detail = detail;
+            return this;
+        }
+
+        public ServiceExceptionMessage build() {
+            ServiceExceptionMessage message = new ServiceExceptionMessage(this);
+            return message;
+        }
+
+
+    }
 }
 
