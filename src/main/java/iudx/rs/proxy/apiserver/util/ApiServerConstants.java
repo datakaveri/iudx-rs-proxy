@@ -1,10 +1,8 @@
 package iudx.rs.proxy.apiserver.util;
 
 import io.vertx.core.http.HttpMethod;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class ApiServerConstants {
@@ -21,28 +19,40 @@ public class ApiServerConstants {
   public static final String HEADER_OPTIONS = "options";
   public static final String HEADER_PUBLIC_KEY = "publicKey";
 
-
   public static final Set<String> ALLOWED_HEADERS =
-      new HashSet<>(Arrays.asList(HEADER_ACCEPT, HEADER_TOKEN, HEADER_CONTENT_LENGTH,
-          HEADER_CONTENT_TYPE, HEADER_HOST, HEADER_ORIGIN, HEADER_REFERER, HEADER_ALLOW_ORIGIN));
+      new HashSet<>(
+          Arrays.asList(
+              HEADER_ACCEPT,
+              HEADER_TOKEN,
+              HEADER_CONTENT_LENGTH,
+              HEADER_CONTENT_TYPE,
+              HEADER_HOST,
+              HEADER_ORIGIN,
+              HEADER_REFERER,
+              HEADER_ALLOW_ORIGIN));
 
   public static final Set<HttpMethod> ALLOWED_METHODS =
-      new HashSet<>(Arrays.asList(HttpMethod.GET,
-          HttpMethod.POST, HttpMethod.OPTIONS, HttpMethod.DELETE, HttpMethod.PATCH,
-          HttpMethod.PUT));
+      new HashSet<>(
+          Arrays.asList(
+              HttpMethod.GET,
+              HttpMethod.POST,
+              HttpMethod.OPTIONS,
+              HttpMethod.DELETE,
+              HttpMethod.PATCH,
+              HttpMethod.PUT));
 
-  //path regex
-  //public static final String NGSILD_BASE_PATH = "/ngsi-ld/v1";
+  // path regex
+  // public static final String NGSILD_BASE_PATH = "/ngsi-ld/v1";
   public static final String ENTITIES_URL = "/entities";
-//  public static final String ENTITIES_URL_REGEX = ENTITIES_URL + "(.*)";
+  //  public static final String ENTITIES_URL_REGEX = ENTITIES_URL + "(.*)";
   public static final String TEMPORAL_URL = "/temporal/entities";
   // path regex
-//  public static final String TEMPORAL_URL_REGEX = TEMPORAL_URL + "(.*)";
+  //  public static final String TEMPORAL_URL_REGEX = TEMPORAL_URL + "(.*)";
   public static final String CONSUMER_AUDIT_URL = "/consumer/audit";
   // date-time format
   public static final String PROVIDER_AUDIT_URL = "/provider/audit";
-  public static final String POST_ENTITIES_URL ="/entityOperations/query";
-  public static final String POST_TEMPORAL_URL ="/temporal/entityOperations/query";
+  public static final String POST_ENTITIES_URL = "/entityOperations/query";
+  public static final String POST_TEMPORAL_URL = "/temporal/entityOperations/query";
 
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
@@ -74,7 +84,7 @@ public class ApiServerConstants {
   public static final String NGSILDQUERY_GEOQ = "geoQ";
   public static final String IUDX_SEARCH_TYPE = "searchType";
 
-  //json fields
+  // json fields
   public static final String JSON_INSTANCEID = "instanceID";
   public static final String JSON_TYPE = "type";
   public static final String JSON_ENTITIES = "entities";
@@ -108,13 +118,11 @@ public class ApiServerConstants {
 
   public static final String MSG_BAD_QUERY = "Bad query";
 
-
   // Validations
   public static final int VALIDATION_ID_MIN_LEN = 0;
   public static final int VALIDATION_ID_MAX_LEN = 512;
   public static final Pattern VALIDATION_ID_PATTERN =
-      Pattern.compile(
-          "^[a-zA-Z0-9.-]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.-]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
+      Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
   public static final int VALIDATION_MAX_ATTRS = 5;
   public static final int VALIDATION_MAX_DAYS_INTERVAL_ALLOWED = 10;
   public static final int VALIDATION_COORDINATE_PRECISION_ALLOWED = 6;
@@ -127,6 +135,7 @@ public class ApiServerConstants {
   public static final String ENCODED_PUBLIC_KEY_REGEX = "^[a-zA-Z0-9_-]{42,43}={0,2}$";
 
   public static final String RESPONSE_SIZE = "response_size";
+  public static final String PROVIDER_ID = "providerID";
 
   public static final double VALIDATION_ALLOWED_DIST = 1000.0;
   public static final int VALIDATION_PAGINATION_LIMIT_MAX = 5000;
@@ -170,8 +179,15 @@ public class ApiServerConstants {
   public static final String LIMITPARAM = "limit";
   public static final String OFFSETPARAM = "offset";
 
-
-
-
+  public static final String ITEM_TYPE_RESOURCE = "Resource";
+  public static final String ITEM_TYPE_RESOURCE_GROUP = "ResourceGroup";
+  public static final String ITEM_TYPE_RESOURCE_SERVER = "ResourceServer";
+  public static final String ITEM_TYPE_PROVIDER = "Provider";
+  public static final ArrayList<String> ITEM_TYPES =
+          new ArrayList<String>(
+                  Arrays.asList(
+                          ITEM_TYPE_RESOURCE,
+                          ITEM_TYPE_RESOURCE_GROUP,
+                          ITEM_TYPE_RESOURCE_SERVER,
+                          ITEM_TYPE_PROVIDER));
 }
-

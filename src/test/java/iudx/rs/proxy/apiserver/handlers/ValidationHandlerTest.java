@@ -43,7 +43,7 @@ class ValidationHandlerTest {
     @Test
     public void validationHandlerSuccess() {
         parameters = MultiMap.caseInsensitiveMultiMap();
-        parameters.set("id", "asdasd/asdasd/asdassd/adadadad/adfaf");
+        parameters.set("id", "83c2e5c2-3574-4e11-9530-2b1fbdfce832");
 
         lenient().doReturn(parameters).when(request).params();
         lenient().doReturn(headers).when(request).headers();

@@ -611,13 +611,16 @@ public class ApiServerVerticle extends AbstractVerticle {
     ZonedDateTime zst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
     long time = zst.toInstant().toEpochMilli();
     String isoTime = zst.truncatedTo(ChronoUnit.SECONDS).toString();
-
+    String resourceid= authInfo.getString(ID);
+    JsonObject jsonObject = CatalogueService.getCatalogueItemJson(resourceid);
+    String providerID = jsonObject.getString("provider");
     request.put(EPOCH_TIME,time);
     request.put(ISO_TIME,isoTime);
     request.put(USER_ID, authInfo.getValue(USER_ID));
     request.put(ID, authInfo.getValue(ID));
     request.put(API, authInfo.getValue(API_ENDPOINT));
     request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
+    request.put(PROVIDER_ID,providerID);
 
     meteringService.insertMeteringValuesInRMQ(
             request,

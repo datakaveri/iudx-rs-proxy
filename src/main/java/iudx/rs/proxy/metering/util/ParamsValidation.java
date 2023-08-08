@@ -42,10 +42,6 @@ public class ParamsValidation {
       return request;
     }
 
-    if (providerID != null && checkProviderId(iid, providerID)) {
-      return new JsonObject().put(ERROR, INVALID_PROVIDER_ID);
-    }
-
     //since + is treated as space in uri
     String startTime = request.getString(START_TIME).trim().replaceAll("\\s", "+");
     String endTime = request.getString(END_TIME).trim().replaceAll("\\s", "+");
@@ -89,7 +85,4 @@ public class ParamsValidation {
     return ChronoUnit.MINUTES.between(startTime, endTime);
   }
 
-  private boolean checkProviderId(String iid, String providerID) {
-    return !iid.substring(0, iid.indexOf('/', iid.indexOf('/') + 1)).equals(providerID);
-  }
 }

@@ -286,6 +286,7 @@ public class PostgresServiceImpl implements DatabaseService {
   }
 
   private String getResourceGroup(String id) {
-    return id.substring(0, id.lastIndexOf('/'));
+    /*return id.substring(0, id.lastIndexOf('/'));*/
+    return  id;
   }
 }

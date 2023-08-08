@@ -15,6 +15,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationContextFactory;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationRequest;
 import iudx.rs.proxy.authenticator.authorization.AuthorizationStrategy;
@@ -145,12 +146,15 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     } else {
       // cache miss
       LOGGER.debug("Cache miss calling cat server");
-      String[] idComponents = id.split("/");
-      if (idComponents.length < 4) {
-        promise.fail("Not Found " + id);
+      String groupId = null;
+      JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
+      if(jsonObject!=null){
+        groupId = jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
+      }else {
+        LOGGER.debug("failed : id not exists");
+        return Future.failedFuture("Not Found");
       }
-      String groupId = (idComponents.length == 4) ? id :
-          String.join("/", Arrays.copyOfRange(idComponents, 0, 4));
+
       // 1. check group accessPolicy.
       // 2. check resource exist, if exist set accessPolicy to group accessPolicy. else fail
       Future<String> groupACLFuture = getGroupAccessPolicy(groupId);

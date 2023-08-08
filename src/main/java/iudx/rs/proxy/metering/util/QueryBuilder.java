@@ -1,6 +1,7 @@
 package iudx.rs.proxy.metering.util;
 
 import io.vertx.core.json.JsonObject;
+import iudx.rs.proxy.apiserver.service.CatalogueService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,11 +20,8 @@ public class QueryBuilder {
     String primaryKey = UUID.randomUUID().toString().replace("-", "");
     String userId = request.getString(USER_ID);
     String resourceId = request.getString(ID);
-    String providerID =
-        resourceId.substring(0, resourceId.indexOf('/', resourceId.indexOf('/') + 1));
     request.put(PRIMARY_KEY, primaryKey);
     request.put(USER_ID, userId);
-    request.put(PROVIDER_ID, providerID);
     request.put(ORIGIN, ORIGIN_SERVER);
     LOGGER.trace("Info: Request " + request);
     return request;

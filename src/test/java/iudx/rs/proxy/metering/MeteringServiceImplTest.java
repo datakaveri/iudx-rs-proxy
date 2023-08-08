@@ -45,6 +45,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rabbitmq.RabbitMQClient;
+import iudx.rs.proxy.apiserver.service.CatalogueService;
+import iudx.rs.proxy.apiserver.service.CatalogueServiceTest;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.configuration.Configuration;
 
@@ -338,26 +340,6 @@ class MeteringServiceImplTest {
     }
 
     @Test
-    @DisplayName("Testing read query with invalid providerId.")
-    void readForInvalidProviderId(VertxTestContext vertxTestContext) {
-        JsonObject request = readProviderRequest();
-        request.put(PROVIDER_ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-tsst-alias");
-
-        meteringService.executeReadQuery(
-                request,
-                vertxTestContext.failing(
-                        response ->
-                                vertxTestContext.verify(
-                                        () -> {
-                                            assertEquals(
-                                                    INVALID_PROVIDER_ID,
-                                                    new JsonObject(response.getMessage()).getString(DETAIL));
-                                            vertxTestContext.completeNow();
-                                        })));
-
-    }
-
-    @Test
     @DisplayName("Testing count query for given time.")
     void readCountForGivenTime(VertxTestContext vertxTestContext) {
         AsyncResult<JsonObject> asyncResult= mock(AsyncResult.class);
@@ -477,8 +459,8 @@ class MeteringServiceImplTest {
         request.put(ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/");
         request.put(API, "/ngsi-ld/v1/subscription");
         request.put(RESPONSE_SIZE,12);
+        request.put(PROVIDER_ID,"dummy");
         DatabaseService postgresService = mock(DatabaseService.class);
-
         AsyncResult<JsonObject> asyncResult =mock(AsyncResult.class);
         MeteringServiceImpl.rmqService = mock(DatabrokerService.class);
 
@@ -513,6 +495,7 @@ class MeteringServiceImplTest {
         request.put(ID, "15c7506f-c800-48d6-adeb-0542b03947c6/integration-test-alias/");
         request.put(API, "/ngsi-ld/v1/subscription");
         request.put(RESPONSE_SIZE,12);
+        request.put(PROVIDER_ID,"dummy");
 
         RabbitMQClient rabbitMQClient = mock(RabbitMQClient.class);
         AsyncResult<JsonObject> asyncResult =mock(AsyncResult.class);

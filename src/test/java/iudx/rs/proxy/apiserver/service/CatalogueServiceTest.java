@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
@@ -37,6 +38,7 @@ public class CatalogueServiceTest {
     Vertx vertxObj;
     JsonObject config;
     CatalogueService catalogueService;
+    CatalogueService catalogueServiceSpy;
 
 
     @Mock
@@ -59,6 +61,17 @@ public class CatalogueServiceTest {
         JsonObject jsonObject1 = new JsonObject();
         jsonObject1.put("id", "abcd/abcd/abcd/abcd");
         jsonObject1.put("iudxResourceAPIs", jsonArray1);
+        jsonObject1.put("instance","surat");
+        jsonObject1.put("resourceGroup","dummy-group");
+        jsonObject1.put("name","surat");
+        jsonObject1.put("provider","provider");
+        jsonObject1.put("accessPolicy","SECURE");
+        jsonObject1.put("description","description");
+        List<String> list = new ArrayList<String>();
+        list.add("iudx:Resource");
+        list.add("iudx:TransitManagement");
+        jsonObject1.put("type",list);
+        jsonObject1.put("authControlGroup","authControlGroup");
         jsonArray.add(jsonObject1);
         jsonObject.put("results", jsonArray);
         CatalogueService.catWebClient = mock(WebClient.class);
@@ -78,6 +91,8 @@ public class CatalogueServiceTest {
             }
         }).when(httpRequest).send(any());
         catalogueService = new CatalogueService(vertxObj,config);
+        catalogueServiceSpy= Mockito.spy(catalogueService);
+
         vertxTestContext.completeNow();
     }
 
@@ -85,8 +100,8 @@ public class CatalogueServiceTest {
     @DisplayName("Test getApplicableFilters method Success")
     public void testGetApplicableFiltersSuccess(VertxTestContext vertxTestContext)
     {
-        String id = "asdasd/asdasd/asdassd/asdasd/asd";
-        catalogueService.getApplicableFilters(id).onComplete(handler -> {
+        String id = "abcd/abcd/abcd/abcd";
+        catalogueServiceSpy.getApplicableFilters(id).onComplete(handler -> {
             if(handler.succeeded())
             {
                 assertEquals(new ArrayList().toString(),handler.result().toString());
@@ -97,9 +112,9 @@ public class CatalogueServiceTest {
                 vertxTestContext.failNow(handler.cause());
             }
         });
-        verify(CatalogueService.catWebClient,times(3)).get(anyInt(),anyString(),anyString());
-        verify(httpRequest,times(5)).addQueryParam(anyString(),anyString());
-        verify(httpRequest,times(3)).send(any());
+        verify(CatalogueService.catWebClient,times(1)).get(anyInt(),anyString(),anyString());
+        verify(httpRequest,times(3)).addQueryParam(anyString(),anyString());
+        verify(httpRequest,times(1)).send(any());
     }
 //@Disabled
     @Test
