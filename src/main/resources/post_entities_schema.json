@@ -132,7 +132,7 @@
 			"title": "Q", 
 			"type": "string",
 			"minLength":1,
-			"maxLength":2048,
+			"maxLength":6000000,
 			"default": "",
 			"pattern": "^.*$"
 		},
