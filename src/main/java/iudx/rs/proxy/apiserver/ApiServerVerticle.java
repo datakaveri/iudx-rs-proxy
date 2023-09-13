@@ -622,6 +622,14 @@ public class ApiServerVerticle extends AbstractVerticle {
     }
     JsonObject jsonObject = CatalogueService.getCatalogueItemJson(resourceid);
     String providerID = jsonObject.getString("provider");
+    String type =
+            jsonObject.containsKey(RESOURCE_GROUP) ? "RESOURCE" : "RESOURCE_GROUP";
+    String resourceGroup =
+            jsonObject.containsKey(RESOURCE_GROUP)
+                    ? jsonObject.getString(RESOURCE_GROUP)
+                    : jsonObject.getString(ID);
+    request.put(RESOURCE_GROUP, resourceGroup);
+    request.put(TYPE_KEY, type);
     request.put(EPOCH_TIME,time);
     request.put(ISO_TIME,isoTime);
     request.put(USER_ID, authInfo.getValue(USER_ID));
