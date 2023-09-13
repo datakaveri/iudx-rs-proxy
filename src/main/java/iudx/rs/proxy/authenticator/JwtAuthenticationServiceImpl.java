@@ -1,5 +1,7 @@
 package iudx.rs.proxy.authenticator;
 
+import static iudx.rs.proxy.authenticator.Constants.*;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.vertx.core.AsyncResult;
@@ -30,25 +32,21 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static iudx.rs.proxy.authenticator.Constants.*;
-
 public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
   private static final Logger LOGGER = LogManager.getLogger(JwtAuthenticationServiceImpl.class);
-
+  static WebClient catWebClient;
   final JWTAuth jwtAuth;
   final String host;
   final int port;
   final String path;
   final String audience;
   final CacheService cache;
-  static WebClient catWebClient;
   final Api apis;
   final String catBasePath;
   // resourceGroupCache will contain ACL info about all resource group in a resource server
@@ -106,6 +104,9 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
             Instant.ofEpochSecond(Long.parseLong(result.jwtData.getExp().toString())),
             ZoneId.systemDefault())).toString());
+        jsonResponse.put(ROLE, result.jwtData.getRole());
+        jsonResponse.put(DRL, result.jwtData.getDrl());
+        jsonResponse.put(DID, result.jwtData.getDid());
         return Future.succeededFuture(jsonResponse);
       } else {
         return validateAccess(result.jwtData, result.isOpen, authenticationInfo);
@@ -216,6 +217,9 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       jsonResponse.put(JSON_IID, jwtId);
       jsonResponse.put(JSON_USERID, jwtData.getSub());
       jsonResponse.put(JSON_APD,jwtData.getApd());
+      jsonResponse.put(ROLE, jwtData.getRole());
+      jsonResponse.put(DRL, jwtData.getDrl());
+      jsonResponse.put(DID, jwtData.getDid());
       return Future.succeededFuture(jsonResponse);
     }
 
@@ -236,6 +240,9 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
           Instant.ofEpochSecond(Long.parseLong(jwtData.getExp().toString())),
           ZoneId.systemDefault())).toString());
+      jsonResponse.put(ROLE, jwtData.getRole());
+      jsonResponse.put(DRL, jwtData.getDrl());
+      jsonResponse.put(DID, jwtData.getDid());
       promise.complete(jsonResponse);
     } else {
       LOGGER.error("failed - no access provided to endpoint");

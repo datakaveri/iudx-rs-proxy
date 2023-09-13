@@ -3,6 +3,7 @@ package iudx.rs.proxy.apiserver;
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
+import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
@@ -612,6 +613,13 @@ public class ApiServerVerticle extends AbstractVerticle {
     long time = zst.toInstant().toEpochMilli();
     String isoTime = zst.truncatedTo(ChronoUnit.SECONDS).toString();
     String resourceid= authInfo.getString(ID);
+    String role = authInfo.getString(ROLE);
+    String drl = authInfo.getString(DRL);
+    if (role.equalsIgnoreCase("delegate") && drl != null) {
+      request.put(DELEGATOR_ID, authInfo.getString(DID));
+    } else {
+      request.put(DELEGATOR_ID, authInfo.getString(USER_ID));
+    }
     JsonObject jsonObject = CatalogueService.getCatalogueItemJson(resourceid);
     String providerID = jsonObject.getString("provider");
     request.put(EPOCH_TIME,time);
