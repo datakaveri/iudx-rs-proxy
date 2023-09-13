@@ -104,6 +104,8 @@ public class ApiServerConstants {
   public static final String IID = "iid";
   public static final String API = "api";
   public static final String USER_ID = "userid";
+  public static final String RESOURCE_GROUP = "resourceGroup";
+  public static final String TYPE_KEY = "type";
   public static final String GEO_QUERY = "geo-query";
   public static final String TEMPORAL_QUERY = "temporal-query";
 

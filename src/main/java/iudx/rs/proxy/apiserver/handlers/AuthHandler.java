@@ -1,6 +1,7 @@
 package iudx.rs.proxy.apiserver.handlers;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.AUTH_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TOKEN_URN;
 import static iudx.rs.proxy.common.ResponseUrn.RESOURCE_NOT_FOUND_URN;
@@ -25,13 +26,13 @@ public class AuthHandler implements Handler<RoutingContext> {
   private static final Logger LOGGER = LogManager.getLogger(AuthHandler.class);
 
   static AuthenticationService authenticator;
+  static Api api;
   private final String AUTH_INFO = "authInfo";
   private HttpServerRequest request;
-  static Api api;
 
-  public static AuthHandler create(Vertx vertx,Api apiEndpoints) {
+  public static AuthHandler create(Vertx vertx, Api apiEndpoints) {
     authenticator = AuthenticationService.createProxy(vertx, AUTH_SERVICE_ADDRESS);
-    api=apiEndpoints;
+    api = apiEndpoints;
     return new AuthHandler();
   }
 
@@ -40,20 +41,19 @@ public class AuthHandler implements Handler<RoutingContext> {
     request = context.request();
 
     RequestBody requestBody = context.body();
-    JsonObject requestJson=null;
-    if(request!=null) {
-      if(requestBody.asJsonObject()!=null) {
-        requestJson=requestBody.asJsonObject().copy();
+    JsonObject requestJson = null;
+    if (request != null) {
+      if (requestBody.asJsonObject() != null) {
+        requestJson = requestBody.asJsonObject().copy();
       }
     }
-    if(requestJson==null) {
-      requestJson=new JsonObject();
+    if (requestJson == null) {
+      requestJson = new JsonObject();
     }
 
     String token = request.headers().get(HEADER_TOKEN);
     final String path = getNormalizedPath(request.path());
     final String method = context.request().method().toString();
-
 
     if (token == null) token = "public";
 
@@ -79,6 +79,9 @@ public class AuthHandler implements Handler<RoutingContext> {
             authInfo.put(IID, authHandler.result().getValue(IID));
             authInfo.put(USER_ID, authHandler.result().getValue(USER_ID));
             authInfo.put("apd", authHandler.result().getValue("apd"));
+            authInfo.put(ROLE, authHandler.result().getValue(ROLE));
+            authInfo.put(DID, authHandler.result().getValue(DID));
+            authInfo.put(DRL, authHandler.result().getValue(DRL));
             context.data().put(AUTH_INFO, authInfo);
           } else {
             processAuthFailure(context, authHandler.cause().getMessage());
@@ -123,11 +126,11 @@ public class AuthHandler implements Handler<RoutingContext> {
     String paramId = getId4rmRequest();
     String bodyId = getId4rmBody(context);
     String id;
-      if (paramId != null && !paramId.isBlank()) {
-        id = paramId;
-      } else {
-        id = bodyId;
-      }
+    if (paramId != null && !paramId.isBlank()) {
+      id = paramId;
+    } else {
+      id = bodyId;
+    }
     return id;
   }
 
@@ -170,13 +173,13 @@ public class AuthHandler implements Handler<RoutingContext> {
       path = api.getProviderAuditEndpoint();
     } else if (url.matches(api.getPostEntitiesEndpoint())) {
       path = api.getPostEntitiesEndpoint();
-    }else if(url.matches(api.getPostTemporalEndpoint())){
+    } else if (url.matches(api.getPostTemporalEndpoint())) {
       path = api.getPostTemporalEndpoint();
     }
     return path;
   }
-  
+
   private String getpathRegex(String path) {
-    return path+"(.*)";
+    return path + "(.*)";
   }
 }

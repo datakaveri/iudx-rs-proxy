@@ -16,12 +16,8 @@ public final class JwtData {
   private String role;
   private JsonObject cons;
   private JsonObject apd;
-
-  public JsonObject toJson() {
-    JsonObject json = new JsonObject();
-    JwtDataConverter.toJson(this, json);
-    return json;
-  }
+  private String drl;
+  private String did;
 
   public JwtData() {
     super();
@@ -29,6 +25,28 @@ public final class JwtData {
 
   public JwtData(JsonObject json) {
     JwtDataConverter.fromJson(json, this);
+  }
+
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    JwtDataConverter.toJson(this, json);
+    return json;
+  }
+
+  public String getDrl() {
+    return drl;
+  }
+
+  public void setDrl(String drl) {
+    this.drl = drl;
+  }
+
+  public String getDid() {
+    return did;
+  }
+
+  public void setDid(String did) {
+    this.did = did;
   }
 
   public String getAccess_token() {
@@ -102,7 +120,7 @@ public final class JwtData {
   public void setIat(Integer iat) {
     this.iat = iat;
   }
-  
+
   public JsonObject getApd() {
     return apd;
   }
@@ -113,13 +131,30 @@ public final class JwtData {
 
   @Override
   public String toString() {
-    return "JwtData [access_token=" + access_token + ", sub=" + sub + ", iss=" + iss + ", aud="
-        + aud + ", exp=" + exp + ", iat=" + iat + ", iid=" + iid + ", role=" + role + ", cons="
-        + cons + ", apd=" + apd + "]";
+    return "JwtData [access_token="
+        + access_token
+        + ", sub="
+        + sub
+        + ", iss="
+        + iss
+        + ", aud="
+        + aud
+        + ", exp="
+        + exp
+        + ", iat="
+        + iat
+        + ", iid="
+        + iid
+        + ", role="
+        + role
+        + ", cons="
+        + cons
+        + ", apd="
+        + apd
+        + ", drl="
+        + drl
+        + ", did="
+        + did
+        + "]";
   }
-
-  
-
-
-
 }
