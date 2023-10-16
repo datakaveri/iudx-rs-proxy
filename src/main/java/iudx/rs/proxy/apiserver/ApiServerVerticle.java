@@ -1,33 +1,54 @@
 package iudx.rs.proxy.apiserver;
 
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_HEADERS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_METHODS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.EPOCH_TIME;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FORMAT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FORMAT_JSON;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
-import static iudx.rs.proxy.authenticator.Constants.*;
-import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
-
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ISO_TIME;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.LIMITPARAM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.OFFSETPARAM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.PROVIDER_ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESOURCE_GROUP;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_DOC;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_STATIC_SPEC;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TYPE_KEY;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
+import static iudx.rs.proxy.authenticator.Constants.DELEGATOR_ID;
+import static iudx.rs.proxy.authenticator.Constants.DID;
+import static iudx.rs.proxy.authenticator.Constants.DRL;
+import static iudx.rs.proxy.authenticator.Constants.ROLE;
+import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.HttpStatusCode.NO_CONTENT;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
-
-import static iudx.rs.proxy.metering.util.Constants.RESULTS;
-import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
-import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
-
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -46,9 +67,9 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.serviceproxy.ServiceException;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.handlers.AuthHandler;
+import iudx.rs.proxy.apiserver.handlers.ConsentLogRequestHandler;
 import iudx.rs.proxy.apiserver.handlers.FailureHandler;
 import iudx.rs.proxy.apiserver.handlers.ValidationHandler;
 import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
@@ -63,15 +84,6 @@ import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
-
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Optional;
-import java.util.stream.Stream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class ApiServerVerticle extends AbstractVerticle {
@@ -110,6 +122,12 @@ public class ApiServerVerticle extends AbstractVerticle {
     attachCORSHandlers(router);
     attachDefaultResponses(router);
     router.route().handler(BodyHandler.create());
+    router.route().handler(new ConsentLogRequestHandler(true));
+    router.route().handler(context->{
+      context.addBodyEndHandler(endHandler->{
+        Future.future(future->logConsentResponse(context));
+      });
+    });
     
     FailureHandler validationsFailureHandler = new FailureHandler();
 
@@ -146,8 +164,9 @@ public class ApiServerVerticle extends AbstractVerticle {
     router
             .post(apis.getPostEntitiesEndpoint())
             .consumes(APPLICATION_JSON)
+//            .handler(new TokenDecode()) // TODO : split authentication and authorization
             .handler(postEntitiesValidationHandler)
-            .handler(AuthHandler.create(vertx,apis))
+            .handler(AuthHandler.create(vertx,apis)) //authorization
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
@@ -242,6 +261,29 @@ public class ApiServerVerticle extends AbstractVerticle {
               .end(errorResponse(code));
       });
     });
+  }
+  
+  private Future<Void> logConsentResponse(RoutingContext routingContext) {
+    LOGGER.info("logging consent log for response");
+    String consentLog = null;
+    switch(routingContext.response().getStatusCode()) {
+      case 200:
+      case 201:{
+        consentLog="DATA_SENT";
+        break;
+      }
+      case 400:
+      case 401:
+      case 404:{
+        consentLog="DATA_DENIED";
+        break;
+      }
+    }
+    LOGGER.info("response ended : {}",routingContext.response());
+    LOGGER.info("consent log : {}",consentLog);
+    LOGGER.info("response code : {}",routingContext.response().getStatusCode());
+    LOGGER.info("REsponse body : {}",routingContext.response().bodyEndHandler(null));
+    return Future.succeededFuture();
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
@@ -384,7 +426,6 @@ public class ApiServerVerticle extends AbstractVerticle {
       if (handler.succeeded()) {
         JsonObject adapterResponse=handler.result();
         int status=adapterResponse.containsKey("statusCode")?adapterResponse.getInteger("statusCode"):400;
-        System.out.println("adapter response status code : " + adapterResponse.getInteger("statusCode"));
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
         response.setStatusCode(status);
         if(status==200) {
