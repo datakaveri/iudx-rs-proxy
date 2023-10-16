@@ -4,6 +4,9 @@
 secrets/all-verticles-configs/*.json
 secrets/one-verticle-configs/*.json
 secrets/*.jks
+src/main/resources/*.jks
+src/main/resources/*.p12
+src/main/resources/*.pfx
 .*.env
 docker-compose.temp.yml
 config.properties
