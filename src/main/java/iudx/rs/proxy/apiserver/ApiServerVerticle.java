@@ -10,20 +10,15 @@ import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.HttpStatusCode.NO_CONTENT;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
 
-import static iudx.rs.proxy.metering.util.Constants.RESULTS;
-import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
-import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 
-
+import iudx.rs.proxy.apiserver.handlers.TokenDecodeHandler;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +41,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.serviceproxy.ServiceException;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.handlers.AuthHandler;
 import iudx.rs.proxy.apiserver.handlers.FailureHandler;
@@ -65,11 +59,6 @@ import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Optional;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -115,11 +104,12 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
     router
-          .get(apis.getEntitiesEndpoint())
-          .handler(entityValidationHandler)
-          .handler(AuthHandler.create(vertx, apis))
-          .handler(this::handleEntitiesQuery)
-          .failureHandler(validationsFailureHandler);
+        .get(apis.getEntitiesEndpoint())
+        .handler(entityValidationHandler)
+        .handler(TokenDecodeHandler.create(vertx))
+        .handler(AuthHandler.create(vertx, apis))
+        .handler(this::handleEntitiesQuery)
+        .failureHandler(validationsFailureHandler);
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
@@ -144,12 +134,14 @@ public class ApiServerVerticle extends AbstractVerticle {
     ValidationHandler postEntitiesValidationHandler =
             new ValidationHandler(vertx, RequestType.POST_ENTITIES);
     router
-            .post(apis.getPostEntitiesEndpoint())
-            .consumes(APPLICATION_JSON)
-            .handler(postEntitiesValidationHandler)
-            .handler(AuthHandler.create(vertx,apis))
-            .handler(this::handlePostEntitiesQuery)
-            .failureHandler(validationsFailureHandler);
+        .post(apis.getPostEntitiesEndpoint())
+        .consumes(APPLICATION_JSON)
+        .handler(postEntitiesValidationHandler)
+        .handler(TokenDecodeHandler.create(vertx))
+        // todo call consent loger
+        .handler(AuthHandler.create(vertx,apis))
+        .handler(this::handlePostEntitiesQuery)
+        .failureHandler(validationsFailureHandler);
 
     ValidationHandler postTemporalValidationHandler =
             new ValidationHandler(vertx, RequestType.POST_TEMPORAL);

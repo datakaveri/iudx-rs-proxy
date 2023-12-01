@@ -8,6 +8,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import iudx.rs.proxy.authenticator.model.JwtData;
 
 @VertxGen
 @ProxyGen
@@ -40,6 +41,8 @@ public interface AuthenticationService {
 
   @Fluent
   AuthenticationService tokenIntrospect(JsonObject request,
-                                        JsonObject authenticationInfo,
+                                        JsonObject authenticationInfo,JwtData jwtData,
                                         Handler<AsyncResult<JsonObject>> handler);
+@Fluent
+AuthenticationService decodeJwt(String jwtToken, Handler<AsyncResult<JwtData>> handler);
 }

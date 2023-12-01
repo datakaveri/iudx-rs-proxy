@@ -1,6 +1,14 @@
 package iudx.rs.proxy.authenticator;
 
-import static iudx.rs.proxy.authenticator.Constants.*;
+import static iudx.rs.proxy.authenticator.Constants.CAT_SEARCH_PATH;
+import static iudx.rs.proxy.authenticator.Constants.DID;
+import static iudx.rs.proxy.authenticator.Constants.DRL;
+import static iudx.rs.proxy.authenticator.Constants.JSON_APD;
+import static iudx.rs.proxy.authenticator.Constants.JSON_EXPIRY;
+import static iudx.rs.proxy.authenticator.Constants.JSON_IID;
+import static iudx.rs.proxy.authenticator.Constants.JSON_USERID;
+import static iudx.rs.proxy.authenticator.Constants.OPEN_ENDPOINTS;
+import static iudx.rs.proxy.authenticator.Constants.ROLE;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -59,31 +67,32 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
 
   JwtAuthenticationServiceImpl(Vertx vertx, final JWTAuth jwtAuth, final JsonObject config,
-                               final CacheService cacheService,final Api apis) {
+                               final CacheService cacheService, final Api apis) {
     this.jwtAuth = jwtAuth;
     this.audience = config.getString("audience");
     this.host = config.getString("catServerHost");
     this.port = config.getInteger("catServerPort");
     this.catBasePath = config.getString("dxCatalogueBasePath");
     this.path = catBasePath + CAT_SEARCH_PATH;
-    this.apis=apis;
+    this.apis = apis;
     WebClientOptions options = new WebClientOptions();
     options.setTrustAll(true).setVerifyHost(false).setSsl(true);
     catWebClient = WebClient.create(vertx, options);
     this.cache = cacheService;
   }
+
   @Override
   public AuthenticationService tokenIntrospect(JsonObject request, JsonObject authenticationInfo,
+                                               JwtData jwtData,
                                                Handler<AsyncResult<JsonObject>> handler) {
+    LOGGER.debug("tokenIntrospect() started ::: "+jwtData);
+
     String id = authenticationInfo.getString("id");
     String token = authenticationInfo.getString("token");
-    Future<JwtData> jwtDecodeFuture = decodeJwt(token);
     ResultContainer result = new ResultContainer();
-
-    jwtDecodeFuture.compose(decodeHandler -> {
-      result.jwtData = decodeHandler;
-      return isValidAudienceValue(result.jwtData);
-    }).compose(audienceHandler -> {
+    result.jwtData = jwtData;
+    Future<Boolean> audienceFuture = isValidAudienceValue(jwtData);
+    audienceFuture.compose(audienceHandler -> {
       if (!result.jwtData.getIss().equals(result.jwtData.getSub())) {
         return isRevokedClientToken(result.jwtData);
       } else {
@@ -100,7 +109,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
         JsonObject jsonResponse = new JsonObject();
         jsonResponse.put(JSON_USERID, result.jwtData.getSub());
-        jsonResponse.put(JSON_APD,result.jwtData.getApd());
+        jsonResponse.put(JSON_APD, result.jwtData.getApd());
         jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
             Instant.ofEpochSecond(Long.parseLong(result.jwtData.getExp().toString())),
             ZoneId.systemDefault())).toString());
@@ -120,23 +129,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     return this;
   }
 
-  Future<JwtData> decodeJwt(String jwtToken) {
-    Promise<JwtData> promise = Promise.promise();
-    TokenCredentials creds = new TokenCredentials(jwtToken);
-
-    jwtAuth.authenticate(creds).onSuccess(user -> {
-      JwtData jwtData = new JwtData(user.principal());
-      jwtData.setExp(user.get("exp"));
-      jwtData.setIat(user.get("iat"));
-      promise.complete(jwtData);
-    }).onFailure(err -> {
-      LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
-      promise.fail("failed");
-    });
-
-    return promise.future();
-  }
-  //private Future<String> isOpenResource(String id)
   Future<String> isOpenResource(String id) {
     LOGGER.trace("isOpenResource() started");
     Promise<String> promise = Promise.promise();
@@ -149,9 +141,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       LOGGER.debug("Cache miss calling cat server");
       String groupId = null;
       JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
-      if(jsonObject!=null){
-        groupId = jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
-      }else {
+      if (jsonObject != null) {
+        groupId =
+            jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id;
+      } else {
         LOGGER.debug("failed : id not exists");
         return Future.failedFuture("Not Found");
       }
@@ -216,7 +209,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       JsonObject jsonResponse = new JsonObject();
       jsonResponse.put(JSON_IID, jwtId);
       jsonResponse.put(JSON_USERID, jwtData.getSub());
-      jsonResponse.put(JSON_APD,jwtData.getApd());
+      jsonResponse.put(JSON_APD, jwtData.getApd());
       jsonResponse.put(ROLE, jwtData.getRole());
       jsonResponse.put(DRL, jwtData.getDrl());
       jsonResponse.put(DID, jwtData.getDid());
@@ -227,7 +220,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     String api = authInfo.getString("apiEndpoint");
     AuthorizationRequest authRequest = new AuthorizationRequest(method, api);
     IudxRole role = IudxRole.fromRole(jwtData.getRole());
-    AuthorizationStrategy authStrategy = AuthorizationContextFactory.create(role,apis);
+    AuthorizationStrategy authStrategy = AuthorizationContextFactory.create(role, apis);
     JwtAuthorization jwtAuthStrategy = new JwtAuthorization(authStrategy);
     LOGGER.info("auth strategy " + authStrategy.getClass().getSimpleName());
     LOGGER.info("endPoint : " + authInfo.getString("apiEndpoint"));
@@ -236,7 +229,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       JsonObject jsonResponse = new JsonObject();
       jsonResponse.put(JSON_USERID, jwtData.getSub());
       jsonResponse.put(JSON_IID, jwtId);
-      jsonResponse.put(JSON_APD,jwtData.getApd());
+      jsonResponse.put(JSON_APD, jwtData.getApd());
       jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
           Instant.ofEpochSecond(Long.parseLong(jwtData.getExp().toString())),
           ZoneId.systemDefault())).toString());
@@ -253,15 +246,14 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   }
 
   private boolean checkOpenEndPoints(String endPoint) {
-    for(String item : OPEN_ENDPOINTS)
-    {
-      if(endPoint.contains(item))
-      {
+    for (String item : OPEN_ENDPOINTS) {
+      if (endPoint.contains(item)) {
         return true;
       }
     }
     return false;
   }
+
   Future<Boolean> isValidAudienceValue(JwtData jwtData) {
     Promise<Boolean> promise = Promise.promise();
     if (audience != null && audience.equalsIgnoreCase(jwtData.getAud())) {
@@ -352,9 +344,26 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     return promise.future();
   }
 
+  @Override
+  public AuthenticationService decodeJwt(String jwtToken, Handler<AsyncResult<JwtData>> handler) {
+    TokenCredentials creds = new TokenCredentials(jwtToken);
+    jwtAuth.authenticate(creds).onSuccess(user -> {
+      JwtData jwtData = new JwtData(user.principal());
+      jwtData.setExp(user.get("exp"));
+      jwtData.setIat(user.get("iat"));
+      handler.handle(Future.succeededFuture(jwtData));
+    }).onFailure(err -> {
+      LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
+      handler.handle(Future.failedFuture(err.getMessage()));
+    });
+
+    return this;
+  }
+
   // class to contain intermediate data for token introspection
   final class ResultContainer {
     JwtData jwtData;
     boolean isOpen;
   }
+
 }

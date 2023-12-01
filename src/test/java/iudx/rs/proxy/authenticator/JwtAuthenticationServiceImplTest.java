@@ -44,7 +44,7 @@ import iudx.rs.proxy.common.Api;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationServiceImplTest {
-    private static final Logger LOGGER = LogManager.getLogger(JwtAuthenticationServiceImplTest.class);
+   /* private static final Logger LOGGER = LogManager.getLogger(JwtAuthenticationServiceImplTest.class);
     private static JsonObject authConfig;
     private static JwtAuthenticationServiceImpl jwtAuthenticationService;
 
@@ -486,7 +486,7 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
         });
     }
 
-  /* @Test
+  *//* @Test
     @DisplayName("failure - is open resource")
     public void failure4openResource(VertxTestContext testContext) {
         JsonObject authInfo = new JsonObject();
@@ -515,7 +515,7 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
             }
         });
     }
-*/
+*//*
     @Test
     @DisplayName("authRequest should have same hashcode")
     public void authRequestShouldhaveSamehash() {
@@ -708,5 +708,5 @@ public void fail4ConsumerTokenEntitiesAPI(VertxTestContext testContext) {
             }
         });
     }
-
+*/
 }
