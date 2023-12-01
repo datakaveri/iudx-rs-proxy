@@ -86,8 +86,10 @@ import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 public class ApiServerVerticle extends AbstractVerticle {
 
   private static final Logger LOGGER = LogManager.getLogger(ApiServerVerticle.class);
