@@ -181,7 +181,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
       if (rabbitMQConsumerResult.succeeded()) {
         RabbitMQConsumer rmqConsumer = rabbitMQConsumerResult.result();
 
-        long timerId = vertx.setTimer(10000, timeout -> {
+        long timerId = vertx.setTimer(25000, timeout -> {
           LOGGER.info("max wait time elapsed for consumer, cancelling consumer");
           rmqConsumer.cancel();
           JsonObject json = new JsonObject();
