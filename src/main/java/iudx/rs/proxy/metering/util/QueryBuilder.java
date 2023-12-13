@@ -15,15 +15,16 @@ import static iudx.rs.proxy.metering.util.Constants.*;
 public class QueryBuilder {
 
   private static final Logger LOGGER = LogManager.getLogger(QueryBuilder.class);
-  public JsonObject buildMessageForRMQ(JsonObject request) {
 
-    String primaryKey = UUID.randomUUID().toString().replace("-", "");
-    String userId = request.getString(USER_ID);
-    String resourceId = request.getString(ID);
-    request.put(PRIMARY_KEY, primaryKey);
-    request.put(USER_ID, userId);
-    request.put(ORIGIN, ORIGIN_SERVER);
-    LOGGER.trace("Info: Request " + request);
+  public JsonObject buildMessageForRMQ(JsonObject request) {
+    if (!request.containsKey(ORIGIN)) {
+      String primaryKey = UUID.randomUUID().toString().replace("-", "");
+      String userId = request.getString(USER_ID);
+      request.put(PRIMARY_KEY, primaryKey);
+      request.put(USER_ID, userId);
+      request.put(ORIGIN, ORIGIN_SERVER);
+      LOGGER.trace("Info: Request " + request);
+    }
     return request;
   }
 

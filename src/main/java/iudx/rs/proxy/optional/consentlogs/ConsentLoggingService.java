@@ -6,17 +6,16 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import iudx.rs.proxy.authenticator.model.JwtData;
 
 @ProxyGen
 @VertxGen
 public interface ConsentLoggingService {
-  
-  @GenIgnore
-  static ConsentLoggingService createProxy(Vertx vertx, String address) {
-    return new ConsentLoggingServiceVertxEBProxy(vertx, address);
-  }
 
-  Future<JsonObject> log(JsonObject request);
+    @GenIgnore
+    static ConsentLoggingService createProxy(Vertx vertx, String address) {
+        return new ConsentLoggingServiceVertxEBProxy(vertx, address);
+    }
 
-  
+    Future<JsonObject> log(JsonObject logJson, JwtData jwtData);
 }

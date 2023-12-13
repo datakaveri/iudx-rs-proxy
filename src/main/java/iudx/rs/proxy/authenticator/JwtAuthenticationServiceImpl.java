@@ -1,5 +1,6 @@
 package iudx.rs.proxy.authenticator;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ITEM_TYPES;
 import static iudx.rs.proxy.authenticator.Constants.CAT_SEARCH_PATH;
 import static iudx.rs.proxy.authenticator.Constants.DID;
 import static iudx.rs.proxy.authenticator.Constants.DRL;
@@ -18,6 +19,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -40,7 +42,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,7 +91,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   public AuthenticationService tokenIntrospect(JsonObject request, JsonObject authenticationInfo,
                                                JwtData jwtData,
                                                Handler<AsyncResult<JsonObject>> handler) {
-    LOGGER.debug("tokenIntrospect() started ::: "+jwtData);
+    LOGGER.debug("tokenIntrospect() started");
 
     String id = authenticationInfo.getString("id");
     String token = authenticationInfo.getString("token");
@@ -349,9 +355,14 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     TokenCredentials creds = new TokenCredentials(jwtToken);
     jwtAuth.authenticate(creds).onSuccess(user -> {
       JwtData jwtData = new JwtData(user.principal());
-      jwtData.setExp(user.get("exp"));
-      jwtData.setIat(user.get("iat"));
-      handler.handle(Future.succeededFuture(jwtData));
+      getCatItem(jwtData).onSuccess(catItems->{
+        jwtData.setProvider(catItems.getString("provider"));
+        jwtData.setGroupId(catItems.getString("resourceGroup"));
+        jwtData.setType(catItems.getString("type"));
+        jwtData.setExp(user.get("exp"));
+        jwtData.setIat(user.get("iat"));
+        handler.handle(Future.succeededFuture(jwtData));
+      });
     }).onFailure(err -> {
       LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
       handler.handle(Future.failedFuture(err.getMessage()));
@@ -364,6 +375,56 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   final class ResultContainer {
     JwtData jwtData;
     boolean isOpen;
+  }
+
+  private Future<JsonObject> getCatItem(JwtData jwtData) {
+    String resourceId = jwtData.getIid().split(":")[1];
+
+    LOGGER.trace("resourceid {} ", resourceId);
+    Promise promise = Promise.promise();
+
+    catWebClient
+            .get(port, host, path)
+            .addQueryParam("property", "[id]")
+            .addQueryParam("value", "[[" + resourceId + "]]")
+            .addQueryParam("filter", "[id,provider,resourceGroup,type,accessPolicy]")
+            .expect(ResponsePredicate.JSON)
+            .send(httpResponseAsyncResult -> {
+              if (httpResponseAsyncResult.failed()) {
+                LOGGER.error(httpResponseAsyncResult.cause());
+                promise.fail("Resource not found");
+                return;
+              }
+              HttpResponse<Buffer> response = httpResponseAsyncResult.result();
+              if (response.statusCode() != HttpStatus.SC_OK) {
+                promise.fail("Resource not found");
+                return;
+              }
+              JsonObject responseBody = response.bodyAsJsonObject();
+              LOGGER.debug("responseBody:: " + responseBody);
+              if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
+                promise.fail("Resource not found");
+                return;
+              }
+              try {
+                JsonArray results = responseBody.getJsonArray("results");
+                results.forEach(
+                        json -> {
+                          JsonObject CatResult = (JsonObject) json;
+                          Set<String> type = new HashSet<String>(CatResult.getJsonArray("type").getList());
+                          Set<String> itemTypeSet =
+                                  type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
+                          itemTypeSet.retainAll(ITEM_TYPES);
+                          CatResult.put("type", itemTypeSet.iterator().next());
+                          promise.complete(CatResult);
+                        });
+              } catch (Exception ignored) {
+                LOGGER.error("Info: Group ID invalid : Empty response in results from Catalogue",
+                        ignored);
+                promise.fail("Resource not found");
+              }
+            });
+    return promise.future();
   }
 
 }

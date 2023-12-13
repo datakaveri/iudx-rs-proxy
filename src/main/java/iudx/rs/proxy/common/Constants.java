@@ -8,7 +8,7 @@ public class Constants {
   public static final String DATABASE_SERVICE_ADDRESS ="iudx.rs.proxy.database.service";
   public static final String METERING_SERVICE_ADDRESS = "iudx.rs.proxy.metering.service";
   public static final String DATABROKER_SERVICE_ADDRESS = "iudx.rs.proxy.broker.service";
-
+  public static final String CONSEENTLOG_SERVICE_ADDRESS = "iudx-rs-proxy-optional-consentlogs";
 
   // postgres queries
   public static String SELECT_REVOKE_TOKEN_SQL = "SELECT * FROM revoked_tokens";

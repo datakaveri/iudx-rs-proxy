@@ -76,7 +76,7 @@ public class AuthHandler implements Handler<RoutingContext> {
       token = "public";
     }
 
-    JwtData jwtData = (JwtData) context.data().get("jwtdata");
+    JwtData jwtData = (JwtData) context.data().get("jwtData");
     JsonObject authInfo =
         new JsonObject().put(API_ENDPOINT, path).put(HEADER_TOKEN, token).put(API_METHOD, method);
 
