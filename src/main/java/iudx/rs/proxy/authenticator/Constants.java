@@ -18,4 +18,5 @@ public class Constants {
   public static final String DRL = "drl";
   public static final String DID = "did";
   public static final String DELEGATOR_ID = "delegatorId";
+  public static final String JSON_CONS = "cons";
 }

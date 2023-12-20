@@ -13,9 +13,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_ENTITIES;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
-import static iudx.rs.proxy.authenticator.Constants.DID;
-import static iudx.rs.proxy.authenticator.Constants.DRL;
-import static iudx.rs.proxy.authenticator.Constants.ROLE;
+import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.AUTH_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TOKEN_URN;
 import static iudx.rs.proxy.common.ResponseUrn.RESOURCE_NOT_FOUND_URN;
@@ -99,7 +97,8 @@ public class AuthHandler implements Handler<RoutingContext> {
           if (authHandler.succeeded()) {
             authInfo.put(IID, authHandler.result().getValue(IID));
             authInfo.put(USER_ID, authHandler.result().getValue(USER_ID));
-            authInfo.put("apd", authHandler.result().getValue("apd"));
+            authInfo.put(JSON_APD, authHandler.result().getValue(JSON_APD));
+            authInfo.put(JSON_CONS, authHandler.result().getValue(JSON_CONS));
             authInfo.put(ROLE, authHandler.result().getValue(ROLE));
             authInfo.put(DID, authHandler.result().getValue(DID));
             authInfo.put(DRL, authHandler.result().getValue(DRL));

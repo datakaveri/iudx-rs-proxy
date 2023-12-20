@@ -165,10 +165,13 @@ class JwtAuthenticationServiceImplTest {
 
          }
 
-        /* @Test
+         @Test
          @DisplayName("decode valid jwt - consumer")
          public void decodeJwtConsumerSuccess(VertxTestContext testContext) {
-             jwtAuthenticationService.decodeJwt(consumerJwt).onComplete(handler -> {
+             doAnswer(Answer -> Future.succeededFuture(new JsonObject())).when(jwtAuthImplSpy).getCatItem(any());
+
+             jwtAuthImplSpy.decodeJwt(consumerJwt,handler -> {
+                 System.out.println(handler.succeeded());
                  if (handler.succeeded()) {
                      assertEquals("consumer", handler.result().getRole());
                      testContext.completeNow();
@@ -176,22 +179,21 @@ class JwtAuthenticationServiceImplTest {
                      testContext.failNow(handler.cause());
                  }
              });
-         }*/
+         }
 
-      /*   @Test
+         @Test
          @DisplayName("decode invalid jwt")
          public void decodeJwtFailure(VertxTestContext testContext) {
              String jwt =
                      "eyJ0eXAiOiJKV1QiLCJbGciOiJFUzI1NiJ9.eyJzdWIiOiJhM2U3ZTM0Yy00NGJmLTQxZmYtYWQ4Ni0yZWUwNGE5NTQ0MTgiLCJpc3MiOiJhdXRoLnRlc3QuY29tIiwiYXVkIjoiZm9vYmFyLml1ZHguaW8iLCJleHAiOjE2Mjc2ODk5NDAsImlhdCI6MTYyNzY0Njc0MCwiaWlkIjoicmc6ZXhhbXBsZS5jb20vNzllN2JmYTYyZmFkNmM3NjViYWM2OTE1NGMyZjI0Yzk0Yzk1MjIwYS9yZXNvdXJjZS1ncm91cCIsInJvbGUiOiJkZWxlZ2F0ZSIsImNvbnMiOnt9fQ.eJjCUvWuGD3L3Dn2fKj8Ydl1byGoyRS59VfL6ZJcdKR3_eIhm6SOY-CW3p5XDSYVhRTlWvlPLjfXYo9t_PxgnA";
-             jwtAuthenticationService.decodeJwt(jwt).onComplete(handler -> {
+             jwtAuthenticationService.decodeJwt(jwt,handler -> {
                  if (handler.succeeded()) {
                      testContext.failNow(handler.cause());
                  } else {
                      testContext.completeNow();
-
                  }
              });
-         }*/
+         }
 
          @Test
          @DisplayName("success - allow consumer access to /entities endpoint for access [api,subs]")

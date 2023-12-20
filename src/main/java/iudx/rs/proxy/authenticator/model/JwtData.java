@@ -20,9 +20,7 @@ public final class JwtData {
     private String did;
     private String provider;
     private String type;
-    private String groupId;
-    private String artifact;
-    private String ppbNumber;
+    private String rg;
 
     public JwtData() {
         super();
@@ -134,22 +132,6 @@ public final class JwtData {
         this.apd = apd;
     }
 
-    public String getArtifact() {
-        return artifact;
-    }
-
-    public void setArtifact(String artifact) {
-        this.artifact = artifact;
-    }
-
-    public String getPpbNumber() {
-        return ppbNumber;
-    }
-
-    public void setPpbNumber(String ppbNumber) {
-        this.ppbNumber = ppbNumber;
-    }
-
     public String getProvider() {
         return provider;
     }
@@ -166,12 +148,12 @@ public final class JwtData {
         this.type = type;
     }
 
-    public String getGroupId() {
-        return groupId;
+    public String getRg() {
+        return rg;
     }
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
+    public void setRg(String rg) {
+        this.rg = rg;
     }
 
     @Override
@@ -200,16 +182,12 @@ public final class JwtData {
                 + drl
                 + ", did="
                 + did
-                + ", artifact="
-                + artifact
-                + ", ppbNumber="
-                + ppbNumber
                 + ", provider="
                 + provider
                 + ",type ="
                 + type
-                + ",groupId ="
-                + groupId
+                + ",rg ="
+                + rg
                 + "]";
     }
 }

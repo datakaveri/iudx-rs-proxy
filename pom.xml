@@ -288,11 +288,14 @@
 						<exclude>**/*MeteringServiceVertxProxyHandler.class</exclude>
 						<exclude>
 							**/*AuthenticationServiceVertxProxyHandler.class</exclude>
+						<exclude>**/ConsentLoggingServiceVertxProxyHandler.class</exclude>
 						<exclude>**/database/**</exclude>
 						<!--<exclude>**/metering/**</exclude>-->
 						<exclude>**/databroker/**</exclude>
 						<!-- class present in generated-sources -->
 						<exclude>**/JwtDataConverter.class</exclude>
+						<exclude>**/PayloadSigningManager.class</exclude>
+
 
 
 					</excludes>

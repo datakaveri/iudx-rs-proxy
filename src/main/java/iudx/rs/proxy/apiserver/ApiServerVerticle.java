@@ -29,10 +29,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_STATIC_SPEC;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TYPE_KEY;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
-import static iudx.rs.proxy.authenticator.Constants.DELEGATOR_ID;
-import static iudx.rs.proxy.authenticator.Constants.DID;
-import static iudx.rs.proxy.authenticator.Constants.DRL;
-import static iudx.rs.proxy.authenticator.Constants.ROLE;
+import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
@@ -308,12 +305,9 @@ public class ApiServerVerticle extends AbstractVerticle {
         logRequest.put("logType", finalConsentLog);
 
         Future<JsonObject> consentAuditLog = consentLoggingService.log(logRequest, routingContext.get("jwtData"));
-        consentAuditLog.onSuccess(auditLogHandler -> {
-                    auditingConsentLog(auditLogHandler);
-                    promise.complete();
-                })
+        consentAuditLog.onSuccess(auditLogHandler -> promise.complete())
                 .onFailure(auditLogFailure -> {
-                    LOGGER.error("failed info {}", auditLogFailure);
+                    LOGGER.error("failed info: {}", auditLogFailure.getMessage());
                     promise.fail(auditLogFailure);
                 });
 
@@ -731,34 +725,23 @@ public class ApiServerVerticle extends AbstractVerticle {
               }
             });
 
-    promise.future();
+      promise.future();
   }
 
-    private void auditingConsentLog(JsonObject consentAuditLog) {
-        meteringService.insertMeteringValuesInRMQ(
-                consentAuditLog,
-                handler -> {
-                    if (handler.succeeded()) {
-                        LOGGER.info("Log published into RMQ.");
-                    } else {
-                        LOGGER.error("failed to publish log into RMQ.");
-                    }
-                });
+    private void printDeployedEndpoints(Router router) {
+        for (Route route : router.getRoutes()) {
+            if (route.getPath() != null) {
+                LOGGER.info("API Endpoints deployed :" + route.methods() + ":" + route.getPath());
+            }
+        }
     }
-  private void printDeployedEndpoints(Router router) {
-    for(Route route:router.getRoutes()) {
-      if(route.getPath()!=null) {
-        LOGGER.info("API Endpoints deployed :"+ route.methods() +":"+ route.getPath());
-      }
-    }
-  }
 
   public String extractPPBNo(JsonObject authInfo) {
     LOGGER.debug("auth info :{}",authInfo);
     if(authInfo==null) return "";
-    JsonObject apd=authInfo.getJsonObject("apd");
-    if(apd==null) return  "";
-    String ppbno=apd.getString("ppbNumber");
+    JsonObject cons=authInfo.getJsonObject(JSON_CONS);
+    if(cons==null) return  "";
+    String ppbno=cons.getString("ppbNumber");
     if(ppbno==null) return "";
     return ppbno;
   }

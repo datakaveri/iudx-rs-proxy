@@ -13,10 +13,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import static iudx.rs.proxy.metering.util.Constants.CONSENT_LOG;
+import static iudx.rs.proxy.metering.util.Constants.ORIGIN;
 
 public class ConsentLoggingServiceImpl implements ConsentLoggingService {
 
@@ -38,7 +39,6 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
         LOGGER.trace("log started");
         Promise<JsonObject> promise = Promise.promise();
         String LogType = request.getString("logType");
-        String api = request.getString("api");
         ConsentLogType consentLogType;
         try {
             consentLogType = getLogTyp(LogType);
@@ -46,16 +46,18 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
             return Future.failedFuture("No Consent defined for given type");
         }
         if (consentLogType != null) {
-            Future<JsonObject> signedLogFuture = generateConsentAuditLog(consentLogType.toString(), jwtData);
-            signedLogFuture.onSuccess(logHandler -> {
-                        promise.complete(logHandler);
-                    })
-                    .onFailure(failureHandler -> {
-                        promise.fail("failed to generate signedLog");
-                    });
+            JsonObject consentAuditLog = generateConsentAuditLog(consentLogType.toString(), jwtData);
+            Future<Void> consentAuditFuture = auditingConsentLog(consentAuditLog);
+            consentAuditFuture.onComplete(auditHandler -> {
+                if (auditHandler.succeeded()) {
+                    promise.complete(consentAuditLog);
+                } else {
+                    promise.fail(auditHandler.cause().getMessage());
+                }
+            });
         } else {
             LOGGER.error("null value passed as ConsentLogType");
-            promise.fail("null value passed as ConsentLogType .");
+            promise.fail("null value passed as ConsentLogType.");
         }
         return promise.future();
     }
@@ -72,27 +74,47 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
         return logType;
     }
 
-    Future<JsonObject> generateConsentAuditLog(String consentLogType, JwtData jwtData) {
+    private JsonObject generateConsentAuditLog(String consentLogType, JwtData jwtData) {
         LOGGER.trace("generateAuditLog started");
-        Promise promise = Promise.promise();
-        String signedLog = payloadSigningManager.signDocWithPKCS12(jwtData.toJson());
+        JsonObject cons = jwtData.getCons();
         String item_id = jwtData.getIid().split(":")[1];
-        ConsentAuditMessage auditMessage = new ConsentAuditMessage.Builder()
+        String type = jwtData.getType().toUpperCase();
+        if(!type.equalsIgnoreCase("RESOURCE")){
+            type = "RESOURCE_GROUP";
+        }
+        SignLogBuider signLog = new SignLogBuider.Builder()
                 .withPrimaryKey(primaryKeySuppler.get())
                 .forAiu_id(jwtData.getSub())
                 .forEvent(consentLogType)
-                .forItemType(jwtData.getType())
+                .forItemType(type)
                 .forItem_id(item_id)
                 .witAipId(jwtData.getProvider())
-                .withDpId(jwtData.getPpbNumber())
-                .withArtifactId(jwtData.getArtifact())
-                .withLog(signedLog)
+                .withDpId(cons.getString("ppbNumber"))
+                .withArtifactId(cons.getString("artifact"))
                 .atIsoTime(isoTimeSupplier.get())
-                .forOrigin(CONSENT_LOG)
                 .build();
+LOGGER.debug(signLog.toJson());
+        String signedLog = payloadSigningManager.signDocWithPKCS12(signLog.toJson());
+        JsonObject consentAuditLog = signLog.toJson();
+        consentAuditLog.put("log", signedLog);
+        consentAuditLog.put(ORIGIN, "consent_log");
+        return consentAuditLog;
+    }
 
-        promise.complete(auditMessage.toJson());
-
+    private Future<Void> auditingConsentLog(JsonObject consentAuditLog) {
+        LOGGER.trace("auditingConsentLog started");
+        Promise<Void> promise = Promise.promise();
+        meteringService.insertMeteringValuesInRMQ(
+                consentAuditLog,
+                handler -> {
+                    if (handler.succeeded()) {
+                        LOGGER.info("Log published into RMQ.");
+                        promise.complete();
+                    } else {
+                        LOGGER.error("failed to publish log into RMQ.");
+                        promise.fail("failed to publish log into RMQ.");
+                    }
+                });
         return promise.future();
     }
 }

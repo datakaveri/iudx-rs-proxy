@@ -1,15 +1,7 @@
 package iudx.rs.proxy.authenticator;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ITEM_TYPES;
-import static iudx.rs.proxy.authenticator.Constants.CAT_SEARCH_PATH;
-import static iudx.rs.proxy.authenticator.Constants.DID;
-import static iudx.rs.proxy.authenticator.Constants.DRL;
-import static iudx.rs.proxy.authenticator.Constants.JSON_APD;
-import static iudx.rs.proxy.authenticator.Constants.JSON_EXPIRY;
-import static iudx.rs.proxy.authenticator.Constants.JSON_IID;
-import static iudx.rs.proxy.authenticator.Constants.JSON_USERID;
-import static iudx.rs.proxy.authenticator.Constants.OPEN_ENDPOINTS;
-import static iudx.rs.proxy.authenticator.Constants.ROLE;
+import static iudx.rs.proxy.authenticator.Constants.*;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -94,7 +86,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     LOGGER.debug("tokenIntrospect() started");
 
     String id = authenticationInfo.getString("id");
-    String token = authenticationInfo.getString("token");
     ResultContainer result = new ResultContainer();
     result.jwtData = jwtData;
     Future<Boolean> audienceFuture = isValidAudienceValue(jwtData);
@@ -116,6 +107,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         JsonObject jsonResponse = new JsonObject();
         jsonResponse.put(JSON_USERID, result.jwtData.getSub());
         jsonResponse.put(JSON_APD, result.jwtData.getApd());
+        jsonResponse.put(JSON_CONS, result.jwtData.getCons());
         jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
             Instant.ofEpochSecond(Long.parseLong(result.jwtData.getExp().toString())),
             ZoneId.systemDefault())).toString());
@@ -216,6 +208,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       jsonResponse.put(JSON_IID, jwtId);
       jsonResponse.put(JSON_USERID, jwtData.getSub());
       jsonResponse.put(JSON_APD, jwtData.getApd());
+      jsonResponse.put(JSON_CONS, jwtData.getCons());
       jsonResponse.put(ROLE, jwtData.getRole());
       jsonResponse.put(DRL, jwtData.getDrl());
       jsonResponse.put(DID, jwtData.getDid());
@@ -236,6 +229,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       jsonResponse.put(JSON_USERID, jwtData.getSub());
       jsonResponse.put(JSON_IID, jwtId);
       jsonResponse.put(JSON_APD, jwtData.getApd());
+      jsonResponse.put(JSON_CONS, jwtData.getCons());
       jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
           Instant.ofEpochSecond(Long.parseLong(jwtData.getExp().toString())),
           ZoneId.systemDefault())).toString());
@@ -270,7 +264,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     }
     return promise.future();
   }
-
 
   Future<Boolean> isResourceExist(String id, String groupACL) {
     LOGGER.trace("isResourceExist() started");
@@ -357,13 +350,13 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       JwtData jwtData = new JwtData(user.principal());
       getCatItem(jwtData).onSuccess(catItems->{
         jwtData.setProvider(catItems.getString("provider"));
-        jwtData.setGroupId(catItems.getString("resourceGroup"));
         jwtData.setType(catItems.getString("type"));
         jwtData.setExp(user.get("exp"));
         jwtData.setIat(user.get("iat"));
         handler.handle(Future.succeededFuture(jwtData));
       });
     }).onFailure(err -> {
+      LOGGER.debug("err.getMessage():: "+err);
       LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
       handler.handle(Future.failedFuture(err.getMessage()));
     });
@@ -377,10 +370,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     boolean isOpen;
   }
 
-  private Future<JsonObject> getCatItem(JwtData jwtData) {
+   Future<JsonObject> getCatItem(JwtData jwtData) {
     String resourceId = jwtData.getIid().split(":")[1];
 
-    LOGGER.trace("resourceid {} ", resourceId);
+    LOGGER.trace("resourceid :{} ", resourceId);
     Promise promise = Promise.promise();
 
     catWebClient
@@ -419,7 +412,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
                           promise.complete(CatResult);
                         });
               } catch (Exception ignored) {
-                LOGGER.error("Info: Group ID invalid : Empty response in results from Catalogue",
+                LOGGER.error("Info: ID invalid : Empty response in results from Catalogue",
                         ignored);
                 promise.fail("Resource not found");
               }

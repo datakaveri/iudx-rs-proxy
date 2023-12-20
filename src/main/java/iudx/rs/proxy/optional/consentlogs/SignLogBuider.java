@@ -2,7 +2,7 @@ package iudx.rs.proxy.optional.consentlogs;
 
 import io.vertx.core.json.JsonObject;
 
-public class ConsentAuditMessage {
+public class SignLogBuider {
     private String primaryKey;
     private String isoTime;
     private String aiu_id;
@@ -12,21 +12,17 @@ public class ConsentAuditMessage {
     private String artifact;
     private String item_type;
     private String event;
-    private String origin;
-    private String log;
 
-    public ConsentAuditMessage(Builder builder) {
+    public SignLogBuider(Builder builder) {
         this.isoTime = builder.isoTime;
         this.aiu_id = builder.aiu_id;
         this.aip_id = builder.aip_id;
         this.dp_id = builder.dp_id;
         this.item_id = builder.item_id;
         this.primaryKey = builder.primaryKey;
-        this.origin = builder.origin;
         this.artifact = builder.artifact;
         this.item_type = builder.item_type;
         this.event = builder.event;
-        this.log = builder.log;
     }
 
     public JsonObject toJson() {
@@ -40,9 +36,7 @@ public class ConsentAuditMessage {
                 .put("artifact", artifact)
                 .put("item_type", item_type)
                 .put("event", event)
-                .put("log", log)
-                .put("isoTime", isoTime)
-                .put("origin", origin);
+                .put("isoTime", isoTime);
         return consentLogData;
     }
 
@@ -56,8 +50,6 @@ public class ConsentAuditMessage {
         private String artifact;
         private String item_type;
         private String event;
-        private String origin;
-        private String log;
 
         public Builder atIsoTime(String isoTime) {
             this.isoTime = isoTime;
@@ -89,11 +81,6 @@ public class ConsentAuditMessage {
             return this;
         }
 
-        public Builder forOrigin(String origin) {
-            this.origin = origin;
-            return this;
-        }
-
         public Builder forItem_id(String item_id) {
             this.item_id = item_id;
             return this;
@@ -109,13 +96,8 @@ public class ConsentAuditMessage {
             return this;
         }
 
-        public Builder withLog(String log) {
-            this.log = log;
-            return this;
-        }
-
-        public ConsentAuditMessage build() {
-            return new ConsentAuditMessage(this);
+        public SignLogBuider build() {
+            return new SignLogBuider(this);
         }
 
     }
