@@ -16,6 +16,7 @@ public class Api {
   private StringBuilder postTemporalEndpoint;
   private StringBuilder consumerAuditEndpoint;
   private StringBuilder providerAuditEndpoint;
+  private StringBuilder asyncPath;
   private static volatile Api apiInstance;
   
   private void buildEndpoints() {
@@ -25,6 +26,7 @@ public class Api {
     postTemporalEndpoint=new StringBuilder(dxApiBasePath).append(POST_TEMPORAL_URL);
     consumerAuditEndpoint=new StringBuilder(dxApiBasePath).append(CONSUMER_AUDIT_URL);
     providerAuditEndpoint=new StringBuilder(dxApiBasePath).append(PROVIDER_AUDIT_URL);
+    asyncPath = new StringBuilder(dxApiBasePath).append(ASYNC);
   }
 
   public static Api getInstance(String dxApiBasePath)
@@ -65,6 +67,9 @@ public class Api {
     return providerAuditEndpoint.toString();
   }
 
-  
+  public String getAsyncPath() {
+    return asyncPath.toString();
+  }
+
 
 }

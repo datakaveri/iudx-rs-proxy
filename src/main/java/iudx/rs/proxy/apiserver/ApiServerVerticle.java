@@ -215,6 +215,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     server.requestHandler(router).listen(port);
     LOGGER.debug("port deployed : "+server.actualPort());
     printDeployedEndpoints(router);
+    router.route(apis.getAsyncPath() + "/*").subRouter(new AsyncRestApi(vertx, router, apis).init());
   }
 
   private void setServerOptions(HttpServerOptions serverOptions) {

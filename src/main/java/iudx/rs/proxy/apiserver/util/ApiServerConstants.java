@@ -53,6 +53,11 @@ public class ApiServerConstants {
   public static final String PROVIDER_AUDIT_URL = "/provider/audit";
   public static final String POST_ENTITIES_URL = "/entityOperations/query";
   public static final String POST_TEMPORAL_URL = "/temporal/entityOperations/query";
+  public static final String ASYNC = "/async";
+
+  // Async endpoints
+  public static final String STATUS = "/status";
+  public static final String SEARCH = "/search";
 
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
