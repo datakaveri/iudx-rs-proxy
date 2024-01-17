@@ -6,13 +6,22 @@ import ssl
 import os
 import json
 import datetime
+import configparser
+from pathlib import Path
+import os
+# Read config from file
 
+config = configparser.RawConfigParser()
+config.read('./secrets/config.ini')
 
-username = ''
-password = ''
-host = ''
-port = 1234
-vhost=''
+# Get AMQP configuration
+amqp_config = config['server_setup']
+
+username = amqp_config.get('username')
+password = amqp_config.get('password')
+host = amqp_config.get('host')
+port = int(amqp_config.get('port'))
+vhost = amqp_config.get('vhost')
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 
 ssl_options=pika.SSLOptions(context)
