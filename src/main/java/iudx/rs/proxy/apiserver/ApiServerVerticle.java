@@ -1,33 +1,7 @@
 package iudx.rs.proxy.apiserver;
 
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_HEADERS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_METHODS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.EPOCH_TIME;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FORMAT;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FORMAT_JSON;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ISO_TIME;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.LIMITPARAM;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.OFFSETPARAM;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.PROVIDER_ID;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESOURCE_GROUP;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_DOC;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_STATIC_SPEC;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TYPE_KEY;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.*;
@@ -187,7 +161,6 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(AuthHandler.create(vertx,apis))
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
-
     /** Documentation routes */
     /* Static Resource Handler */
     /* Get openapiv3 spec */
@@ -201,11 +174,14 @@ public class ApiServerVerticle extends AbstractVerticle {
       response.sendFile("docs/apidoc.html");
     });
 
-   router.route().handler(context->{
-      context.addBodyEndHandler(endHandler->{
-        Future.future(future->logConsentResponse(context));
+      router.route(apis.getAsyncPath() + "/*").subRouter(new AsyncRestApi(vertx, router, apis,config()).init());
+
+      router.route().handler(context -> {
+          context.addBodyEndHandler(endHandler -> {
+              Future.future(future -> logConsentResponse(context));
+          });
       });
-    });
+
 
     HttpServerOptions serverOptions = new HttpServerOptions();
     int port = config().getInteger("port");
@@ -215,9 +191,8 @@ public class ApiServerVerticle extends AbstractVerticle {
     server.requestHandler(router).listen(port);
     LOGGER.debug("port deployed : "+server.actualPort());
     printDeployedEndpoints(router);
-    router.route(apis.getAsyncPath() + "/*").subRouter(new AsyncRestApi(vertx, router, apis).init());
-  }
 
+  }
   private void setServerOptions(HttpServerOptions serverOptions) {
     boolean isSSL = config().getBoolean("ssl");
     boolean isProduction = config().getBoolean("production");
@@ -419,6 +394,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   private void adapterResponseForCountQuery(RoutingContext context, JsonObject json,
                                             HttpServerResponse response) {
     JsonObject authInfo = (JsonObject) context.data().get("authInfo");
+    json.put(API,authInfo.getValue(API_ENDPOINT));
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
     if(isAdexInstance) {
@@ -451,6 +427,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   private void adapterResponseForSearchQuery(RoutingContext context, JsonObject json,
                                              HttpServerResponse response) {
     JsonObject authInfo = (JsonObject) context.data().get("authInfo");
+      json.put(API,authInfo.getValue(API_ENDPOINT));
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
     if (isAdexInstance) {

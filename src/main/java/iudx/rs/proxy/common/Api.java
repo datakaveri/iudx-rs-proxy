@@ -17,6 +17,8 @@ public class Api {
   private StringBuilder consumerAuditEndpoint;
   private StringBuilder providerAuditEndpoint;
   private StringBuilder asyncPath;
+  private StringBuilder asyncSearchEndPoint;
+  private StringBuilder asyncStatusEndPoint;
   private static volatile Api apiInstance;
   
   private void buildEndpoints() {
@@ -27,6 +29,8 @@ public class Api {
     consumerAuditEndpoint=new StringBuilder(dxApiBasePath).append(CONSUMER_AUDIT_URL);
     providerAuditEndpoint=new StringBuilder(dxApiBasePath).append(PROVIDER_AUDIT_URL);
     asyncPath = new StringBuilder(dxApiBasePath).append(ASYNC);
+    asyncSearchEndPoint = new StringBuilder(dxApiBasePath).append(ASYNC+SEARCH);
+    asyncStatusEndPoint = new StringBuilder(dxApiBasePath).append(ASYNC + STATUS);
   }
 
   public static Api getInstance(String dxApiBasePath)
@@ -70,6 +74,11 @@ public class Api {
   public String getAsyncPath() {
     return asyncPath.toString();
   }
-
+public String getAsyncSearchEndPoint(){
+    return asyncSearchEndPoint.toString();
+}
+public String getAsyncStatusEndpoint(){
+    return asyncStatusEndPoint.toString();
+}
 
 }

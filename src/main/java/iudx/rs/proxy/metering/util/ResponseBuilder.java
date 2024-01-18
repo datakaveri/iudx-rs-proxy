@@ -31,6 +31,12 @@ public class ResponseBuilder {
     return this;
   }
 
+  public ResponseBuilder setTypeAndTitle(int statusCode, String title) {
+    response.put(TYPE_KEY, statusCode);
+    response.put(TITLE, title);
+    return this;
+  }
+
   /** Overloaded methods for Error messages. */
   public ResponseBuilder setMessage(String error) {
     response.put(DETAIL, error);

@@ -13,5 +13,7 @@ public class Constants {
   // postgres queries
   public static String SELECT_REVOKE_TOKEN_SQL = "SELECT * FROM revoked_tokens";
   public static String SELECT_UNIQUE_ATTRIBUTE = "SELECT * from unique_attributes";
-
+  public static String ISERT_ASYNC_REQUEST_DETAIL_SQL = "INSERT INTO async_request_detail(search_id, consumer_id, resource_id, request_query) "
+          + "values('$0','$1','$2','$3'::JSON)";
+  public static String SELECT_ASYNC_DETAILS = "SELECT consumer_id,search_id,resource_id FROM async_request_detail WHERE search_id ='$0'";
 }

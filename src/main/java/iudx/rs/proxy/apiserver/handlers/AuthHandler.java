@@ -195,6 +195,10 @@ public class AuthHandler implements Handler<RoutingContext> {
       path = api.getPostEntitiesEndpoint();
     } else if (url.matches(api.getPostTemporalEndpoint())) {
       path = api.getPostTemporalEndpoint();
+    } else if (url.matches(api.getAsyncSearchEndPoint())) {
+      path = api.getAsyncSearchEndPoint();
+    } else if (url.matches(api.getAsyncStatusEndpoint())) {
+      path = api.getAsyncStatusEndpoint();
     }
     return path;
   }

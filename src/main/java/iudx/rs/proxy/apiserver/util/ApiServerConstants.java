@@ -18,6 +18,11 @@ public class ApiServerConstants {
   public static final String HEADER_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
   public static final String HEADER_OPTIONS = "options";
   public static final String HEADER_PUBLIC_KEY = "publicKey";
+  public static final String HEADER_CSV = "csv";
+  public static final String HEADER_JSON = "json";
+  public static final String HEADER_PARQUET = "parquet";
+  public static final String HEADER_RESPONSE_FILE_FORMAT = "format";
+
 
   public static final Set<String> ALLOWED_HEADERS =
       new HashSet<>(
@@ -131,6 +136,7 @@ public class ApiServerConstants {
   public static final Pattern VALIDATION_ID_PATTERN =
       Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
   public static final int VALIDATION_MAX_ATTRS = 5;
+  public static final int VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC = 365;
   public static final int VALIDATION_MAX_DAYS_INTERVAL_ALLOWED = 10;
   public static final int VALIDATION_COORDINATE_PRECISION_ALLOWED = 6;
   public static final int VALIDATIONS_MAX_ATTR_LENGTH = 100;
@@ -145,6 +151,7 @@ public class ApiServerConstants {
   public static final String PROVIDER_ID = "providerID";
 
   public static final double VALIDATION_ALLOWED_DIST = 1000.0;
+  public static final double VALIDATION_ALLOWED_DIST_FOR_ASYNC = 10000.0;
   public static final int VALIDATION_PAGINATION_LIMIT_MAX = 5000;
   public static final int VALIDATION_PAGINATION_OFFSET_MAX = 49999;
   public static final List<Object> VALIDATION_ALLOWED_GEOM =
