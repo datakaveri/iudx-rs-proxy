@@ -42,13 +42,12 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
     final String catBasePath;
     private final PayloadSigningManager payloadSigningManager;
     private final MeteringService meteringService;
-    Vertx vertx = Vertx.vertx();
     Supplier<String> isoTimeSupplier =
             () -> ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get("IST"))).toString();
     Supplier<String> primaryKeySuppler = () -> UUID.randomUUID().toString();
 
 
-    public ConsentLoggingServiceImpl(PayloadSigningManager signingManager, MeteringService meteringService, JsonObject config) {
+    public ConsentLoggingServiceImpl(Vertx vertx, PayloadSigningManager signingManager, MeteringService meteringService, JsonObject config) {
         this.payloadSigningManager = signingManager;
         this.meteringService = meteringService;
         this.host = config.getString("catServerHost");
@@ -173,7 +172,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
         return isRequired;
     }
 
-    Future<JsonObject> getCatItem(JwtData jwtData) {
+   private Future<JsonObject> getCatItem(JwtData jwtData) {
         String resourceId = jwtData.getIid().split(":")[1];
         LOGGER.trace("resourceid :{} ", resourceId);
         Promise promise = Promise.promise();
