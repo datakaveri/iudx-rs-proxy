@@ -40,7 +40,7 @@ public class AuthenticationVerticle extends AbstractVerticle {
   private MessageConsumer<JsonObject> consumer;
   private WebClient webClient;
   private CacheService cacheService;
-  
+
   private String dxApiBasePath;
 
   static WebClient createWebClient(Vertx vertx, JsonObject config) {
@@ -72,10 +72,11 @@ public class AuthenticationVerticle extends AbstractVerticle {
               String cert = handler;
               binder = new ServiceBinder(vertx);
 
-              JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
-              jwtAuthOptions.addPubSecKey(
-                  new PubSecKeyOptions().setAlgorithm("ES256").setBuffer(cert));
-              /*
+                JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
+                jwtAuthOptions.getJWTOptions().addAudience(config().getString("audience"));
+                jwtAuthOptions.addPubSecKey(
+                        new PubSecKeyOptions().setAlgorithm("ES256").setBuffer(cert));
+                /*
                * Default jwtIgnoreExpiry is false. If set through config, then that value is taken
                */
               boolean jwtIgnoreExpiry =

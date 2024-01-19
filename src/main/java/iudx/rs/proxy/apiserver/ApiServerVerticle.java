@@ -1,33 +1,52 @@
 package iudx.rs.proxy.apiserver;
 
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_HEADERS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ALLOWED_METHODS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.EPOCH_TIME;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FORMAT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FORMAT_JSON;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_HOST;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
-import static iudx.rs.proxy.authenticator.Constants.*;
-import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
-
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ISO_TIME;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IUDXQUERY_OPTIONS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_COUNT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_INSTANCEID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.LIMITPARAM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.OFFSETPARAM;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.PROVIDER_ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESOURCE_GROUP;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESPONSE_SIZE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_DOC;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ROUTE_STATIC_SPEC;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TYPE_KEY;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
-import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
-import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
+import static iudx.rs.proxy.authenticator.Constants.*;
+import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.HttpStatusCode.NO_CONTENT;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
-
-import static iudx.rs.proxy.metering.util.Constants.RESULTS;
-import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
-import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
-
-
+import iudx.rs.proxy.apiserver.handlers.TokenDecodeHandler;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import iudx.rs.proxy.optional.consentlogs.ConsentLoggingService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -46,9 +65,9 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.serviceproxy.ServiceException;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.handlers.AuthHandler;
+import iudx.rs.proxy.apiserver.handlers.ConsentLogRequestHandler;
 import iudx.rs.proxy.apiserver.handlers.FailureHandler;
 import iudx.rs.proxy.apiserver.handlers.ValidationHandler;
 import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
@@ -64,14 +83,6 @@ import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Optional;
-import java.util.stream.Stream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class ApiServerVerticle extends AbstractVerticle {
@@ -91,6 +102,8 @@ public class ApiServerVerticle extends AbstractVerticle {
   private String dxCatalogueBasePath;
   private String dxAuthBasePath;
   private String dxApiBasePath;
+  private ConsentLoggingService consentLoggingService;
+  private boolean isAdexInstance;
 
   @Override
   public void start() throws Exception {
@@ -99,46 +112,56 @@ public class ApiServerVerticle extends AbstractVerticle {
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
+    consentLoggingService = ConsentLoggingService.createProxy(vertx,CONSEENTLOG_SERVICE_ADDRESS);
 
     /* Get base paths from config */
     dxApiBasePath=config().getString("dxApiBasePath");
     dxCatalogueBasePath = config().getString("dxCatalogueBasePath");
     dxAuthBasePath = config().getString("dxAuthBasePath");
+    isAdexInstance = config().getBoolean("isAdexInstance");
     Api apis=Api.getInstance(dxApiBasePath);
-    
+
     router = Router.router(vertx);
     attachCORSHandlers(router);
     attachDefaultResponses(router);
     router.route().handler(BodyHandler.create());
-    
+
     FailureHandler validationsFailureHandler = new FailureHandler();
 
     ValidationHandler entityValidationHandler = new ValidationHandler(vertx, RequestType.ENTITY);
     router
-          .get(apis.getEntitiesEndpoint())
-          .handler(entityValidationHandler)
-          .handler(AuthHandler.create(vertx, apis))
-          .handler(this::handleEntitiesQuery)
-          .failureHandler(validationsFailureHandler);
+            .get(apis.getEntitiesEndpoint())
+            .handler(entityValidationHandler)
+            .handler(TokenDecodeHandler.create(vertx))
+            .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+            .handler(AuthHandler.create(vertx, apis))
+            .handler(this::handleEntitiesQuery)
+            .failureHandler(validationsFailureHandler);
 
     ValidationHandler temporalValidationHandler =
         new ValidationHandler(vertx, RequestType.TEMPORAL);
     router
-          .get(apis.getTemporalEndpoint())
-          .handler(temporalValidationHandler)
-          .handler(AuthHandler.create(vertx, apis))
-          .handler(this::handleTemporalQuery)
-          .failureHandler(validationsFailureHandler);
+            .get(apis.getTemporalEndpoint())
+            .handler(temporalValidationHandler)
+            .handler(TokenDecodeHandler.create(vertx))
+            .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+            .handler(AuthHandler.create(vertx, apis))
+            .handler(this::handleTemporalQuery)
+            .failureHandler(validationsFailureHandler);
 
     router
-          .get(apis.getConsumerAuditEndpoint())
-          .handler(AuthHandler.create(vertx, apis))
-          .handler(this::getConsumerAuditDetail);
-    
+            .get(apis.getConsumerAuditEndpoint())
+            .handler(TokenDecodeHandler.create(vertx))
+            .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+            .handler(AuthHandler.create(vertx, apis))
+            .handler(this::getConsumerAuditDetail);
+
     router
-          .get(apis.getProviderAuditEndpoint())
-          .handler(AuthHandler.create(vertx, apis))
-          .handler(this::getProviderAuditDetail);
+            .get(apis.getProviderAuditEndpoint())
+            .handler(TokenDecodeHandler.create(vertx))
+            .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+            .handler(AuthHandler.create(vertx, apis))
+            .handler(this::getProviderAuditDetail);
 
     // Post Queries
     ValidationHandler postEntitiesValidationHandler =
@@ -147,7 +170,9 @@ public class ApiServerVerticle extends AbstractVerticle {
             .post(apis.getPostEntitiesEndpoint())
             .consumes(APPLICATION_JSON)
             .handler(postEntitiesValidationHandler)
-            .handler(AuthHandler.create(vertx,apis))
+            .handler(TokenDecodeHandler.create(vertx))
+            .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+            .handler(AuthHandler.create(vertx, apis))
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
@@ -157,6 +182,8 @@ public class ApiServerVerticle extends AbstractVerticle {
             .post(apis.getPostTemporalEndpoint())
             .consumes(APPLICATION_JSON)
             .handler(postTemporalValidationHandler)
+            .handler(TokenDecodeHandler.create(vertx))
+            .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
             .handler(AuthHandler.create(vertx,apis))
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
@@ -172,6 +199,12 @@ public class ApiServerVerticle extends AbstractVerticle {
     router.get(ROUTE_DOC).produces(FORMAT).handler(routingContext -> {
       HttpServerResponse response = routingContext.response();
       response.sendFile("docs/apidoc.html");
+    });
+
+   router.route().handler(context->{
+      context.addBodyEndHandler(endHandler->{
+        Future.future(future->logConsentResponse(context));
+      });
     });
 
     HttpServerOptions serverOptions = new HttpServerOptions();
@@ -244,7 +277,45 @@ public class ApiServerVerticle extends AbstractVerticle {
     });
   }
 
-  private void handleEntitiesQuery(RoutingContext routingContext) {
+    private Future<Void> logConsentResponse(RoutingContext routingContext) {
+        LOGGER.info("logging consent log for response");
+        Promise<Void> promise = Promise.promise();
+        String consentLog = null;
+        switch (routingContext.response().getStatusCode()) {
+            case 200:
+            case 201: {
+                consentLog = "DATA_SENT";
+                break;
+            }
+            case 400:
+            case 401:
+            case 404: {
+                consentLog = "DATA_DENIED";
+                break;
+            }
+        }
+        LOGGER.info("response ended : {}", routingContext.response());
+        LOGGER.info("consent log : {}", consentLog);
+        LOGGER.info("response code : {}", routingContext.response().getStatusCode());
+        LOGGER.info("response body : {}", routingContext.response().bodyEndHandler(null));
+
+        String finalConsentLog = consentLog;
+
+        JsonObject logRequest = new JsonObject();
+        logRequest.put("logType", finalConsentLog);
+
+        Future<JsonObject> consentAuditLog = consentLoggingService.log(logRequest, routingContext.get("jwtData"));
+        consentAuditLog.onSuccess(auditLogHandler -> promise.complete())
+                .onFailure(auditLogFailure -> {
+                    LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                    promise.fail(auditLogFailure);
+                });
+
+
+        return promise.future();
+    }
+
+    private void handleEntitiesQuery(RoutingContext routingContext) {
     JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
     HttpServerRequest request = routingContext.request();
     HttpServerResponse response = routingContext.response();
@@ -349,7 +420,9 @@ public class ApiServerVerticle extends AbstractVerticle {
     JsonObject authInfo = (JsonObject) context.data().get("authInfo");
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
-    json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment. remove for others
+    if(isAdexInstance) {
+      json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
+    }
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
@@ -379,12 +452,13 @@ public class ApiServerVerticle extends AbstractVerticle {
     JsonObject authInfo = (JsonObject) context.data().get("authInfo");
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
-    json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment. remove for others
+    if (isAdexInstance) {
+      json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
+    }
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         JsonObject adapterResponse=handler.result();
         int status=adapterResponse.containsKey("statusCode")?adapterResponse.getInteger("statusCode"):400;
-        System.out.println("adapter response status code : " + adapterResponse.getInteger("statusCode"));
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
         response.setStatusCode(status);
         if(status==200) {
@@ -566,6 +640,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     HttpServerRequest request = routingContext.request();
     JsonObject requestJson = routingContext.body().asJsonObject();
     LOGGER.debug("Info: request Json: " + requestJson);
+    requestJson.remove("logType");
     HttpServerResponse response = routingContext.response();
     MultiMap headerParams = request.headers();
     MultiMap params = getQueryParams(routingContext, response).get();
@@ -650,23 +725,23 @@ public class ApiServerVerticle extends AbstractVerticle {
               }
             });
 
-    promise.future();
+      promise.future();
   }
-  
-  private void printDeployedEndpoints(Router router) {
-    for(Route route:router.getRoutes()) {
-      if(route.getPath()!=null) {
-        LOGGER.info("API Endpoints deployed :"+ route.methods() +":"+ route.getPath());
-      }
+
+    private void printDeployedEndpoints(Router router) {
+        for (Route route : router.getRoutes()) {
+            if (route.getPath() != null) {
+                LOGGER.info("API Endpoints deployed :" + route.methods() + ":" + route.getPath());
+            }
+        }
     }
-  }
-  
+
   public String extractPPBNo(JsonObject authInfo) {
     LOGGER.debug("auth info :{}",authInfo);
     if(authInfo==null) return "";
-    JsonObject apd=authInfo.getJsonObject("apd");
-    if(apd==null) return  "";
-    String ppbno=apd.getString("ppbNumber");
+    JsonObject cons=authInfo.getJsonObject(JSON_CONS);
+    if(cons==null) return  "";
+    String ppbno=cons.getString("ppbNumber");
     if(ppbno==null) return "";
     return ppbno;
   }

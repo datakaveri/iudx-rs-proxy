@@ -1,6 +1,18 @@
 package iudx.rs.proxy.apiserver.handlers;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_ENDPOINT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API_METHOD;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.APPLICATION_JSON;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.CONTENT_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_TOKEN;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IDS;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.IID;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_DETAIL;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_ENTITIES;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TITLE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.JSON_TYPE;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.USER_ID;
 import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.AUTH_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TOKEN_URN;
@@ -14,13 +26,16 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import iudx.rs.proxy.authenticator.AuthenticationService;
+import iudx.rs.proxy.authenticator.model.JwtData;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/** IUDX Authentication handler to authenticate token passed in HEADER */
+/**
+ * IUDX Authentication handler to authenticate token passed in HEADER
+ */
 public class AuthHandler implements Handler<RoutingContext> {
 
   private static final Logger LOGGER = LogManager.getLogger(AuthHandler.class);
@@ -55,16 +70,19 @@ public class AuthHandler implements Handler<RoutingContext> {
     final String path = getNormalizedPath(request.path());
     final String method = context.request().method().toString();
 
-    if (token == null) token = "public";
+    if (token == null) {
+      token = "public";
+    }
 
+    JwtData jwtData = (JwtData) context.data().get("jwtData");
     JsonObject authInfo =
         new JsonObject().put(API_ENDPOINT, path).put(HEADER_TOKEN, token).put(API_METHOD, method);
+
 
     LOGGER.debug("Info :" + context.request().path());
 
     String id = getId(context);
     authInfo.put(ID, id);
-
     JsonArray ids = new JsonArray();
     String[] idArray = (id == null ? new String[0] : id.split(","));
     for (String i : idArray) {
@@ -74,11 +92,13 @@ public class AuthHandler implements Handler<RoutingContext> {
     authenticator.tokenIntrospect(
         requestJson,
         authInfo,
+        jwtData,
         authHandler -> {
           if (authHandler.succeeded()) {
             authInfo.put(IID, authHandler.result().getValue(IID));
             authInfo.put(USER_ID, authHandler.result().getValue(USER_ID));
-            authInfo.put("apd", authHandler.result().getValue("apd"));
+            authInfo.put(JSON_APD, authHandler.result().getValue(JSON_APD));
+            authInfo.put(JSON_CONS, authHandler.result().getValue(JSON_CONS));
             authInfo.put(ROLE, authHandler.result().getValue(ROLE));
             authInfo.put(DID, authHandler.result().getValue(DID));
             authInfo.put(DRL, authHandler.result().getValue(DRL));
@@ -135,7 +155,7 @@ public class AuthHandler implements Handler<RoutingContext> {
   }
 
   private String getId4rmRequest() {
-    LOGGER.info("from request " + request.getParam(ID));
+    LOGGER.info("ID from request " + request.getParam(ID));
     return request.getParam(ID);
   }
 

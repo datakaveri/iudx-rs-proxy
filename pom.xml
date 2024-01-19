@@ -47,6 +47,13 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>eu.europa.ec.joinup.sd-dss</groupId>
+				<artifactId>dss-bom</artifactId>
+				<version>5.12.1</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -86,6 +93,16 @@
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-checkstyle-plugin</artifactId>
 			<version>${maven-checkstyle-plugin.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -198,6 +215,24 @@
 			<artifactId>client</artifactId>
 			<version>2.1</version>
 		</dependency>
+
+		<!--cert signing utility-->
+		<dependency>
+			<groupId>eu.europa.ec.joinup.sd-dss</groupId>
+			<artifactId>dss-utils-apache-commons</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>eu.europa.ec.joinup.sd-dss</groupId>
+			<artifactId>dss-xades</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>eu.europa.ec.joinup.sd-dss</groupId>
+			<artifactId>dss-cades</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>eu.europa.ec.joinup.sd-dss</groupId>
+			<artifactId>dss-token</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -245,18 +280,22 @@
 						<exclude>iudx/rs/proxy/deploy/*.class</exclude>
 						<exclude>**/*AuthenticationService.class</exclude>
 						<exclude>**/*MeteringService.class</exclude>
-					 	<exclude>**/*CacheService.class</exclude>
+						<exclude>**/*CacheService.class</exclude>
 						<exclude>**/*Method.class</exclude>
 						<exclude>**/*DatabaseService.class</exclude>
 						<exclude>**/*ApiServerConstants.class</exclude>
 						<exclude>**/*CacheServiceVertxProxyHandler.class</exclude>
 						<exclude>**/*MeteringServiceVertxProxyHandler.class</exclude>
-						<exclude>**/*AuthenticationServiceVertxProxyHandler.class</exclude>
+						<exclude>
+							**/*AuthenticationServiceVertxProxyHandler.class</exclude>
+						<exclude>**/ConsentLoggingServiceVertxProxyHandler.class</exclude>
 						<exclude>**/database/**</exclude>
 						<!--<exclude>**/metering/**</exclude>-->
 						<exclude>**/databroker/**</exclude>
 						<!-- class present in generated-sources -->
 						<exclude>**/JwtDataConverter.class</exclude>
+						<exclude>**/PayloadSigningManager.class</exclude>
+
 
 
 					</excludes>
@@ -333,14 +372,17 @@
 								</transformer>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>META-INF/services/io.vertx.core.spi.VerticleFactory
+									<resource>
+										META-INF/services/io.vertx.core.spi.VerticleFactory
 									</resource>
-									<resource>META-INF/services/io.vertx.core.spi.VertxServiceProvider
+									<resource>
+										META-INF/services/io.vertx.core.spi.VertxServiceProvider
 									</resource>
 								</transformer>
 							</transformers>
 							<artifactSet></artifactSet>
-							<outputFile>${project.build.directory}/${project.artifactId}-dev-${project.version}-fat.jar
+							<outputFile>
+								${project.build.directory}/${project.artifactId}-dev-${project.version}-fat.jar
 							</outputFile>
 						</configuration>
 					</execution>
@@ -372,14 +414,17 @@
 								</transformer>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>META-INF/services/io.vertx.core.spi.VerticleFactory
+									<resource>
+										META-INF/services/io.vertx.core.spi.VerticleFactory
 									</resource>
-									<resource>META-INF/services/io.vertx.core.spi.VertxServiceProvider
+									<resource>
+										META-INF/services/io.vertx.core.spi.VertxServiceProvider
 									</resource>
 								</transformer>
 							</transformers>
 							<artifactSet></artifactSet>
-							<outputFile>${project.build.directory}/${project.artifactId}-cluster-${project.version}-fat.jar
+							<outputFile>
+								${project.build.directory}/${project.artifactId}-cluster-${project.version}-fat.jar
 							</outputFile>
 						</configuration>
 					</execution>
@@ -405,10 +450,12 @@
 							<mainClass>iudx.rs.proxy.deploy.DeployerDev </mainClass>
 							<arguments>
 								<argument>-jar</argument>
-								<argument>{project.build.directory}/${project.artifactId}-dev-${project.version}-fat.jar
+								<argument>
+									{project.build.directory}/${project.artifactId}-dev-${project.version}-fat.jar
 								</argument>
 								<argument>-c</argument>
-								<argument>./secrets/all-verticles-configs/${config-dev.file}</argument>
+								<argument>
+									./secrets/all-verticles-configs/${config-dev.file}</argument>
 							</arguments>
 						</configuration>
 					</execution>
