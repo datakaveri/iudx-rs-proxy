@@ -347,22 +347,20 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   public AuthenticationService decodeJwt(String jwtToken, Handler<AsyncResult<JwtData>> handler) {
     TokenCredentials creds = new TokenCredentials(jwtToken);
     jwtAuth.authenticate(creds).onSuccess(user -> {
-      JwtData jwtData = new JwtData(user.principal());
-      getCatItem(jwtData).onSuccess(catItems->{
-        jwtData.setProvider(catItems.getString("provider"));
-        jwtData.setType(catItems.getString("type"));
-        jwtData.setExp(user.get("exp"));
-        jwtData.setIat(user.get("iat"));
-        handler.handle(Future.succeededFuture(jwtData));
-      });
-    }).onFailure(err -> {
-      LOGGER.debug("err.getMessage():: "+err);
-      LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
-      handler.handle(Future.failedFuture(err.getMessage()));
-    });
+              JwtData jwtData = new JwtData(user.principal());
+              jwtData.setExp(user.get("exp"));
+              jwtData.setIat(user.get("iat"));
+              handler.handle(Future.succeededFuture(jwtData));
+            })
+            .onFailure(err -> {
+              LOGGER.debug("err.getMessage():: " + err);
+              LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
+              handler.handle(Future.failedFuture(err.getMessage()));
+            });
 
     return this;
   }
+
 
   // class to contain intermediate data for token introspection
   final class ResultContainer {

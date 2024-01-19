@@ -1,6 +1,7 @@
 package iudx.rs.proxy.optional.consentlogs;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -35,12 +36,15 @@ class ConsentLoggingServiceImplTest {
     @Mock
     private MeteringService meteringService;
     private ConsentLoggingServiceImpl consentLoggingService;
+    @Mock
+    private JsonObject mockJson;
+
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         consentLoggingServiceInterface = mock(ConsentLoggingServiceImpl.class);
-        consentLoggingService = new ConsentLoggingServiceImpl(payloadSigningManager, meteringService);
+        consentLoggingService = new ConsentLoggingServiceImpl(payloadSigningManager, meteringService, mockJson);
     }
 
     @Test

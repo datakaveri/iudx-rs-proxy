@@ -30,7 +30,7 @@ public class ConsentLoggingVerticle extends AbstractVerticle {
 
         meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
         payloadSigningManager = PayloadSigningManager.init(config());
-        consentLoggingService = new ConsentLoggingServiceImpl(payloadSigningManager, meteringService);
+        consentLoggingService = new ConsentLoggingServiceImpl(payloadSigningManager, meteringService, config());
         consumer =
                 binder.setAddress(CONSEENTLOG_SERVICE_ADDRESS).register(ConsentLoggingService.class, consentLoggingService);
 
