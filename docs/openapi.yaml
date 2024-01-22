@@ -1008,20 +1008,6 @@ paths:
             curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
             --header 'token: <tokenValue>'
 
-        - lang: 'cURL'
-          label: 'get encrypted data'
-          source: |
-            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
-            --header 'token: <tokenValue>' \
-            --header 'publicKey: <publicKeyValue>'
-
-        - lang: 'cURL'
-          label: 'get data in csv format'
-          source: |
-            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
-            --header 'token: <tokenValue>' \
-            --header 'format: csv'
-
       responses:
         201:
           description: 'query submitted successfully'
@@ -1088,13 +1074,6 @@ paths:
           source: |
             curl --location --request GET 'https://example.com/ngsi-ld/v1/async/status?searchID=sasdasd-asdasd-aasasd-dasdasd' \
             --header 'token: <tokenValue>'
-
-        - lang: 'cURL'
-          label: 'get encrypted data'
-          source: |
-            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/status?searchID=sasdasd-asdasd-aasasd-dasdasd' \
-            --header 'token: <tokenValue>' \
-            --header 'publicKey: <publicKeyValue>'
 
       responses:
         200:
