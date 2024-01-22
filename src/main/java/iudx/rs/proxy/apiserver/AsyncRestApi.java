@@ -20,7 +20,6 @@ import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
 import iudx.rs.proxy.apiserver.response.ResponseUtil;
 import iudx.rs.proxy.apiserver.service.CatalogueService;
-import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
@@ -28,6 +27,7 @@ import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
 import iudx.rs.proxy.metering.util.ResponseBuilder;
+import iudx.rs.proxy.optional.consentlogs.ConsentLoggingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,7 +58,7 @@ public class AsyncRestApi {
     private final CatalogueService catalogueService;
     private final DatabaseService databaseService;
     private final MeteringService meteringService;
-    private final CacheService cacheService;
+    private final ConsentLoggingService consentLoggingService;
 
     private final ParamsValidator validator;
     private boolean isAdexInstance;
@@ -69,11 +69,11 @@ public class AsyncRestApi {
         this.vertx = vertx;
         this.router = router;
         this.databrokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
-        this.cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
         this.catalogueService = new CatalogueService(vertx, config);
         this.validator = new ParamsValidator(catalogueService);
         this.databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
         this.meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
+        this.consentLoggingService = ConsentLoggingService.createProxy(vertx, CONSEENTLOG_SERVICE_ADDRESS);
         this.api = api;
         isAdexInstance = config.getBoolean("isAdexInstance");
     }
@@ -101,7 +101,54 @@ public class AsyncRestApi {
                 .handler(this::handleAsyncStatusRequest)
                 .failureHandler(validationsFailureHandler);
 
+        router.route().handler(context -> {
+            context.addBodyEndHandler(endHandler -> {
+                Future.future(future -> logConsentResponse(context));
+            });
+        });
+
         return this.router;
+    }
+
+    private Future<Void> logConsentResponse(RoutingContext routingContext) {
+        LOGGER.info("logging consent log for response");
+        Promise<Void> promise = Promise.promise();
+        if (isAdexInstance) {
+            String consentLog = null;
+            switch (routingContext.response().getStatusCode()) {
+                case 200:
+                case 201: {
+                    consentLog = "DATA_SENT";
+                    break;
+                }
+                case 400:
+                case 401:
+                case 404: {
+                    consentLog = "DATA_DENIED";
+                    break;
+                }
+            }
+            LOGGER.info("response ended : {}", routingContext.response());
+            LOGGER.info("consent log : {}", consentLog);
+            LOGGER.info("response code : {}", routingContext.response().getStatusCode());
+            LOGGER.info("response body : {}", routingContext.response().bodyEndHandler(null));
+
+            String finalConsentLog = consentLog;
+
+            JsonObject logRequest = new JsonObject();
+            logRequest.put("logType", finalConsentLog);
+
+            Future<JsonObject> consentAuditLog = consentLoggingService.log(logRequest, routingContext.get("jwtData"));
+            consentAuditLog.onSuccess(auditLogHandler -> promise.complete())
+                    .onFailure(auditLogFailure -> {
+                        LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                        promise.fail(auditLogFailure);
+                    });
+
+        }
+
+
+        return promise.future();
     }
 
     private void handleAsyncSearchRequest(RoutingContext routingContext) {
@@ -325,7 +372,7 @@ public class AsyncRestApi {
                         .end(handler.cause().getMessage());
             }
         });
-
+        context.next();
     }
 
     public String extractPPBNo(JsonObject authInfo) {

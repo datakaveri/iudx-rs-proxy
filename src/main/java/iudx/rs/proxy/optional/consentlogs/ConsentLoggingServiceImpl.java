@@ -34,7 +34,7 @@ import static iudx.rs.proxy.metering.util.Constants.ORIGIN;
 
 public class ConsentLoggingServiceImpl implements ConsentLoggingService {
 
-    private static final Logger LOGGER = LogManager.getLogger(ConsentLogRequestHandler.class);
+    private static final Logger LOGGER = LogManager.getLogger(ConsentLoggingServiceImpl.class);
     static WebClient catWebClient;
     final String host;
     final int port;
@@ -72,8 +72,8 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
         }
 
         if (!isConsentRequired(jwtData)) {
-            promise.fail("token doesn't contains PII data.");
-            return Future.failedFuture("token doesn't contains PII data.");
+            LOGGER.info("token doesn't contains PII data/consent not required.");
+            return Future.failedFuture("token doesn't contains PII data/consent not required.");
         }
         if (consentLogType != null) {
             getCatItem(jwtData)
@@ -96,7 +96,6 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
                     });
 
         } else {
-            LOGGER.debug("null value passed as ConsentLogType");
             promise.fail("null value passed as ConsentLogType");
         }
 
@@ -172,7 +171,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
         return isRequired;
     }
 
-   private Future<JsonObject> getCatItem(JwtData jwtData) {
+    private Future<JsonObject> getCatItem(JwtData jwtData) {
         String resourceId = jwtData.getIid().split(":")[1];
         LOGGER.trace("resourceid :{} ", resourceId);
         Promise promise = Promise.promise();

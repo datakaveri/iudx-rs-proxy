@@ -175,12 +175,12 @@ public class ApiServerVerticle extends AbstractVerticle {
     });
 
       router.route(apis.getAsyncPath() + "/*").subRouter(new AsyncRestApi(vertx, router, apis,config()).init());
-
-      router.route().handler(context -> {
+// todo need to identify the the way to handle "addBodyEndHandler" currently it is handling from AsyncRestApi class.
+     /* router.route().handler(context -> {
           context.addBodyEndHandler(endHandler -> {
               Future.future(future -> logConsentResponse(context));
           });
-      });
+      });*/
 
 
     HttpServerOptions serverOptions = new HttpServerOptions();
@@ -416,6 +416,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 .end(handler.cause().getMessage());
       }
     });
+      context.next();
   }
 
   /**
@@ -461,7 +462,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 .end(handler.cause().getMessage());
       }
     });
-
+      context.next();
   }
   private Optional<MultiMap> getQueryParams(RoutingContext routingContext,
       HttpServerResponse response) {
