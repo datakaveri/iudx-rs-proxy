@@ -14,7 +14,7 @@ consumes:
 
 info:
   title: "Data exchange Resource Server Proxy APIs"
-  version: 5.0.0
+  version: 5.5.0
   description: |
     # Introduction
     The Resource Proxy Server is DXs'(Data Exchange) data discovery portal.
@@ -22,7 +22,7 @@ info:
     It supports Complex (Temporal + Attribute), Temporal (Before, during, After) and Attribute searches.
     It integrates with authorization server (token introspection) to serve private data as per the access control policies set by the provider
     It secures data access over TLS
-
+    
     
     # Configurations
     - **Server**: 
@@ -39,6 +39,8 @@ info:
           -  /temporal/entities
           -  /temporal/entityOperations/query
           -  /entityOperations/query
+          -  /async/search
+          -  /async/status
           -  /consumer/audit
           -  /provider/audit
           <br>
@@ -59,6 +61,8 @@ info:
        - <b>/temporal/entities</b>
        - <b>/temporal/entityOperations/query</b>
        - <b>/entityOperations/query</b>
+       - <b>/consumer/audit</b>
+       - <b>/provider/audit</b>
     
     Additional query parameters to be used:
       - <b>offset</b> : The from parameter defines the offset from the first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue: 49999</i> )
@@ -911,6 +915,196 @@ paths:
           - The value should be equal to `count` and it is <b>case sensitive</b>
       deprecated: false
 
+  /async/search:
+    get:
+      tags:
+        - Async
+      summary: Search
+      operationId: async search
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: id
+          in: query
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          required: true
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+        - name: timerel
+          in: query
+          description: 'The temporal relation type of <b>timerel</b> to be performed.'
+          #required: true
+          schema:
+            type: string
+            enum: [ between, before, after ]
+        - name: time
+          in: query
+          description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          #required: true
+          schema:
+            type: string
+        - name: endtime
+          in: query
+          description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          #required: true
+          schema:
+            type: string
+        - name: geoproperty
+          in: query
+          description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+          schema:
+            type: string
+            enum: [ location ]
+        - name: georel
+          in: query
+          description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+          schema:
+            type: string
+            enum: [ near;maxdistance=<distance_in_meters>, within, intersects ]
+
+        - name: geometry
+          in: query
+          description: 'The geometry type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/>The list is <b>case sensitive</b> '
+          schema:
+            type: string
+            enum: [ Point (or) point, Polygon (or) polygon, LineString (or) linestring, bbox ]
+
+        - name: coordinates
+          in: query
+          description: 'The coordinates for a specific geometry query type. <br/> This parameter accepts both <b> one dimentional array and multi dimentional arrays </b> based on the <b> geometry</b> type. <br/> For e.g, [longitude-1,latitude-1] should be used for geometry <b>point</b>.  <br/>[[[longitude-1,latitude-1], [longitude-2,latitude-2],...., [longitude-n,latitude-n]]] should be used for geometry <b>polygon</b>. <br/> [[longitude-1,latitude-1], [longitude-2,latitude-2],...., [longitude-n,latitude-n]] should be used for geometry <b>bbox and linestring </b>. <br/> Maximum of 10 latitude, longitude pairs can be used for geometry <b>polygon, bbox and linestring </b>. <br/> Note: The data-type of this field is a string, therefore the coordinates are a string encoded multidimensional array.<br/> Maximum precision allowed is upto 6 decimal places.'
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 10
+            items:
+              type: number
+            format: double
+        - name: q
+          in: query
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+          schema:
+            type: string
+            maxLength: 512
+        - name: format
+          in: header
+          description: 'format in header could be added to get the response in required encoding through `/async/status` API'
+          schema:
+            type: string
+            enum:  ["json", "csv"]
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'async search'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
+            --header 'token: <tokenValue>'
+
+      responses:
+        201:
+          description: 'query submitted successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/asyncsearchResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/adapterBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: 'Unauthorized'
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+        500:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/internalServerErrorResponse"
+          description: 'Internal Server Error'
+
+  /async/status:
+    get:
+      tags:
+        - Async
+      summary: Search status
+      operationId: async search status
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: searchId
+          in: query
+          description: 'searchId returned while submitting request through `/async/search`'
+          required: true
+          schema:
+            type: string
+            maxLength: 512
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'async status'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/status?searchID=sasdasd-asdasd-aasasd-dasdasd' \
+            --header 'token: <tokenValue>'
+
+      responses:
+        200:
+          description: 'search status'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/asyncsearchStatusComplete'
+                  - $ref: '#/components/schemas/asyncsearchStatusInprogress'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/adapterBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: 'Unauthorized'
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
 
   /consumer/audit:
     get:
@@ -1730,3 +1924,87 @@ components:
         type: urn:dx:rs:badRequest
         title: Bad Request Data
         detail: Missing/Invalid parameters
+
+    asyncsearchResponse:
+      title: asyncsearch
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: query submitted successfully
+        results: [
+          { "searchId": "asasdasd-asdasd-a353f-dasdas5"
+          }
+        ]
+
+    internalServerErrorResponse:
+      title: asyncsearch
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:badRequest
+        title: Internal Server Error
+        detail: Internal Server Error
+
+    asyncsearchStatusComplete:
+      title: complete
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          { "status": "COMPLETE",
+            "progress": 100.00,
+            "file-download-url": "https://example.com/filename",
+            "searchId": "asasdasd-asdasd-aasasd-dasdasd",
+            "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
+          }
+        ]
+
+    asyncsearchStatusInprogress:
+      title: inprogress
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          { "status": "IN_PROGRESS",
+            "progress": 70.00,
+            "searchId": "asasdasd-asdasd-aasasd-dasdasd",
+            "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
+          }
+        ]
