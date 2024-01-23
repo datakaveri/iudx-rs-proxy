@@ -10,6 +10,7 @@ import configparser
 from pathlib import Path
 import os
 # Read config from file
+import uuid
 
 config = configparser.RawConfigParser()
 config.read('./secrets/config.ini')
@@ -41,11 +42,11 @@ def on_request(ch, method, props, body):
     print(" [INFO] "+str(props))
 
     requestJson=json.loads(body)
-    requestId=requestJson['searchType'];
+    #requestId=requestJson['searchType'];
 
-    dictionary = {'adapter':'pune-aqm','correlation_id':props.correlation_id, 'reply_to_queue':props.reply_to, 'id':'requestId','response':requestJson}
+    dictionary = {'adapter':'pune-aqm','correlation_id':props.correlation_id, 'reply_to_queue':props.reply_to, 'id':'requestId','response':requestJson,'statusCode': 200,'searchId': '44547640-116b-4e67-9821-34093b54f166'}
     jsonString = json.dumps(dictionary, indent=4)
-    
+
     reply_queue=props.reply_to
 
     #print(" [INFO] Sleep for 10 sec")
