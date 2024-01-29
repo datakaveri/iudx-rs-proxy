@@ -89,15 +89,15 @@ class SearchDatabase:
 
         if query:
             if "options" in json_object and json_object["options"] == "count":
-                # Convert GeoDistance object to a dictionary
-                geo_distance_dict = query.to_dict()
+                # Convert query to a dictionary
+                query_dict = query.to_dict()
                 # Perform count query using the "_count" endpoint
                 # Define the Elasticsearch query
                 query = {
                     "query": {
                         "bool": {
                             "must": [
-                                geo_distance_dict
+                                query_dict
                             ]
                         }
                     }
@@ -106,7 +106,7 @@ class SearchDatabase:
                 logging.info(count_response)
                 count = count_response['count']
                 response_payload = {
-                    "count": count,
+                    "totalHits": count,
                     "statusCode": None # Placeholder for status code
                     }
             else:
@@ -117,13 +117,13 @@ class SearchDatabase:
                 hits = [hit.to_dict() for hit in response.hits]
                 # Serialize the extracted data to JSON
                 response_payload = {
-                    "hits": hits,
+                    "results": hits,
                     "statusCode": None  # Placeholder for status code
                 }
         else:
             logging.info("Empty query")
 
-        logging.info("Number of logs: %s", len(custom_handler.logs))
+        #logging.info("Number of logs: %s", len(custom_handler.logs))
         # Extract relevant information from captured log messages of elk client
         for log in custom_handler.logs:
             logging.info(log)
