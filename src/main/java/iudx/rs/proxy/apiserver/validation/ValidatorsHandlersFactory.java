@@ -56,6 +56,12 @@ public class ValidatorsHandlersFactory {
       case POST_TEMPORAL:
         validator = getPostEntitiesValidations(vertx, parameters, headers, body, requestType);
         break;
+      case ASYNC_SEARCH:
+        validator = getAsyncRequestValidations(parameters);
+        break;
+      case ASYNC_STATUS:
+       validator = getAsyncStatusRequestValidator(parameters);
+        break;
       default:
         break;
     }
@@ -174,4 +180,41 @@ public class ValidatorsHandlersFactory {
 
     return validators;
   }
+  private List<Validator> getAsyncRequestValidations(final MultiMap parameters) {
+
+    List<Validator> validators = new ArrayList<>();
+    validators.add(new IDTypeValidator(parameters.get(NGSILDQUERY_ID), true));
+    validators.add(new AttrsTypeValidator(parameters.get(NGSILDQUERY_ATTRIBUTE), false));
+    validators.add(new OptionsTypeValidator(parameters.get(IUDXQUERY_OPTIONS), false));
+    // geo fields
+    validators.add(new GeoRelTypeValidator(parameters.get(NGSILDQUERY_GEOREL), false));
+    validators.add(new GeometryTypeValidator(parameters.get(NGSILDQUERY_GEOMETRY), false));
+    validators.add(new GeoPropertyTypeValidator(parameters.get(NGSILDQUERY_GEOPROPERTY), false));
+    validators.add(new QTypeValidator(parameters.get(NGSLILDQUERY_Q), false));
+    validators.add(new DistanceTypeValidator(parameters.get(NGSILDQUERY_MAXDISTANCE), false, true));
+    validators.add(new DistanceTypeValidator(parameters.get("maxDistance"), false, true));
+    validators.add(new CoordinatesTypeValidator(parameters.get(NGSILDQUERY_COORDINATES), false));
+    // temporal fields
+    validators.add(new TimeRelTypeValidator(parameters.get(NGSILDQUERY_TIMEREL), false));
+    validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_TIME), false));
+    validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_ENDTIME), false));
+
+    // optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
+    validators.add(
+            new ElasticSearchFileResponseTypeValidator(
+                    parameters.get(HEADER_RESPONSE_FILE_FORMAT), false));
+
+    return validators;
+  }
+  private List<Validator> getAsyncStatusRequestValidator(final MultiMap parameters) {
+    List<Validator> validators = new ArrayList<>();
+    validators.add(new StringTypeValidator(parameters.get("searchId"), true, VALIDATION_ID_PATTERN));
+
+    // optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
+
+    return validators;
+  }
+
 }

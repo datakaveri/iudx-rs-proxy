@@ -62,6 +62,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
    * consumption of same message (currently tested for single consumer only).
    *
    */
+  @Deprecated()
   @Override
   public DatabrokerService executeAdapterQuery(JsonObject request,
       Handler<AsyncResult<JsonObject>> handler) {
@@ -170,9 +171,9 @@ public class DatabrokerServiceImpl implements DatabrokerService {
         .replyTo(replyQueueName)
         .headers(map)
         .build();
-
     LOGGER.debug("queue declared : {}", replyQueueName);
-    String routingKey = request.getJsonArray("id").getString(0);
+    String routingKey = request.containsKey("routingKey") ? request.getString("routingKey") :
+            request.getJsonArray("id").getString(0);
     LOGGER.debug("routing key : {}", routingKey);
     Buffer buffer = Buffer.buffer(request.toString());
     Future<Void> publishFut =client.basicPublish(publishEx, routingKey, props, buffer);

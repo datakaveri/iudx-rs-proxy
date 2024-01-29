@@ -25,7 +25,9 @@ public class QueryMapper {
   private boolean isTemporal = false;
   private boolean isAttributeSearch = false;
   private boolean isGeoSearch = false;
-
+  public JsonObject toJson(NGSILDQueryParams params, boolean isTemporal) {
+    return toJson(params, isTemporal, false);
+  }
 
   /**
    * This method is used to create a json object from NGSILDQueryParams.
@@ -34,7 +36,7 @@ public class QueryMapper {
    * @param isTemporal flag indicating whether temporal or not.
    * @return JsonObject result.
    */
-  public JsonObject toJson(NGSILDQueryParams params, boolean isTemporal) {
+  public JsonObject toJson(NGSILDQueryParams params, boolean isTemporal, boolean isAsyncQuery) {
     LOGGER.debug("Info : params" + params);
     this.isTemporal = isTemporal;
     JsonObject json = new JsonObject();
@@ -103,9 +105,10 @@ public class QueryMapper {
         temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
 
         isValidTimeInterval(
-            JSON_DURING,
+                JSON_DURING,
                 temporal.getString(JSON_TIME),
-                temporal.getString(JSON_ENDTIME));
+                temporal.getString(JSON_ENDTIME),
+                isAsyncQuery);
       } else {
         LOGGER.debug("Info : outside during ");
         temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
@@ -139,7 +142,7 @@ public class QueryMapper {
     if (params.getPageSize() != null) {
       json.put(NGSILDQUERY_SIZE, params.getPageSize());
     }
-    json.put(JSON_SEARCH_TYPE, getSearchType());
+    json.put(JSON_SEARCH_TYPE, getSearchType(isAsyncQuery));
     LOGGER.debug("Info : json " + json);
     return json;
   }
@@ -149,14 +152,14 @@ public class QueryMapper {
    */
   // TODO : decide how to enforce for before and after queries.
   private void isValidTimeInterval(
-      String timeRel, String time, String endTime) {
+          String timeRel, String time, String endTime, boolean isAsyncQuery) {
     long totalDaysAllowed = 0;
     if (timeRel.equalsIgnoreCase(JSON_DURING)) {
       if (isNullOrEmpty(time) || isNullOrEmpty(endTime)) {
         throw new DxRuntimeException(
-            BAD_REQUEST.getValue(),
-            INVALID_TEMPORAL_PARAM_URN,
-            "time and endTime both are mandatory for during Query.");
+                BAD_REQUEST.getValue(),
+                INVALID_TEMPORAL_PARAM_URN,
+                "time and endTime both are mandatory for during Query.");
       }
 
       try {
@@ -175,22 +178,27 @@ public class QueryMapper {
     } else if (timeRel.equalsIgnoreCase("before")) {
 
     }
-    if (totalDaysAllowed >VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
-      throw new DxRuntimeException(BAD_REQUEST.getValue(),INVALID_TEMPORAL_PARAM_URN,
-          "time interval greater than 10 days is not allowed");
+    if (!isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+      throw new DxRuntimeException(BAD_REQUEST.getValue(), INVALID_TEMPORAL_PARAM_URN,
+              "time interval greater than 10 days is not allowed");
     }
+    if (isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC) {
+      throw new DxRuntimeException(BAD_REQUEST.getValue(), INVALID_TEMPORAL_PARAM_URN,
+              "time interval greater than 365 days is not allowed");
+    }
+
   }
 
   public boolean isNullOrEmpty(String value) {
     return value == null || value.isEmpty();
   }
 
-  private String getSearchType() {
+  private String getSearchType(boolean isAsyncQuery) {
     StringBuilder searchType = new StringBuilder();
     if (isTemporal) {
       searchType.append(JSON_TEMPORAL_SEARCH);
     }
-    else if(!isTemporal){
+    else if(!isTemporal && !isAsyncQuery){
       searchType.append(JSON_LATEST_SEARCH);
     }
     if (isAttributeSearch) {

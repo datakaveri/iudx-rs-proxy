@@ -40,6 +40,7 @@ public class Constants {
   public static final String ERROR = "Error";
   public static final String QUERY_KEY = "query";
   public static final String TYPE_KEY = "type";
+  public static final String ERROR_TYPE = "type";
   public static final String PROVIDER_ID = "providerID";
   public static final String CONSUMER_ID = "consumerID";
   public static final String ENDPOINT = "endPoint";

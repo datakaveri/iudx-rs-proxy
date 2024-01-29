@@ -4,7 +4,8 @@ import java.util.stream.Stream;
 
 public enum IudxAccess {
 
-  API("api");
+  API("api"),
+  ASYNC("async");
 
   private final String access;
 

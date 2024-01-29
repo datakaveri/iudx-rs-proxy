@@ -48,6 +48,12 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     apiAccessList.add(new AuthorizationRequest(POST, apis.getPostTemporalEndpoint()));
 
     consumerAuthorizationRules.put(IudxAccess.API.getAccess(), apiAccessList);
+
+    // async access list
+    List<AuthorizationRequest> asyncAccessList = new ArrayList<>();
+    asyncAccessList.add(new AuthorizationRequest(GET, api.getAsyncSearchEndPoint()));
+    asyncAccessList.add(new AuthorizationRequest(GET, api.getAsyncStatusEndpoint()));
+    consumerAuthorizationRules.put(IudxAccess.ASYNC.getAccess(), asyncAccessList);
   }
   
 
@@ -65,6 +71,9 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
 
     if (!result && access.contains(IudxAccess.API.getAccess())) {
       result = consumerAuthorizationRules.get(IudxAccess.API.getAccess()).contains(authRequest);
+    }
+    if (!result) {
+      result = consumerAuthorizationRules.get(IudxAccess.ASYNC.getAccess()).contains(authRequest);
     }
     LOGGER.debug("result : " + result);
     return result;

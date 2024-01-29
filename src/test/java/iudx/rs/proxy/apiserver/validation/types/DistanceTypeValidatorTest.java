@@ -37,7 +37,7 @@ class DistanceTypeValidatorTest {
     @Description("distance parameter allowed values.")
     public void testValidDistanceValue(String value, boolean required, Vertx vertx,
                                        VertxTestContext testContext) {
-        distanceTypeValidator = new DistanceTypeValidator(value, required);
+        distanceTypeValidator = new DistanceTypeValidator(value, required ,false);
         assertTrue(distanceTypeValidator.isValid());
         testContext.completeNow();
     }
@@ -64,7 +64,7 @@ class DistanceTypeValidatorTest {
     @Description("distance parameter invalid values.")
     public void testInvalidDistanceValue(String value, boolean required, Vertx vertx,
                                          VertxTestContext testContext) {
-        distanceTypeValidator = new DistanceTypeValidator(value, required);
+        distanceTypeValidator = new DistanceTypeValidator(value, required, false);
         assertThrows(DxRuntimeException.class, () -> distanceTypeValidator.isValid());
         testContext.completeNow();
     }

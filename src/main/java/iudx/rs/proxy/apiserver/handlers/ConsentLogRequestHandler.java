@@ -33,9 +33,10 @@ public class ConsentLogRequestHandler implements Handler<RoutingContext> {
             Future.future(f -> logRequestReceived(context));
             LOGGER.info("consent log : {}", "DATA_REQUESTED");
             context.next();
-        }
-        context.next();
 
+        } else {
+            context.next();
+        }
     }
 
     private Future<Void> logRequestReceived(RoutingContext context) {
@@ -45,7 +46,7 @@ public class ConsentLogRequestHandler implements Handler<RoutingContext> {
         consentLoggingService.log(jsonObject, jwtData)
                 .onSuccess(logHandler -> promise.complete())
                 .onFailure(failure -> {
-                    LOGGER.debug("failed info :{}", failure.getMessage());
+                    LOGGER.error("failed info :{}", failure.getMessage());
                     promise.fail(failure.getMessage());
                 });
         return promise.future();

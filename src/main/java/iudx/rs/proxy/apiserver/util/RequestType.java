@@ -5,7 +5,9 @@ public enum RequestType {
   ENTITY("entity"),
   TEMPORAL("temporal"),
   POST_TEMPORAL("post_temporal_schema.json"),
-  POST_ENTITIES("post_entities_schema.json");
+  POST_ENTITIES("post_entities_schema.json"),
+  ASYNC_SEARCH("async_search"),
+  ASYNC_STATUS("async_status"),;
 
   private String filename;
 

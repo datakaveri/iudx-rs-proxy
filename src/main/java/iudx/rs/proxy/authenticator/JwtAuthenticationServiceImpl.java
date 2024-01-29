@@ -84,46 +84,68 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
                                                JwtData jwtData,
                                                Handler<AsyncResult<JsonObject>> handler) {
     LOGGER.debug("tokenIntrospect() started");
-
     String id = authenticationInfo.getString("id");
     ResultContainer result = new ResultContainer();
     result.jwtData = jwtData;
+    String endPoint = authenticationInfo.getString("apiEndpoint");
+    boolean skipResourceIdCheck =
+            endPoint.equalsIgnoreCase(apis.getAsyncStatusEndpoint());
+
+
     Future<Boolean> audienceFuture = isValidAudienceValue(jwtData);
     audienceFuture.compose(audienceHandler -> {
-      if (!result.jwtData.getIss().equals(result.jwtData.getSub())) {
-        return isRevokedClientToken(result.jwtData);
-      } else {
-        return Future.succeededFuture(true);
-      }
-    }).compose(revokeTokenHandler -> {
-      if (!result.jwtData.getIss().equals(result.jwtData.getSub())) {
-        return isOpenResource(id);
-      } else {
-        return Future.succeededFuture("OPEN");
-      }
-    }).compose(openResourceHandler -> {
-      result.isOpen = openResourceHandler.equalsIgnoreCase("OPEN");
-      if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
-        JsonObject jsonResponse = new JsonObject();
-        jsonResponse.put(JSON_USERID, result.jwtData.getSub());
-        jsonResponse.put(JSON_APD, result.jwtData.getApd());
-        jsonResponse.put(JSON_CONS, result.jwtData.getCons());
-        jsonResponse.put(JSON_EXPIRY, (LocalDateTime.ofInstant(
-            Instant.ofEpochSecond(Long.parseLong(result.jwtData.getExp().toString())),
-            ZoneId.systemDefault())).toString());
-        jsonResponse.put(ROLE, result.jwtData.getRole());
-        jsonResponse.put(DRL, result.jwtData.getDrl());
-        jsonResponse.put(DID, result.jwtData.getDid());
-        return Future.succeededFuture(jsonResponse);
-      } else {
-        return validateAccess(result.jwtData, result.isOpen, authenticationInfo);
-      }
-    }).onSuccess(successHandler -> {
-      handler.handle(Future.succeededFuture(successHandler));
-    }).onFailure(failureHandler -> {
-      LOGGER.error("error : " + failureHandler.getMessage());
-      handler.handle(Future.failedFuture(failureHandler.getMessage()));
-    });
+              if (!result.jwtData.getIss().equals(result.jwtData.getSub())) {
+                return isRevokedClientToken(result.jwtData);
+              } else {
+                return Future.succeededFuture(true);
+              }
+            }).compose(revokeTokenHandler -> {
+              if (!skipResourceIdCheck && !result.jwtData.getIss().equals(result.jwtData.getSub())) {
+                return isOpenResource(id);
+              } else {
+                return Future.succeededFuture("OPEN");
+              }
+            }).compose(openResourceHandler -> {
+              LOGGER.debug("isOpenResource messahe {}", openResourceHandler);
+              result.isOpen = openResourceHandler.equalsIgnoreCase("OPEN");
+              if (result.isOpen && checkOpenEndPoints(endPoint)) {
+                JsonObject json = new JsonObject();
+                json.put(JSON_USERID, result.jwtData.getSub());
+                return Future.succeededFuture(true);
+              } else if (!skipResourceIdCheck
+                      && !result.isOpen) {
+                return isValidId(result.jwtData, id);
+              } else {
+                return Future.succeededFuture(true);
+              }
+            })
+            .compose(
+                    validIdHandler -> {
+                      if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
+                        JsonObject jsonResponse = new JsonObject();
+                        jsonResponse.put(JSON_USERID, result.jwtData.getSub());
+                        jsonResponse.put(
+                                JSON_EXPIRY,
+                                LocalDateTime.ofInstant(
+                                                Instant.ofEpochSecond(
+                                                        Long.parseLong(result.jwtData.getExp().toString())),
+                                                ZoneId.systemDefault())
+                                        .toString());
+                        jsonResponse.put(ROLE, result.jwtData.getRole());
+                        jsonResponse.put(DRL, result.jwtData.getDrl());
+                        jsonResponse.put(DID, result.jwtData.getDid());
+                        jsonResponse.put(JSON_APD, result.jwtData.getApd());
+                        jsonResponse.put(JSON_CONS, result.jwtData.getCons());
+                        return Future.succeededFuture(jsonResponse);
+                      } else {
+                        return validateAccess(result.jwtData, result.isOpen, authenticationInfo);
+                      }
+                    }).onSuccess(successHandler -> {
+              handler.handle(Future.succeededFuture(successHandler));
+            }).onFailure(failureHandler -> {
+              LOGGER.error("error : " + failureHandler.getMessage());
+              handler.handle(Future.failedFuture(failureHandler.getMessage()));
+            });
     return this;
   }
 
@@ -193,6 +215,19 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         promise.complete(true);
       }
     });
+    return promise.future();
+  }
+
+  Future<Boolean> isValidId(JwtData jwtData, String id) {
+    Promise<Boolean> promise = Promise.promise();
+    String jwtId = jwtData.getIid().split(":")[1];
+    if (id.equalsIgnoreCase(jwtId)) {
+      promise.complete(true);
+    } else {
+      LOGGER.error("Incorrect id value in jwt");
+      promise.fail("Incorrect id value in jwt");
+    }
+
     return promise.future();
   }
 
@@ -367,55 +402,4 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     JwtData jwtData;
     boolean isOpen;
   }
-
-   Future<JsonObject> getCatItem(JwtData jwtData) {
-    String resourceId = jwtData.getIid().split(":")[1];
-
-    LOGGER.trace("resourceid :{} ", resourceId);
-    Promise promise = Promise.promise();
-
-    catWebClient
-            .get(port, host, path)
-            .addQueryParam("property", "[id]")
-            .addQueryParam("value", "[[" + resourceId + "]]")
-            .addQueryParam("filter", "[id,provider,resourceGroup,type,accessPolicy]")
-            .expect(ResponsePredicate.JSON)
-            .send(httpResponseAsyncResult -> {
-              if (httpResponseAsyncResult.failed()) {
-                LOGGER.error(httpResponseAsyncResult.cause());
-                promise.fail("Resource not found");
-                return;
-              }
-              HttpResponse<Buffer> response = httpResponseAsyncResult.result();
-              if (response.statusCode() != HttpStatus.SC_OK) {
-                promise.fail("Resource not found");
-                return;
-              }
-              JsonObject responseBody = response.bodyAsJsonObject();
-              LOGGER.debug("responseBody:: " + responseBody);
-              if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
-                promise.fail("Resource not found");
-                return;
-              }
-              try {
-                JsonArray results = responseBody.getJsonArray("results");
-                results.forEach(
-                        json -> {
-                          JsonObject CatResult = (JsonObject) json;
-                          Set<String> type = new HashSet<String>(CatResult.getJsonArray("type").getList());
-                          Set<String> itemTypeSet =
-                                  type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
-                          itemTypeSet.retainAll(ITEM_TYPES);
-                          CatResult.put("type", itemTypeSet.iterator().next());
-                          promise.complete(CatResult);
-                        });
-              } catch (Exception ignored) {
-                LOGGER.error("Info: ID invalid : Empty response in results from Catalogue",
-                        ignored);
-                promise.fail("Resource not found");
-              }
-            });
-    return promise.future();
-  }
-
 }

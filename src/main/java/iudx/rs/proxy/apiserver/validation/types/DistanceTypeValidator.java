@@ -1,6 +1,7 @@
 package iudx.rs.proxy.apiserver.validation.types;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.VALIDATION_ALLOWED_DIST;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.VALIDATION_ALLOWED_DIST_FOR_ASYNC;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_VALUE_URN;
 
@@ -15,10 +16,17 @@ public final class DistanceTypeValidator implements Validator {
   
   private final String value;
   private final boolean required;
-
+  private final boolean isAsyncQuery;
   public DistanceTypeValidator(final String value, final boolean required) {
     this.value = value;
     this.required = required;
+    isAsyncQuery = false;
+  }
+
+  public DistanceTypeValidator(final String value, final boolean required, final  boolean isAsyncQuery) {
+    this.value = value;
+    this.required = required;
+    this.isAsyncQuery = isAsyncQuery;
   }
 
 
@@ -29,7 +37,12 @@ public final class DistanceTypeValidator implements Validator {
         LOGGER.error("Validation error : Invalid integer value (Integer overflow).");
         throw new DxRuntimeException(failureCode(), INVALID_GEO_VALUE_URN, failureMessage(value));
       }
-      if (distanceValue > VALIDATION_ALLOWED_DIST || distanceValue < 1) {
+      if (isAsyncQuery
+              && (distanceValue > VALIDATION_ALLOWED_DIST_FOR_ASYNC || distanceValue < 1)) {
+        LOGGER.error("Validation error : Distance outside (1,10000)m range not allowed");
+        throw new DxRuntimeException(failureCode(), INVALID_GEO_VALUE_URN, failureMessage(value));
+      }
+      if (!isAsyncQuery && (distanceValue > VALIDATION_ALLOWED_DIST || distanceValue < 1)) {
         LOGGER.error("Validation error : Distance outside (1,1000)m range not allowed");
         throw new DxRuntimeException(failureCode(), INVALID_GEO_VALUE_URN, failureMessage(value));
       }
@@ -39,6 +52,7 @@ public final class DistanceTypeValidator implements Validator {
     }
     return true;
   }
+
 
   @Override
   public boolean isValid() {
