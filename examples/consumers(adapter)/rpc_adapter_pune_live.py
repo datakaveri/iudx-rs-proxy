@@ -107,7 +107,7 @@ class ElasticsearchDataHandler:
                 logging.info(count_response)
                 count = count_response['count']
                 response_payload = {
-                    "count": count,
+                    "totalHits": count,
                     "statusCode": None # Placeholder for status code
                     }
             else:
@@ -118,13 +118,13 @@ class ElasticsearchDataHandler:
                 hits = [hit.to_dict() for hit in response.hits]
                 # Serialize the extracted data to JSON
                 response_payload = {
-                    "hits": hits,
+                    "results": hits,
                     "statusCode": None  # Placeholder for status code
                 }
         else:
             logging.info("Empty query")
 
-        logging.info("Number of logs: %s", len(elasticsearch_log_handler.logs))
+        #logging.info("Number of logs: %s", len(elasticsearch_log_handler.logs))
         # Extract relevant information from captured log messages of elk client
         for log in elasticsearch_log_handler.logs:
             logging.info(log)
@@ -331,7 +331,7 @@ def build_combined_query(temporal_query, attribute_query, geo_query):
 
 if __name__ == '__main__':
     config = ConfigParser(interpolation=None)
-    config.read('./secrets/config.ini')
+    config.read('./example-secrets/secrets/config.ini')
 
     username = config["server_setup"]["username"]
     password = config["server_setup"]["password"]
