@@ -446,10 +446,8 @@ public class ApiServerVerticle extends AbstractVerticle {
         response.setStatusCode(status);
         if(status==200) {
           LOGGER.info("Success: adapter call Success with {}",status);
-          //adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
-          //adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
-          LOGGER.info("adapter.."+adapterResponse);
-            LOGGER.info("limit value.."+adapterResponse.getValue("limit"));
+          LOGGER.debug("adapter response"+adapterResponse);
+          LOGGER.debug("limit value.."+adapterResponse.getValue("limit"));
           JsonObject userResponse = new JsonObject();
           userResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
           userResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
