@@ -9,6 +9,8 @@ import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
+
+import io.vertx.core.json.JsonArray;
 import iudx.rs.proxy.apiserver.handlers.TokenDecodeHandler;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -404,11 +406,13 @@ public class ApiServerVerticle extends AbstractVerticle {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
         JsonObject adapterResponse = handler.result();
-        adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
-        adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
+        JsonObject userResponse = new JsonObject();
+        userResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
+        userResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
+        userResponse.put("results", new JsonArray().add(new JsonObject().put("totalHits", adapterResponse.getInteger("totalHits"))));
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setStatusCode(adapterResponse.getInteger("statusCode"))
-                .end(adapterResponse.toString());
+                .end(userResponse.toString());
       } else {
         LOGGER.error("Fail: Count Fail");
         response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -442,9 +446,20 @@ public class ApiServerVerticle extends AbstractVerticle {
         response.setStatusCode(status);
         if(status==200) {
           LOGGER.info("Success: adapter call Success with {}",status);
-          adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
-          adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
-          response.end(adapterResponse.toString());
+          //adapterResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
+          //adapterResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
+          LOGGER.info("adapter.."+adapterResponse);
+            LOGGER.info("limit value.."+adapterResponse.getValue("limit"));
+          JsonObject userResponse = new JsonObject();
+          userResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
+          userResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
+          userResponse.put("results", adapterResponse.getValue("results"));
+          userResponse.put("totalHits", adapterResponse.getValue("totalHits"));
+          if(adapterResponse.containsKey("limit")){
+              userResponse.put("limit", adapterResponse.getValue("limit"));
+              userResponse.put("offset", adapterResponse.getValue("offset"));
+          }
+          response.end(userResponse.toString());
           context.data().put(RESPONSE_SIZE, response.bytesWritten());
           Future.future(fu -> updateAuditTable(context));
         }else {
