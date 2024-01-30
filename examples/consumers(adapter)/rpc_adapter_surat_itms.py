@@ -5,10 +5,11 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 import pika
 from configparser import ConfigParser
+from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-#CustomHandler to handle the logs from elk client. so that we can access the status codes
+#CustomHandler is to handle the logs from elk client. so that we can access the status codes
 class CustomHandler(logging.Handler):
     def __init__(self):
         super().__init__()
@@ -86,6 +87,10 @@ class SearchDatabase:
                     basic_auth=(elk_config["databaseUser"], elk_config["databasePassword"])
                 )
         index_name = elk_config['index_name']
+        limit = None
+        offset = None
+        limit = json_object.get('limit')  # Get limit value from JSON request
+        offset = json_object.get('offset')  # Get offset value from JSON request
 
         if query:
             if "options" in json_object and json_object["options"] == "count":
@@ -93,33 +98,74 @@ class SearchDatabase:
                 query_dict = query.to_dict()
                 # Perform count query using the "_count" endpoint
                 # Define the Elasticsearch query
-                query = {
-                    "query": {
-                        "bool": {
-                            "must": [
-                                query_dict
-                            ]
-                        }
-                    }
-                }
+                if limit is not None and offset is not None:
+                    query = {
+                                        "query": {
+                                            "bool": {
+                                                "must": [
+                                                    query_dict
+                                                ]
+                                            }
+                                        }
+                                        ,
+                                        "size": int(limit),  # Equivalent to limit
+                                        "from": int(offset)   # Equivalent to offset
+                                    }
+                else:
+                    query = {
+                           "query": {
+                                "bool": {
+                                     "must": [
+                                              query_dict
+                                              ]
+                                            }
+                                        }
+
+                           }
                 count_response = client.count(index=index_name, body=query)
                 logging.info(count_response)
                 count = count_response['count']
-                response_payload = {
-                    "totalHits": count,
-                    "statusCode": None # Placeholder for status code
+                if(limit is not None and offset is not None):
+                    response_payload = {
+                        "totalHits": count,
+                        "statusCode": None, # Placeholder for status code
+                        "limit": int(limit),
+                        "offset": int(offset)
                     }
+                else:
+                    response_payload = {
+                        "totalHits": count,
+                        "statusCode": None
+                        }
             else:
                 search = Search(index=index_name).using(client)
                 search = search.query(query)
+                # Apply limit and offset to the search query if they exist
+                if limit is not None and offset is not None:
+                    int_limit = int(limit)  # Convert limit to integer
+                    int_offset = int(offset)  # Convert offset to integer
+                    search = search[int_offset:int_offset+int_limit]
                 response = search.execute()
                 # Extract relevant data from the response object
                 hits = [hit.to_dict() for hit in response.hits]
+                # Extract totalHits from the response
+                total_hits = response.hits.total.value if hasattr(response.hits.total, 'value') else 0
+
                 # Serialize the extracted data to JSON
-                response_payload = {
-                    "results": hits,
-                    "statusCode": None  # Placeholder for status code
-                }
+                if limit is not None and offset is not None:
+                    response_payload = {
+                          "results": hits,
+                          "statusCode": None,  # Placeholder for status code
+                          "totalHits": total_hits,
+                          "limit": int_limit,
+                          "offset": int_offset
+                        }
+                else:
+                    response_payload = {
+                        "results": hits,
+                        "statusCode": None,  # Placeholder for status code
+                        "totalHits": total_hits
+                        }
         else:
             logging.info("Empty query")
 
@@ -162,22 +208,28 @@ def process_request(ch, method, properties, body):
             surat_itms_db_search.search_surat_itms_data(json_object, temporal_query, rout_key, corr_id, method)
         elif search_type == 'attributeSearch':
             attribute_query = build_attribute_query(json_object.get('attr-query'))
-            surat_itms_db_search.search_surat_itms_data(json_object, attribute_query, rout_key, corr_id, method)
+            # Add time range query
+            time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
+            combined_query = build_combined_query(time_range_query, attribute_query, None)
+            surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
         elif search_type == 'geoSearch':
             logging.info(json_object.get('geo-query'))
             geo_query = build_geo_query(json_object.get('geo-query'))
-            surat_itms_db_search.search_surat_itms_data(json_object, geo_query, rout_key, corr_id, method)
+            # Add time range query
+            time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
+            combined_query = build_combined_query(time_range_query, None, geo_query)
+            surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
         else:
             logging.error("Unsupported searchType: %s", search_type)
             return
     else:
-        logging.info("Inside complex query...")
+        #logging.info("Inside complex query...")
         temporal_query = build_temporal_query(json_object.get('temporal-query'))
         attribute_query = build_attribute_query(json_object.get('attr-query'))
         geo_query = build_geo_query(json_object.get('geo-query'))
-
+        # Add time range query
+        #time_range_query = {"range": {"observationDateTime": {"gte": "2020-10-12T00:00Z", "lte": "2020-10-22T00:00Z"}}}
         combined_query = build_combined_query(temporal_query, attribute_query, geo_query)
-
         surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
 
 #temporal query
@@ -203,11 +255,20 @@ def build_during_query(temporal_query_params):
 
 def build_before_query(temporal_query_params):
     time = temporal_query_params.get('time')
-    return Q('range', observationDateTime={'lt': time})
+    # Convert the time string to a datetime object
+    time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+    # Subtract 10 months from the specified time
+    new_time = time - timedelta(days=10)
+    return Q('range', observationDateTime={'gte': new_time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': time.strftime("%Y-%m-%dT%H:%M:%SZ")})
 
 def build_after_query(temporal_query_params):
     time = temporal_query_params.get('time')
-    return Q('range', observationDateTime={'gt': time})
+    # Convert the time string to a datetime object
+    time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+    # Add 10 months to the specified time
+    new_time = time + timedelta(days=10)
+    return Q('range', observationDateTime={'gte': time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': new_time.strftime("%Y-%m-%dT%H:%M:%SZ")})
+
 
 #Attribute Query
 def build_single_attribute_query(condition):
