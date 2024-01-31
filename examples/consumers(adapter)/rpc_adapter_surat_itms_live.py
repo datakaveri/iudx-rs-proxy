@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-#CustomHandler is to handle the logs from elk client. so that we can access the status codes
-class CustomHandler(logging.Handler):
+#To handle the logs from elasticsearch client. So that we can access the status codes
+class ElasticSearchLogHandler(logging.Handler):
     def __init__(self):
         super().__init__()
         self.logs = []
@@ -23,15 +23,15 @@ class CustomHandler(logging.Handler):
             self.logs.append(log_message)
         #print("Logs so far:", self.logs)
 
-# Instantiate the CustomHandler
-custom_handler = CustomHandler()
+# Instantiate the ElasticSearchLogHandler
+elk_logHandler = ElasticSearchLogHandler()
 
-# Set the logging level of the CustomHandler to INFO
-custom_handler.setLevel(logging.INFO)
+# Set the logging level of the ElasticSearchLogHandler to INFO
+elk_logHandler.setLevel(logging.INFO)
 
 # Configure the logging system
 logger = logging.getLogger()
-logger.addHandler(custom_handler)
+logger.addHandler(elk_logHandler)
 logger.setLevel(logging.INFO)
 
 class RabbitMqServerConfigure:
@@ -71,20 +71,21 @@ class RabbitmqServer:
         logging.info("Message is published")
 
 class SearchDatabase:
-    def __init__(self, config, custom_handler):
+    def __init__(self, config, elk_logHandler):
         self.config = config
-        self.custom_handler = custom_handler
+        self.elk_logHandler = elk_logHandler
         # Configure logging for Elasticsearch client
         elasticsearch_logger = logging.getLogger('elasticsearch.trace')
-        logging.info(elasticsearch_logger.handlers)  # Check if CustomHandler is present among the handlers
+        logging.info(elasticsearch_logger.handlers)  # Check if ElasticSearchLogHandler is present among the handlers
         elasticsearch_logger.setLevel(logging.INFO)
         # Add the custom handler to the Elasticsearch logger
-        elasticsearch_logger.addHandler(custom_handler)
+        elasticsearch_logger.addHandler(elk_logHandler)
 
     def search_surat_itms_data(self, json_object, query, rout_key, corr_id, method):
         elk_config = self.config['elasticsearch']
-        client = Elasticsearch("http://database.iudx.io:24034/",
-                    basic_auth=(elk_config["databaseUser"], elk_config["databasePassword"])
+        client = Elasticsearch(
+                    [f"http://{elk_config['databaseURI']}:{elk_config['databasePort']}"],
+                    basic_auth=(elk_config['databaseUser'], elk_config['databasePassword'])
                 )
         index_name = elk_config['index_name']
         limit = None
@@ -169,9 +170,9 @@ class SearchDatabase:
         else:
             logging.info("Empty query")
 
-        #logging.info("Number of logs: %s", len(custom_handler.logs))
+        #logging.info("Number of logs: %s", len(elk_logHandler.logs))
         # Extract relevant information from captured log messages of elk client
-        for log in custom_handler.logs:
+        for log in elk_logHandler.logs:
             logging.info(log)
             # Extract status code from log message using regular expression
             status_code_match = re.search(r'status:(\d+)', log)
@@ -194,8 +195,8 @@ def process_request(ch, method, properties, body):
     search_types = json_object['searchType'].split('_')
     rout_key = properties.reply_to
     corr_id = properties.correlation_id
-    custom_handler = CustomHandler()
-    surat_itms_db_search = SearchDatabase(config=config, custom_handler=custom_handler)
+    elk_logHandler = ElasticSearchLogHandler()
+    surat_itms_db_search = SearchDatabase(config=config, elk_logHandler=elk_logHandler)
     # Remove 'latestSearch' from search_types if it exists
     if 'latestSearch' in search_types:
         search_types.remove('latestSearch')
@@ -328,11 +329,11 @@ def build_geo_query(geo_query_params):
         return None
     # Construct and return geo query
     geo_type = geo_query_params.get('geometry')
-    if geo_type == 'Polygon':
+    if geo_type == 'Polygon' or geo_type == 'polygon':
         return build_geo_polygon_query(geo_query_params)
     elif geo_type == 'bbox':
         return build_geo_bbox_query(geo_query_params)
-    elif geo_type == 'linestring':
+    elif geo_type == 'linestring' or geo_type == 'Linestring':
         return build_geo_linestring_query(geo_query_params)
     else:
         return build_geo_circle_query(geo_query_params)
