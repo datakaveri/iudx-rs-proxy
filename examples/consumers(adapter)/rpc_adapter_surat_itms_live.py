@@ -239,7 +239,7 @@ def build_temporal_query(temporal_query_params):
         return None
     timerel = temporal_query_params.get('timerel')
 
-    if timerel == 'during':
+    if timerel == 'during'or timerel == 'between':
         return build_during_query(temporal_query_params)
     elif timerel == 'before':
         return build_before_query(temporal_query_params)
