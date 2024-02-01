@@ -22,7 +22,6 @@ class ElasticSearchLogHandler(logging.Handler):
             # Clear the logs list before appending new log messages
             self.logs.clear()
             self.logs.append(log_message)
-        #print("Logs so far:", self.logs)
 
 # Instantiate the ElasticSearchLogHandler
 elk_logHandler = ElasticSearchLogHandler()
@@ -93,7 +92,7 @@ class SearchDatabase:
         offset = None
         limit = json_object.get('limit')  # Get limit value from JSON request
         offset = json_object.get('offset')  # Get offset value from JSON request
-        #integrating the adapter code with async search and status APIs using dummy data
+        #integrating the adapter code with async search and status APIs
         apiEndpoint = json_object.get('api')
         if apiEndpoint == '/ngsi-ld/v1/async/search':
             response_payload = {
@@ -102,7 +101,7 @@ class SearchDatabase:
                               }
         elif apiEndpoint == '/ngsi-ld/v1/async/status':
             searchId = json_object.get("searchId")
-            # Randomly choose between response_payload1 (complete) and response_payload2 (in-progress)
+            # Randomly choose between  (complete) and  (in-progress)
             if random.choice([True, False]):
                                 response_payload = {
                                     "statusCode": 200,
@@ -126,7 +125,6 @@ class SearchDatabase:
                                             }
                                     ]
                  }
-            #response_payload   = json.dumps(response_payload1)
         elif query:
             if "options" in json_object and json_object["options"] == "count":
                 # Convert query to a dictionary
@@ -222,7 +220,7 @@ class SearchDatabase:
             if( flag ):
                 response_payload["statusCode"] = status_code  # Include the status code in the response payload
             logging.info("Adapter response: ")
-            logging.info(response_payload)
+            #logging.info(response_payload)
             server.publish(response_payload, rout_key, corr_id, method)
 
         logging.info("Query Completed for Surat-ITMS data")
@@ -237,7 +235,7 @@ def process_request(ch, method, properties, body):
     surat_itms_db_search = SearchDatabase(config=config, elk_logHandler=elk_logHandler)
     #Async status
     apiEndpoint = json_object.get('api')
-    logging.info("api.."+apiEndpoint)
+    #logging.info("api.."+apiEndpoint)
     if apiEndpoint == '/ngsi-ld/v1/async/status':
         searchId = json_object.get("searchId")
         surat_itms_db_search.search_surat_itms_data(json_object, None, rout_key, corr_id, method)
@@ -247,7 +245,7 @@ def process_request(ch, method, properties, body):
         # Remove 'latestSearch' from search_types if it exists
         if 'latestSearch' in search_types:
             search_types.remove('latestSearch')
-            logging.info("**Removed LatestSearch!!**")
+            #logging.info("**Removed LatestSearch!!**")
 
         if len(search_types) == 1:
             search_type = search_types[0]
@@ -271,12 +269,9 @@ def process_request(ch, method, properties, body):
                 logging.error("Unsupported searchType: %s", search_type)
                 return
         else:
-            #logging.info("Inside complex query...")
             temporal_query = build_temporal_query(json_object.get('temporal-query'))
             attribute_query = build_attribute_query(json_object.get('attr-query'))
             geo_query = build_geo_query(json_object.get('geo-query'))
-            # Add time range query
-            #time_range_query = {"range": {"observationDateTime": {"gte": "2020-10-12T00:00Z", "lte": "2020-10-22T00:00Z"}}}
             combined_query = build_combined_query(temporal_query, attribute_query, geo_query)
             surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
 
@@ -320,7 +315,6 @@ def build_after_query(temporal_query_params):
 
 #Attribute Query
 def build_single_attribute_query(condition):
-    logging.info("am here in single attr query method..")
     parts = condition.split('==')
     if len(parts) == 2:
         # Equality condition
@@ -359,7 +353,6 @@ def build_attribute_query(attribute_query_params):
     attr_query = attribute_query_params
 
     if ';' in attr_query:
-        logging.info("am here in multiple attr method..")
         # Multiple conditions in attribute query separated by ';'
         conditions = attr_query.split(';')
         must_queries = []
@@ -424,15 +417,15 @@ def build_combined_query(temporal_query, attribute_query, geo_query):
     combined_query = Q('bool')
 
     if temporal_query:
-        logging.info("in complex temp...")
+        #logging.info("in complex temp...")
         combined_query &= temporal_query
 
     if attribute_query:
-        logging.info("in complex attribute_query...")
+        #logging.info("in complex attribute_query...")
         combined_query &= attribute_query
 
     if geo_query:
-        logging.info("in complex geo_query...")
+        #logging.info("in complex geo_query...")
         combined_query &= geo_query
     logging.info(combined_query)
     return combined_query
