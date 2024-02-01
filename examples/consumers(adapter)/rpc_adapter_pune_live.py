@@ -238,7 +238,7 @@ def build_temporal_query(temporal_query_params):
         return None
     timerel = temporal_query_params.get('timerel')
 
-    if timerel == 'during':
+    if timerel == 'during' or timerel == 'between':
         return build_during_query(temporal_query_params)
     elif timerel == 'before':
         return build_before_query(temporal_query_params)
@@ -328,11 +328,11 @@ def build_geo_query(geo_query_params):
         return None
     # Construct and return geo query
     geo_type = geo_query_params.get('geometry')
-    if geo_type == 'Polygon':
+    if geo_type == 'Polygon' or geo_type == 'polygon':
         return build_geo_polygon_query(geo_query_params)
     elif geo_type == 'bbox':
         return build_geo_bbox_query(geo_query_params)
-    elif geo_type == 'linestring':
+    elif geo_type == 'linestring' or geo_type == 'Linestring':
         return build_geo_linestring_query(geo_query_params)
     else:
         return build_geo_circle_query(geo_query_params)
