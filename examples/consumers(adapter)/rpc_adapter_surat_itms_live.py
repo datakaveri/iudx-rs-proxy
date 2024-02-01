@@ -1,6 +1,7 @@
 import json
 import re
 import logging
+import random
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 import pika
@@ -92,8 +93,41 @@ class SearchDatabase:
         offset = None
         limit = json_object.get('limit')  # Get limit value from JSON request
         offset = json_object.get('offset')  # Get offset value from JSON request
-
-        if query:
+        #integrating the adapter code with async search and status APIs using dummy data
+        apiEndpoint = json_object.get('api')
+        if apiEndpoint == '/ngsi-ld/v1/async/search':
+            response_payload = {
+                              "searchId": "58d3d383-6392-433f-b383-80d8e10be7e9",
+                              "statusCode": 201
+                              }
+        elif apiEndpoint == '/ngsi-ld/v1/async/status':
+            searchId = json_object.get("searchId")
+            # Randomly choose between response_payload1 (complete) and response_payload2 (in-progress)
+            if random.choice([True, False]):
+                                response_payload = {
+                                    "statusCode": 200,
+                                    "results": [
+                                    {
+                                    "status": "COMPLETE",
+                                    "progress": 100,
+                                    "file-download-url": "https://example.com/filename",
+                                    "searchId": searchId
+                                    }
+                                    ]
+                                }
+            else:
+                response_payload = {
+                                    "statusCode": 200,
+                                    "results": [
+                                    {
+                                           "status": "IN_PROGRESS",
+                                           "progress": 70,
+                                           "searchId": searchId
+                                            }
+                                    ]
+                 }
+            #response_payload   = json.dumps(response_payload1)
+        elif query:
             if "options" in json_object and json_object["options"] == "count":
                 # Convert query to a dictionary
                 query_dict = query.to_dict()
@@ -169,21 +203,26 @@ class SearchDatabase:
                         }
         else:
             logging.info("Empty query")
-
-        #logging.info("Number of logs: %s", len(elk_logHandler.logs))
-        # Extract relevant information from captured log messages of elk client
-        for log in elk_logHandler.logs:
-            logging.info(log)
-            # Extract status code from log message using regular expression
-            status_code_match = re.search(r'status:(\d+)', log)
-            if status_code_match:
-                status_code = int(status_code_match.group(1))
-                print("Status Code:", status_code)
-            else:
-                logging.info("Not matched..")
+        flag = False
+        if( apiEndpoint !='/ngsi-ld/v1/async/search' and apiEndpoint !='/ngsi-ld/v1/async/status' ):
+            #logging.info("Number of logs: %s", len(elk_logHandler.logs))
+            # Extract relevant information from captured log messages of elk client
+            flag = True
+            for log in elk_logHandler.logs:
+                logging.info(log)
+                # Extract status code from log message using regular expression
+                status_code_match = re.search(r'status:(\d+)', log)
+                if status_code_match:
+                    status_code = int(status_code_match.group(1))
+                    print("Status Code:", status_code)
+                else:
+                    logging.info("Not matched..")
 
         if response_payload:
-            response_payload["statusCode"] = status_code  # Include the status code in the response payload
+            if( flag ):
+                response_payload["statusCode"] = status_code  # Include the status code in the response payload
+            logging.info("Adapter response: ")
+            logging.info(response_payload)
             server.publish(response_payload, rout_key, corr_id, method)
 
         logging.info("Query Completed for Surat-ITMS data")
@@ -192,46 +231,54 @@ def process_request(ch, method, properties, body):
     logging.info("Request JSON received")
     logging.info("Received request with body: %s", body)
     json_object = json.loads(body)
-    search_types = json_object['searchType'].split('_')
     rout_key = properties.reply_to
     corr_id = properties.correlation_id
     elk_logHandler = ElasticSearchLogHandler()
     surat_itms_db_search = SearchDatabase(config=config, elk_logHandler=elk_logHandler)
-    # Remove 'latestSearch' from search_types if it exists
-    if 'latestSearch' in search_types:
-        search_types.remove('latestSearch')
-        logging.info("**Removed LatestSearch!!**")
+    #Async status
+    apiEndpoint = json_object.get('api')
+    logging.info("api.."+apiEndpoint)
+    if apiEndpoint == '/ngsi-ld/v1/async/status':
+        searchId = json_object.get("searchId")
+        surat_itms_db_search.search_surat_itms_data(json_object, None, rout_key, corr_id, method)
 
-    if len(search_types) == 1:
-        search_type = search_types[0]
-        if search_type == 'temporalSearch':
+    else:
+        search_types = json_object['searchType'].split('_')
+        # Remove 'latestSearch' from search_types if it exists
+        if 'latestSearch' in search_types:
+            search_types.remove('latestSearch')
+            logging.info("**Removed LatestSearch!!**")
+
+        if len(search_types) == 1:
+            search_type = search_types[0]
+            if search_type == 'temporalSearch':
+                temporal_query = build_temporal_query(json_object.get('temporal-query'))
+                surat_itms_db_search.search_surat_itms_data(json_object, temporal_query, rout_key, corr_id, method)
+            elif search_type == 'attributeSearch':
+                attribute_query = build_attribute_query(json_object.get('attr-query'))
+                # Add time range query
+                time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
+                combined_query = build_combined_query(time_range_query, attribute_query, None)
+                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+            elif search_type == 'geoSearch':
+                logging.info(json_object.get('geo-query'))
+                geo_query = build_geo_query(json_object.get('geo-query'))
+                # Add time range query
+                time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
+                combined_query = build_combined_query(time_range_query, None, geo_query)
+                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+            else:
+                logging.error("Unsupported searchType: %s", search_type)
+                return
+        else:
+            #logging.info("Inside complex query...")
             temporal_query = build_temporal_query(json_object.get('temporal-query'))
-            surat_itms_db_search.search_surat_itms_data(json_object, temporal_query, rout_key, corr_id, method)
-        elif search_type == 'attributeSearch':
             attribute_query = build_attribute_query(json_object.get('attr-query'))
-            # Add time range query
-            time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
-            combined_query = build_combined_query(time_range_query, attribute_query, None)
-            surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
-        elif search_type == 'geoSearch':
-            logging.info(json_object.get('geo-query'))
             geo_query = build_geo_query(json_object.get('geo-query'))
             # Add time range query
-            time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
-            combined_query = build_combined_query(time_range_query, None, geo_query)
+            #time_range_query = {"range": {"observationDateTime": {"gte": "2020-10-12T00:00Z", "lte": "2020-10-22T00:00Z"}}}
+            combined_query = build_combined_query(temporal_query, attribute_query, geo_query)
             surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
-        else:
-            logging.error("Unsupported searchType: %s", search_type)
-            return
-    else:
-        #logging.info("Inside complex query...")
-        temporal_query = build_temporal_query(json_object.get('temporal-query'))
-        attribute_query = build_attribute_query(json_object.get('attr-query'))
-        geo_query = build_geo_query(json_object.get('geo-query'))
-        # Add time range query
-        #time_range_query = {"range": {"observationDateTime": {"gte": "2020-10-12T00:00Z", "lte": "2020-10-22T00:00Z"}}}
-        combined_query = build_combined_query(temporal_query, attribute_query, geo_query)
-        surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
 
 #temporal query
 def build_temporal_query(temporal_query_params):
