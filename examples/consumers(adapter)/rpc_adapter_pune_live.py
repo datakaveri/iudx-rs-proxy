@@ -10,30 +10,6 @@ from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-#To handle the logs from elasticsearch client. So that we can access the status codes
-class ElasticSearchLogHandler(logging.Handler):
-    def __init__(self):
-        super().__init__()
-        self.logs = []
-
-    def emit(self, record):
-        log_message = self.format(record)
-        if "http://database.iudx.io:24034/iudx__" in log_message:
-            # Clear the logs list before appending new log messages
-            self.logs.clear()
-            self.logs.append(log_message)
-
-# Instantiate the ElasticSearchLogHandler
-elk_logHandler = ElasticSearchLogHandler()
-
-# Set the logging level of the ElasticSearchLogHandler to INFO
-elk_logHandler.setLevel(logging.INFO)
-
-# Configure the logging system
-logger = logging.getLogger()
-logger.addHandler(elk_logHandler)
-logger.setLevel(logging.INFO)
-
 class RabbitMqServerConfigure:
     def __init__(self, username, password, host, port, vhost, queue):
         self.username = username
@@ -70,16 +46,9 @@ class RabbitmqServer:
         self.channel.basic_ack(delivery_tag=method.delivery_tag)
         logging.info("Message is published")
 
-class ElasticsearchDataHandler:
-    def __init__(self, config, elk_logHandler):
+class SearchDatabase:
+    def __init__(self, config):
         self.config = config
-        self.elk_logHandler = elk_logHandler
-        # Configure logging for Elasticsearch client
-        elasticsearch_logger = logging.getLogger('elasticsearch.trace')
-        logging.info(elasticsearch_logger.handlers)  # Check if ElasticSearchLogHandler is present among the handlers
-        elasticsearch_logger.setLevel(logging.INFO)
-        # Add the custom handler to the Elasticsearch logger
-        elasticsearch_logger.addHandler(elk_logHandler)
 
     def search_pune_flood_data(self, json_object, query, rout_key, corr_id, method):
         elk_config = self.config['elasticsearch']
@@ -157,38 +126,54 @@ class ElasticsearchDataHandler:
                            }
                 count_response = client.count(index=index_name, body=query)
                 logging.info(count_response)
-                count = count_response['count']
+                if "error" in count_response:
+                    status_code = response.get("status")
+                else:
+                    count = count_response['count']
+                    status_code = 200
                 if(limit is not None and offset is not None):
                     response_payload = {
                         "totalHits": count,
-                        "statusCode": None, # Placeholder for status code
+                        "statusCode": status_code, # Placeholder for status code
                         "limit": int(limit),
                         "offset": int(offset)
                     }
                 else:
                     response_payload = {
                         "totalHits": count,
-                        "statusCode": None
+                        "statusCode": status_code
                         }
             else:
                 search = Search(index=index_name).using(client)
+                logging.info("entire query..")
+                logging.info(query)
                 search = search.query(query)
                 # Apply limit and offset to the search query if they exist
                 if limit is not None and offset is not None:
                     int_limit = int(limit)  # Convert limit to integer
                     int_offset = int(offset)  # Convert offset to integer
                     search = search[int_offset:int_offset+int_limit]
+                else:
+                    int_limit = 10000
+                    int_offset = 0
+                    search = search[int_offset:int_offset+int_limit]
                 response = search.execute()
                 # Extract relevant data from the response object
-                hits = [hit.to_dict() for hit in response.hits]
-                # Extract totalHits from the response
-                total_hits = response.hits.total.value if hasattr(response.hits.total, 'value') else 0
-
+                # Check if the response contains an "error" key
+                if "error" in response:
+                    status_code = response.get("status")
+                else:
+                    hits = [hit.to_dict() for hit in response.hits]
+                    status_code = 200
+                    logging.info("status")
+                    logging.info(status_code)
+                    # Extract totalHits from the response
+                    total_hits = response.hits.total.value if hasattr(response.hits.total, 'value') else 0
                 # Serialize the extracted data to JSON
                 if limit is not None and offset is not None:
                     response_payload = {
                           "results": hits,
-                          "statusCode": None,  # Placeholder for status code
+                          "statusCode": status_code,  # Placeholder for status code
                           "totalHits": total_hits,
                           "limit": int_limit,
                           "offset": int_offset
@@ -196,34 +181,18 @@ class ElasticsearchDataHandler:
                 else:
                     response_payload = {
                         "results": hits,
-                        "statusCode": None,  # Placeholder for status code
+                        "statusCode": status_code,  # Placeholder for status code
                         "totalHits": total_hits
                         }
         else:
             logging.info("Empty query")
-        flag = False
-        if( apiEndpoint !='/ngsi-ld/v1/async/search' and apiEndpoint !='/ngsi-ld/v1/async/status' ):
-            #logging.info("Number of logs: %s", len(elk_logHandler.logs))
-            # Extract relevant information from captured log messages of elk client
-            flag = True
-            for log in elk_logHandler.logs:
-                logging.info(log)
-                # Extract status code from log message using regular expression
-                status_code_match = re.search(r'status:(\d+)', log)
-                if status_code_match:
-                    status_code = int(status_code_match.group(1))
-                    print("Status Code:", status_code)
-                else:
-                    logging.info("Not matched..")
 
         if response_payload:
-            if( flag ):
-                response_payload["statusCode"] = status_code  # Include the status code in the response payload
-            logging.info("Adapter response: ")
+            #logging.info("Adapter response: ")
             #logging.info(response_payload)
             server.publish(response_payload, rout_key, corr_id, method)
 
-        logging.info("Query Completed for Pune-Flood data")
+        logging.info("Query Completed for PUNE-FLOOD data")
 
 def process_request(ch, method, properties, body):
     logging.info("Request JSON received")
@@ -231,8 +200,7 @@ def process_request(ch, method, properties, body):
     json_object = json.loads(body)
     rout_key = properties.reply_to
     corr_id = properties.correlation_id
-    elk_logHandler = ElasticSearchLogHandler()
-    pune_flood_db_search = ElasticsearchDataHandler(config=config, elk_logHandler=elk_logHandler)
+    pune_flood_db_search = SearchDatabase(config=config)
     #Async status
     apiEndpoint = json_object.get('api')
     #logging.info("api.."+apiEndpoint)
@@ -251,19 +219,25 @@ def process_request(ch, method, properties, body):
             search_type = search_types[0]
             if search_type == 'temporalSearch':
                 temporal_query = build_temporal_query(json_object.get('temporal-query'))
+                id = json_object.get('id')
+                combined_query = build_combined_query(None, None, None, id)
                 pune_flood_db_search.search_pune_flood_data(json_object, temporal_query, rout_key, corr_id, method)
             elif search_type == 'attributeSearch':
                 attribute_query = build_attribute_query(json_object.get('attr-query'))
+                id = json_object.get('id')
                 # Add time range query
-                time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
-                combined_query = build_combined_query(time_range_query, attribute_query, None)
+                time_range_query = build_temporal_query({"time":"2020-10-12T00:00:00Z","endtime":"2020-10-22T00:00:00Z","timerel":"during"})
+                combined_query = build_combined_query(time_range_query, attribute_query, None, id)
                 pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
             elif search_type == 'geoSearch':
                 logging.info(json_object.get('geo-query'))
-                geo_query = build_geo_query(json_object.get('geo-query'))
+                geo_query = build_geo_query(json_object)
+                logging.info("geo query is..")
+                logging.info(geo_query)
+                id = json_object.get('id')
                 # Add time range query
-                time_range_query = build_temporal_query({"time":"2020-10-12T00:00Z","endtime":"2020-10-22T00:00Z","timerel":"during"})
-                combined_query = build_combined_query(time_range_query, None, geo_query)
+                time_range_query = build_temporal_query({"time":"2020-10-12T00:00:00Z","endtime":"2020-10-22T00:00:00Z","timerel":"during"})
+                combined_query = build_combined_query(time_range_query, None, geo_query, id)
                 pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
             else:
                 logging.error("Unsupported searchType: %s", search_type)
@@ -271,8 +245,9 @@ def process_request(ch, method, properties, body):
         else:
             temporal_query = build_temporal_query(json_object.get('temporal-query'))
             attribute_query = build_attribute_query(json_object.get('attr-query'))
-            geo_query = build_geo_query(json_object.get('geo-query'))
-            combined_query = build_combined_query(temporal_query, attribute_query, geo_query)
+            geo_query = build_geo_query(json_object)
+            id = json_object.get('id')
+            combined_query = build_combined_query(temporal_query, attribute_query, geo_query, id)
             pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
 
 #temporal query
@@ -291,16 +266,26 @@ def build_temporal_query(temporal_query_params):
         logging.error("Unsupported timerel value: %s", timerel)
         return None
 
+# Inside the build_during_query function
 def build_during_query(temporal_query_params):
+    if not temporal_query_params:
+        return None
     time = temporal_query_params.get('time')
     endtime = temporal_query_params.get('endtime')
-    return Q('range', observationDateTime={'gte': time, 'lte': endtime})
+    try:
+        # Parse the time data with timezone info
+        time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+        endtime = datetime.strptime(endtime, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        logging.error("Invalid time format: %s", time)
+        return None
+    return Q('range', observationDateTime={'gte': time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': endtime.strftime("%Y-%m-%dT%H:%M:%SZ")})
 
 def build_before_query(temporal_query_params):
     time = temporal_query_params.get('time')
     # Convert the time string to a datetime object
     time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
-    # Subtract 10 months from the specified time
+    # Subtract 10 days from the specified time
     new_time = time - timedelta(days=10)
     return Q('range', observationDateTime={'gte': new_time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': time.strftime("%Y-%m-%dT%H:%M:%SZ")})
 
@@ -308,7 +293,7 @@ def build_after_query(temporal_query_params):
     time = temporal_query_params.get('time')
     # Convert the time string to a datetime object
     time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
-    # Add 10 months to the specified time
+    # Add 10 days to the specified time
     new_time = time + timedelta(days=10)
     return Q('range', observationDateTime={'gte': time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': new_time.strftime("%Y-%m-%dT%H:%M:%SZ")})
 
@@ -364,19 +349,21 @@ def build_attribute_query(attribute_query_params):
         return build_single_attribute_query(attr_query)
 
 #geo query
-def build_geo_query(geo_query_params):
+def build_geo_query(request_json):
+    geo_query_params = request_json.get('geo-query')
     if not geo_query_params:
         return None
     # Construct and return geo query
     geo_type = geo_query_params.get('geometry')
     if geo_type == 'Polygon' or geo_type == 'polygon':
-        return build_geo_polygon_query(geo_query_params)
+        return build_geo_polygon_query(request_json)
     elif geo_type == 'bbox':
-        return build_geo_bbox_query(geo_query_params)
+        return build_geo_bbox_query(request_json)
     elif geo_type == 'linestring' or geo_type == 'Linestring':
-        return build_geo_linestring_query(geo_query_params)
+        return build_geo_linestring_query(request_json)
     else:
         return build_geo_circle_query(geo_query_params)
+
 
 def build_geo_circle_query(geo_query_params):
     lat = geo_query_params['lat']
@@ -384,15 +371,17 @@ def build_geo_circle_query(geo_query_params):
     radius = geo_query_params['radius']
     return Q('geo_distance', distance = radius, location={"lat": lat, "lon": lon})
 
-def build_geo_polygon_query(geo_query_params):
+def build_geo_polygon_query(request_json):
+    geo_query_params = request_json.get('geo-query')
     # Parse coordinates from string to list of floats
     coordinates_str = geo_query_params['coordinates']
     coordinates_list = json.loads(coordinates_str)
     coordinates_float = [[float(coord[0]), float(coord[1])] for coord in coordinates_list[0]]
-    return Q('geo_shape', location={'shape': {'type': 'Polygon', 'coordinates': [coordinates_float]}, 'relation': 'within'})
+    return Q('geo_shape', location={'shape': {'type': 'Polygon', 'coordinates': [coordinates_float]}, 'relation': geo_query_params['georel']})
 
 
-def build_geo_bbox_query(geo_query_params):
+def build_geo_bbox_query(request_json):
+    geo_query_params = request_json.get('geo-query')
     # Parse coordinates from string to list of floats
     coordinates_str = geo_query_params['coordinates']
     coordinates_list = json.loads(coordinates_str)
@@ -402,17 +391,18 @@ def build_geo_bbox_query(geo_query_params):
     return Q('geo_bounding_box', location={'top_left': {'lat': latitudes[1], 'lon': float(coordinates_list[0][0])},
                                             'bottom_right': {'lat': latitudes[0], 'lon': float(coordinates_list[1][0])}})
 
-def build_geo_linestring_query(geo_query_params):
+def build_geo_linestring_query(request_json):
+    geo_query_params = request_json.get('geo-query')
     # Parse coordinates from string to list of floats
     coordinates_str = geo_query_params['coordinates']
     coordinates_list = json.loads(coordinates_str)
     # Convert coordinates to list of floats
     coordinates_float = [[float(coord[0]), float(coord[1])] for coord in coordinates_list]
     # Construct and return geo linestring query
-    return Q('geo_shape', location={'shape': {'type': 'linestring', 'coordinates': coordinates_float}, 'relation': 'intersects'})
+    return Q('geo_shape', location={'shape': {'type': 'linestring', 'coordinates': coordinates_float}, 'relation': geo_query_params['georel']})
 
 #complex query
-def build_combined_query(temporal_query, attribute_query, geo_query):
+def build_combined_query(temporal_query, attribute_query, geo_query, id):
     # Combine temporal, attribute, and geo queries into a single query
     combined_query = Q('bool')
 
@@ -427,6 +417,8 @@ def build_combined_query(temporal_query, attribute_query, geo_query):
     if geo_query:
         #logging.info("in complex geo_query...")
         combined_query &= geo_query
+    # Include the id in the query
+    combined_query &= Q('terms', id=id)
     logging.info(combined_query)
     return combined_query
 
