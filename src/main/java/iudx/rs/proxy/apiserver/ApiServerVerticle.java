@@ -455,8 +455,10 @@ public class ApiServerVerticle extends AbstractVerticle {
           userResponse.put("totalHits", adapterResponse.getValue("totalHits"));
           if(adapterResponse.containsKey("limit")){
               userResponse.put("limit", adapterResponse.getValue("limit"));
-              userResponse.put("offset", adapterResponse.getValue("offset"));
           }
+          if(adapterResponse.containsKey("offset")){
+                userResponse.put("offset", adapterResponse.getValue("offset"));
+            }
           response.end(userResponse.toString());
           context.data().put(RESPONSE_SIZE, response.bytesWritten());
           Future.future(fu -> updateAuditTable(context));
