@@ -113,6 +113,31 @@ class SearchDatabase:
                                         "size": int(limit),  # Equivalent to limit
                                         "from": int(offset)   # Equivalent to offset
                                     }
+                elif limit is not None:
+                    query = {
+                    "query": {
+                            "bool": {
+                            "must": [
+                                     query_dict
+                                     ]
+                                      }
+                            }
+                            ,
+                            "size": int(limit),  # Equivalent to limit
+                            "from": 0   # Equivalent to offset
+                    }
+                elif offset is not None:
+                    query = {
+                               "query": {
+                                       "bool": {
+                                             "must": [
+                                                      query_dict
+                                                                 ]
+                                                     }
+                                                  },
+                               "size": 10000,  # Equivalent to limit
+                               "from": int(offset)   # Equivalent to offset
+                           }
                 else:
                     query = {
                            "query": {
@@ -121,7 +146,9 @@ class SearchDatabase:
                                               query_dict
                                               ]
                                             }
-                                        }
+                                        },
+                           "size": 10000,
+                           "from": 0
 
                            }
                 count_response = client.count(index=index_name, body=query)
@@ -148,15 +175,22 @@ class SearchDatabase:
                 logging.info("entire query..")
                 logging.info(query)
                 search = search.query(query)
-                # Apply limit and offset to the search query if they exist
+                # Adjusting the handling of limit and offset
                 if limit is not None and offset is not None:
                     int_limit = int(limit)  # Convert limit to integer
                     int_offset = int(offset)  # Convert offset to integer
                     search = search[int_offset:int_offset+int_limit]
+                elif limit is not None:
+                    # Only limit is present
+                    int_limit = int(limit)
+                    search = search[:int_limit]
+                elif offset is not None:
+                    # Only offset is present
+                    int_offset = int(offset)
+                    search = search[int_offset:]
                 else:
-                    int_limit = 10000
-                    int_offset = 0
-                    search = search[int_offset:int_offset+int_limit]
+                    # Neither limit nor offset is present
+                    search = search[0:10000]  # Set a default limit or adjust as needed
                 response = search.execute()
                 # Extract relevant data from the response object
                 # Check if the response contains an "error" key
@@ -170,6 +204,7 @@ class SearchDatabase:
                     # Extract totalHits from the response
                     total_hits = response.hits.total.value if hasattr(response.hits.total, 'value') else 0
                 # Serialize the extracted data to JSON
+                # Adjusting the response payload creation
                 if limit is not None and offset is not None:
                     response_payload = {
                           "results": hits,
@@ -178,12 +213,27 @@ class SearchDatabase:
                           "limit": int_limit,
                           "offset": int_offset
                         }
+                elif limit is not None:
+                    response_payload = {
+                        "results": hits,
+                        "statusCode": status_code,
+                        "totalHits": total_hits,
+                        "limit": int_limit
+                    }
+                elif offset is not None:
+                    logging.info("Inside offset")
+                    response_payload = {
+                        "results": hits,
+                        "statusCode": status_code,
+                        "totalHits": total_hits,
+                        "offset": int_offset
+                    }
                 else:
                     response_payload = {
                         "results": hits,
-                        "statusCode": status_code,  # Placeholder for status code
+                        "statusCode": status_code,
                         "totalHits": total_hits
-                        }
+                    }
         else:
             logging.info("Empty query")
 
