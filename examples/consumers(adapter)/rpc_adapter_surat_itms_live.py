@@ -100,64 +100,25 @@ class SearchDatabase:
                 query_dict = query.to_dict()
                 # Perform count query using the "_count" endpoint
                 # Define the Elasticsearch query
-                if limit is not None and offset is not None:
-                    query = {
-                                        "query": {
-                                            "bool": {
-                                                "must": [
-                                                    query_dict
-                                                ]
+                query =   {
+                             "query": {
+                                 "bool": {
+                                      "must": [
+                                         query_dict
+                                        ]
                                             }
                                         }
-                                        ,
-                                        "size": int(limit),  # Equivalent to limit
-                                        "from": int(offset)   # Equivalent to offset
                                     }
-                elif limit is not None:
-                    query = {
-                    "query": {
-                            "bool": {
-                            "must": [
-                                     query_dict
-                                     ]
-                                      }
-                            }
-                            ,
-                            "size": int(limit),  # Equivalent to limit
-                            "from": 0   # Equivalent to offset
-                    }
-                elif offset is not None:
-                    query = {
-                               "query": {
-                                       "bool": {
-                                             "must": [
-                                                      query_dict
-                                                                 ]
-                                                     }
-                                                  },
-                               "size": 10000,  # Equivalent to limit
-                               "from": int(offset)   # Equivalent to offset
-                           }
-                else:
-                    query = {
-                           "query": {
-                                "bool": {
-                                     "must": [
-                                              query_dict
-                                              ]
-                                            }
-                                        },
-                           "size": 10000,
-                           "from": 0
-
-                           }
                 count_response = client.count(index=index_name, body=query)
                 logging.info(count_response)
                 if "error" in count_response:
                     status_code = response.get("status")
                 else:
                     count = count_response['count']
-                    status_code = 200
+                    if count == 0:
+                        status_code = 204
+                    else:
+                        status_code = 200
                 if(limit is not None and offset is not None):
                     response_payload = {
                         "totalHits": count,
@@ -203,6 +164,8 @@ class SearchDatabase:
                     logging.info(status_code)
                     # Extract totalHits from the response
                     total_hits = response.hits.total.value if hasattr(response.hits.total, 'value') else 0
+                    if total_hits == 0:
+                        status_code = 204
                 # Serialize the extracted data to JSON
                 # Adjusting the response payload creation
                 if limit is not None and offset is not None:
