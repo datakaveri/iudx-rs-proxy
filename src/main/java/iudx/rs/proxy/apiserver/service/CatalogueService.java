@@ -91,8 +91,10 @@ public class CatalogueService {
     Promise<Boolean> promise = Promise.promise();
     catWebClient
         .get(catPort, catHost, catSearchPath)
-        .addQueryParam("property", "[itemStatus]")
-        .addQueryParam("value", "[[ACTIVE]]")
+        .addQueryParam("property", "[itemStatus,type]")
+        .addQueryParam(
+            "value",
+            "[[ACTIVE],[iudx:Resource,iudx:ResourceGroup,iudx:Provider,iudx:ResourceServer]]")
         .addQueryParam(
             "filter",
             "[id,provider,name,description,authControlGroup,accessPolicy,type,"
