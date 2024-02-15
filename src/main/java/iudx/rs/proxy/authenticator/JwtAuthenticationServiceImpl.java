@@ -293,6 +293,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             }
             HttpResponse<Buffer> response = responseHandler.result();
             JsonObject responseBody = response.bodyAsJsonObject();
+            LOGGER.debug("isResourceExist responseBody:: "+responseBody);
             if (response.statusCode() != HttpStatus.SC_OK) {
               promise.fail("false");
             } else if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
