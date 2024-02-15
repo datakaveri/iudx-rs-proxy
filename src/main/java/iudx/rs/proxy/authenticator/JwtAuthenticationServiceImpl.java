@@ -148,19 +148,19 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     } else {
       // cache miss
       LOGGER.debug("Cache miss calling cat server");
-      String groupId = null;
-      JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
+     /* String groupId = null;
+     // JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
       LOGGER.debug("jsonObject::; "+jsonObject);
       if(jsonObject!=null){
         groupId = id;//jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
       }else {
         LOGGER.debug("failed : id not exists");
         return Future.failedFuture("Not Found");
-      }
+      }*/
 
       // 1. check group accessPolicy.
       // 2. check resource exist, if exist set accessPolicy to group accessPolicy. else fail
-      Future<String> groupACLFuture = getGroupAccessPolicy(groupId);
+      Future<String> groupACLFuture = getGroupAccessPolicy(id);
       groupACLFuture.compose(groupACLResult -> {
             String groupPolicy = groupACLResult;
             return isResourceExist(id, groupPolicy);
