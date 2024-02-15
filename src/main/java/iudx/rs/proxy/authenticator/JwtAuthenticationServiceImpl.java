@@ -150,7 +150,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       String groupId = null;
       JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
       if(jsonObject!=null){
-        groupId = jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
+        groupId = id; //jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
       }else {
         LOGGER.debug("failed : id not exists");
         return Future.failedFuture("Not Found");
@@ -340,6 +340,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
               resourceACL =
                   responseBody.getJsonArray("results").getJsonObject(0).getString("accessPolicy");
               resourceGroupCache.put(groupId, resourceACL);
+              resourceIdCache.put(groupId, resourceACL);
               LOGGER.debug("Info: Group ID valid : Catalogue item Found");
               promise.complete(resourceACL);
             } catch (Exception ignored) {
