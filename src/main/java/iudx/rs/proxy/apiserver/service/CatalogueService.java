@@ -100,10 +100,8 @@ public class CatalogueService {
               .expect(ResponsePredicate.JSON)
         .send(
             handler -> {
-                LOGGER.debug("populateCache handler.succeeded():: "+handler.succeeded());
               if (handler.succeeded()) {
                 JsonArray response = handler.result().bodyAsJsonObject().getJsonArray("results");
-                LOGGER.debug("cat-sever-rsp:: "+response);
                 response.forEach(
                     json -> {
                       JsonObject res = (JsonObject) json;
@@ -129,7 +127,7 @@ public class CatalogueService {
                     });
                 promise.complete(true);
               } else if (handler.failed()) {
-                  LOGGER.debug("Failed to populateCache:: "+handler.cause().getMessage());
+                  LOGGER.error("Failed to populateCache:: "+handler.cause().getMessage());
                 promise.fail(handler.cause());
               }
             });

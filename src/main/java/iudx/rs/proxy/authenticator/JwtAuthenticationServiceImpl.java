@@ -147,17 +147,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       promise.complete(ACL);
     } else {
       // cache miss
-      LOGGER.debug("Cache miss calling cat server");
-     /* String groupId = null;
-     // JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
-      LOGGER.debug("jsonObject::; "+jsonObject);
-      if(jsonObject!=null){
-        groupId = id;//jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
-      }else {
-        LOGGER.debug("failed : id not exists");
-        return Future.failedFuture("Not Found");
-      }*/
-
       // 1. check group accessPolicy.
       // 2. check resource exist, if exist set accessPolicy to group accessPolicy. else fail
       Future<String> groupACLFuture = getGroupAccessPolicy(id);
@@ -183,7 +172,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     cache.get(requestJson, handler -> {
       if (handler.succeeded()) {
         JsonObject responseJson = handler.result();
-        LOGGER.debug("responseJson : " + responseJson);
         String timestamp = responseJson.getString("value");
 
         LocalDateTime revokedAt = ZonedDateTime.parse(timestamp).toLocalDateTime();
@@ -293,16 +281,15 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             }
             HttpResponse<Buffer> response = responseHandler.result();
             JsonObject responseBody = response.bodyAsJsonObject();
-            LOGGER.debug("isResourceExist responseBody:: "+responseBody);
             if (response.statusCode() != HttpStatus.SC_OK) {
               promise.fail("false");
             } else if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
+              LOGGER.error("Info: Resource ID invalid : Catalogue item Not Found");
               promise.fail("Not Found");
             } else if (responseBody.getInteger("totalHits") == 0) {
               LOGGER.error("Info: Resource ID invalid : Catalogue item Not Found");
               promise.fail("Not Found");
             } else {
-              LOGGER.debug("is Exist response : " + responseBody);
               resourceIdCache.put(id, groupACL);
               promise.complete(true);
             }
