@@ -102,6 +102,7 @@ public class CatalogueService {
             handler -> {
               if (handler.succeeded()) {
                 JsonArray response = handler.result().bodyAsJsonObject().getJsonArray("results");
+                LOGGER.debug("cat-sever-rsp:: "+response);
                 response.forEach(
                     json -> {
                       JsonObject res = (JsonObject) json;

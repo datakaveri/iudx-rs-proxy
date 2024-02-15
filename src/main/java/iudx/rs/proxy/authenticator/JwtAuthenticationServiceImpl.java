@@ -96,6 +96,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         return Future.succeededFuture("OPEN");
       }
     }).compose(openResourceHandler -> {
+      LOGGER.info("openResourceHandler:: {}",openResourceHandler);
       result.isOpen = openResourceHandler.equalsIgnoreCase("OPEN");
       if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
         JsonObject jsonResponse = new JsonObject();
@@ -149,8 +150,9 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       LOGGER.debug("Cache miss calling cat server");
       String groupId = null;
       JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
+      LOGGER.debug("jsonObject::; "+jsonObject);
       if(jsonObject!=null){
-        groupId = id; //jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
+        groupId = id;//jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
       }else {
         LOGGER.debug("failed : id not exists");
         return Future.failedFuture("Not Found");
