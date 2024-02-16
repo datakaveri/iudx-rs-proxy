@@ -65,7 +65,7 @@ class SearchDatabase:
         apiEndpoint = json_object.get('api')
         if apiEndpoint == '/ngsi-ld/v1/async/search':
             response_payload = {
-                              "searchId": "58d3d383-6392-433f-b383-80d8e10be7e9",
+                              "searchId": "48c279f3-ed90-4c05-bbfa-ffa91dd3d8a2",
                               "statusCode": 201
                               }
         elif apiEndpoint == '/ngsi-ld/v1/async/status':
