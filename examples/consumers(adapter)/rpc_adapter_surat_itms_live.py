@@ -313,35 +313,28 @@ def build_after_query(temporal_query_params):
 
 #Attribute Query
 def build_single_attribute_query(condition):
-    parts = condition.split('==')
-    if len(parts) == 2:
-        # Equality condition
+    parts = re.split('(==|>=|<=|>|<)', condition)
+    if len(parts) == 3:
+        # Equality or Inequality condition
         field = parts[0]
-        value = parts[1]
-        return Q('term', **{field: value})
-    else:
-        # Inequality condition
-        parts = condition.split('>')
-        if len(parts) == 2:
-            operator = 'gt'
+        operator = parts[1]
+        value = parts[2]
+        if operator == '==':
+            return Q('term', **{field: value})
+        elif operator == '>=':
+            return Q('range', **{field: {'gte': value}})
+        elif operator == '<=':
+            return Q('range', **{field: {'lte': value}})
+        elif operator == '>':
+            return Q('range', **{field: {'gt': value}})
+        elif operator == '<':
+            return Q('range', **{field: {'lt': value}})
         else:
-            parts = condition.split('<')
-            if len(parts) == 2:
-                operator = 'lt'
-            else:
-                parts = condition.split('>=')
-                if len(parts) == 2:
-                    operator = 'gte'
-                else:
-                    parts = condition.split('<=')
-                    if len(parts) == 2:
-                        operator = 'lte'
-                    else:
-                        logging.error("Unsupported attribute query condition: %s", json.dumps(condition))
-                        return None
-        field = parts[0]
-        value = parts[1]
-        return Q('range', **{field: {operator: value}})
+            logging.error("Unsupported operator in attribute query: %s", operator)
+            return None
+    else:
+        logging.error("Unsupported attribute query condition: %s", condition)
+        return None
 
 def build_attribute_query(attribute_query_params):
     if not attribute_query_params:
