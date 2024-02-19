@@ -1,3 +1,16 @@
+"""
+Pune Flood Data Adapter Code
+
+This code serves as an adapter for querying Pune flood data from an Elasticsearch
+database which interacts with a RabbitMQ server to receive search requests
+and publish the results and Elasticsearch client for data retrieval.
+
+It supports search and count queries such as attribute search ,attribute count and
+temporal search, temporal count as indicated by "applicableFilters":["ATTR","TEMPORAL"]
+and also involves logic for spatial and complex search and count queries and can
+be utilised whenever it is necessary.
+
+"""
 import json
 import re
 import logging
