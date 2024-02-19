@@ -323,25 +323,18 @@ def build_single_attribute_query(condition):
         # Inequality condition
         parts = condition.split('>')
         if len(parts) == 2:
-            operator = 'gt'
-        else:
-            parts = condition.split('<')
-            if len(parts) == 2:
-                operator = 'lt'
-            else:
-                parts = condition.split('>=')
-                if len(parts) == 2:
-                    operator = 'gte'
-                else:
-                    parts = condition.split('<=')
-                    if len(parts) == 2:
-                        operator = 'lte'
-                    else:
-                        logging.error("Unsupported attribute query condition: %s", json.dumps(condition))
-                        return None
-        field = parts[0]
-        value = parts[1]
-        return Q('range', **{field: {operator: value}})
+            operator = 'gte' if '=' in parts[1] else 'gt'  # Check for >= or >
+            field = parts[0]
+            value = parts[1].strip('=')
+            return Q('range', **{field: {operator: value}})
+        parts = condition.split('<')
+        if len(parts) == 2:
+            operator = 'lte' if '=' in parts[1] else 'lt'  # Check for <= or <
+            field = parts[0]
+            value = parts[1].strip('=')
+            return Q('range', **{field: {operator: value}})
+        logging.error("Unsupported attribute query condition: %s", json.dumps(condition))
+        return None
 
 def build_attribute_query(attribute_query_params):
     if not attribute_query_params:
