@@ -1,3 +1,21 @@
+'''
+Surat-ITMS Adapter Code
+
+This code serves as an adapter for querying Surat-ITMS data from an Elasticsearch
+database. It interacts with a RabbitMQ server to receive search requests and publish
+the results, and utilizes an Elasticsearch client for data retrieval.
+
+It supports various types of search and count queries, including spatial search,
+spatial count, latest search, complex search, and complex count. These capabilities are indicated
+by the "applicableFilters" parameter, which includes "ATTR" and "TEMPORAL".
+
+Additionally, the adapter includes logic for temporal and attribute search and count queries,
+making it versatile and suitable for a wide range of querying scenarios related to surat itms data.
+
+This adapter code can be utilized whenever there is a need to query surat itms data stored in an Elasticsearch database.
+'''
+
+
 import json
 import re
 import logging
