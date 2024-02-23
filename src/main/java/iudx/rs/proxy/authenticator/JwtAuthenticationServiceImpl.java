@@ -51,11 +51,11 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
   final String catBasePath;
   // resourceGroupCache will contain ACL info about all resource group in a resource server
   Cache<String, String> resourceGroupCache = CacheBuilder.newBuilder().maximumSize(1000)
-      .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES).build();
+      .build();
 
   // resourceIdCache will contain info about resources available(& their ACL) in resource server.
   Cache<String, String> resourceIdCache = CacheBuilder.newBuilder().maximumSize(1000)
-      .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES).build();
+      .build();
 
 
   JwtAuthenticationServiceImpl(Vertx vertx, final JWTAuth jwtAuth, final JsonObject config,
