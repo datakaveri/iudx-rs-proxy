@@ -96,6 +96,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         return Future.succeededFuture("OPEN");
       }
     }).compose(openResourceHandler -> {
+      LOGGER.info("openResourceHandler:: {}",openResourceHandler);
       result.isOpen = openResourceHandler.equalsIgnoreCase("OPEN");
       if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
         JsonObject jsonResponse = new JsonObject();
@@ -146,19 +147,9 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       promise.complete(ACL);
     } else {
       // cache miss
-      LOGGER.debug("Cache miss calling cat server");
-      String groupId = null;
-      JsonObject jsonObject = CatalogueService.getCatalogueItemJson(id);
-      if(jsonObject!=null){
-        groupId = jsonObject.containsKey("resourceGroup") ? jsonObject.getString("resourceGroup") : id ;
-      }else {
-        LOGGER.debug("failed : id not exists");
-        return Future.failedFuture("Not Found");
-      }
-
       // 1. check group accessPolicy.
       // 2. check resource exist, if exist set accessPolicy to group accessPolicy. else fail
-      Future<String> groupACLFuture = getGroupAccessPolicy(groupId);
+      Future<String> groupACLFuture = getGroupAccessPolicy(id);
       groupACLFuture.compose(groupACLResult -> {
             String groupPolicy = groupACLResult;
             return isResourceExist(id, groupPolicy);
@@ -181,7 +172,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     cache.get(requestJson, handler -> {
       if (handler.succeeded()) {
         JsonObject responseJson = handler.result();
-        LOGGER.debug("responseJson : " + responseJson);
         String timestamp = responseJson.getString("value");
 
         LocalDateTime revokedAt = ZonedDateTime.parse(timestamp).toLocalDateTime();
@@ -294,12 +284,12 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             if (response.statusCode() != HttpStatus.SC_OK) {
               promise.fail("false");
             } else if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
+              LOGGER.error("Info: Resource ID invalid : Catalogue item Not Found");
               promise.fail("Not Found");
             } else if (responseBody.getInteger("totalHits") == 0) {
               LOGGER.error("Info: Resource ID invalid : Catalogue item Not Found");
               promise.fail("Not Found");
             } else {
-              LOGGER.debug("is Exist response : " + responseBody);
               resourceIdCache.put(id, groupACL);
               promise.complete(true);
             }
@@ -340,6 +330,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
               resourceACL =
                   responseBody.getJsonArray("results").getJsonObject(0).getString("accessPolicy");
               resourceGroupCache.put(groupId, resourceACL);
+              resourceIdCache.put(groupId, resourceACL);
               LOGGER.debug("Info: Group ID valid : Catalogue item Found");
               promise.complete(resourceACL);
             } catch (Exception ignored) {

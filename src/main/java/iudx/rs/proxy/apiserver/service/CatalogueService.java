@@ -89,15 +89,15 @@ public class CatalogueService {
    */
   private Future<Boolean> populateCache() {
     Promise<Boolean> promise = Promise.promise();
-    catWebClient
-        .get(catPort, catHost, catSearchPath)
-        .addQueryParam("property", "[itemStatus]")
-        .addQueryParam("value", "[[ACTIVE]]")
-        .addQueryParam(
-            "filter",
-            "[id,provider,name,description,authControlGroup,accessPolicy,type,"
-                + "iudxResourceAPIs,instance,resourceGroup]")
-        .expect(ResponsePredicate.JSON)
+      catWebClient
+              .get(catPort, catHost, catSearchPath)
+              .addQueryParam("property", "[itemStatus,type]")
+              .addQueryParam("value", "[[ACTIVE],[iudx:Resource,iudx:ResourceGroup,iudx:Provider,iudx:ResourceServer]]")
+              .addQueryParam(
+                      "filter",
+                      "[id,provider,name,description,authControlGroup,accessPolicy,type,"
+                              + "iudxResourceAPIs,instance,resourceGroup]")
+              .expect(ResponsePredicate.JSON)
         .send(
             handler -> {
               if (handler.succeeded()) {
@@ -127,6 +127,7 @@ public class CatalogueService {
                     });
                 promise.complete(true);
               } else if (handler.failed()) {
+                  LOGGER.error("Failed to populateCache:: "+handler.cause().getMessage());
                 promise.fail(handler.cause());
               }
             });
