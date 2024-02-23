@@ -587,7 +587,7 @@ class JwtAuthenticationServiceImplTest {
               return null;
           }
       }).when(httpRequest).send(any());
-      jwtAuthenticationService.isResourceExist(id,groupACL).onComplete(handler -> {
+      jwtAuthenticationService.isResourceExist(id).onComplete(handler -> {
           if (handler.succeeded())
           {
               vertxTestContext.failNow("false");
@@ -622,7 +622,7 @@ class JwtAuthenticationServiceImplTest {
                 return null;
             }
         }).when(httpRequest).send(any());
-        jwtAuthenticationService.isResourceExist(id,groupACL).onComplete(handler -> {
+        jwtAuthenticationService.isResourceExist(id).onComplete(handler -> {
             if (handler.succeeded())
             {
                 vertxTestContext.failNow("Not Found");
@@ -661,7 +661,7 @@ class JwtAuthenticationServiceImplTest {
                 return null;
             }
         }).when(httpRequest).send(any());
-        jwtAuthenticationService.isResourceExist(id, groupACL).onComplete(handler -> {
+        jwtAuthenticationService.isResourceExist(id).onComplete(handler -> {
             if (handler.succeeded()) {
                 vertxTestContext.failNow("Not Found");
             } else {
@@ -696,7 +696,7 @@ class JwtAuthenticationServiceImplTest {
                 return null;
             }
         }).when(httpRequest).send(any());
-        jwtAuthenticationService.getGroupAccessPolicy(id).onComplete(handler -> {
+        jwtAuthenticationService.getResourceAccessPolicy(id).onComplete(handler -> {
             if (handler.succeeded()) {
                 vertxTestContext.failNow("Not Found");
             } else {
@@ -731,7 +731,7 @@ class JwtAuthenticationServiceImplTest {
                 return null;
             }
         }).when(httpRequest).send(any());
-        jwtAuthenticationService.getGroupAccessPolicy(id).onComplete(handler -> {
+        jwtAuthenticationService.getResourceAccessPolicy(id).onComplete(handler -> {
             if (handler.succeeded()) {
                 vertxTestContext.failNow("Not Found");
             } else {

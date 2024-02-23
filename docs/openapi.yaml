@@ -1792,7 +1792,7 @@ components:
             type: object
       example:
         type: urn:dx:rs:success
-        title: success
+        title: Success
         results: [
           {
             "trip_direction": "NT",

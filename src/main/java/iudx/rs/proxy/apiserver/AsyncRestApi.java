@@ -155,7 +155,6 @@ public class AsyncRestApi {
         LOGGER.trace("handleAsyncSearchRequest started");
         HttpServerRequest request = routingContext.request();
         HttpServerResponse response = routingContext.response();
-
         String instanceId = request.getHeader(HEADER_HOST);
         MultiMap params = getQueryParams(routingContext, response).get();
 
@@ -214,8 +213,7 @@ public class AsyncRestApi {
         String sub = ((JsonObject) routingContext.data().get("authInfo")).getString(USER_ID);
         HttpServerRequest request = routingContext.request();
         HttpServerResponse response = routingContext.response();
-
-        String searchId = request.getParam("searchID");
+        String searchId = request.getParam("searchId");
         StringBuilder query = new StringBuilder(SELECT_ASYNC_DETAILS
                 .replace("$0", searchId));
         JsonObject queryJson = new JsonObject()
@@ -225,6 +223,15 @@ public class AsyncRestApi {
                 dbHandler -> {
                     if (dbHandler.succeeded()) {
                         JsonArray dbResult = dbHandler.result().getJsonArray("result");
+                        if (dbResult.isEmpty() || dbResult.hasNull(0)) {
+                            ResponseBuilder responseBuilder =
+                                    new ResponseBuilder("failed")
+                                            .setTypeAndTitle(400, ResponseUrn.BAD_REQUEST_URN.getUrn())
+                                            .setMessage(
+                                                    "Invalid searchId");
+                            processBackendResponse(response, responseBuilder.getResponse().toString());
+                            return;
+                        }
                         JsonObject result = dbResult.getJsonObject(0);
                         if (result.getString("consumer_id").equalsIgnoreCase(sub)) {
                             JsonObject requestJson = new JsonObject();
@@ -317,7 +324,7 @@ public class AsyncRestApi {
                 int status = adapterResponse.containsKey("statusCode") ? adapterResponse.getInteger("statusCode") : 400;
                 response.putHeader(CONTENT_TYPE, APPLICATION_JSON);
                 response.setStatusCode(status);
-                if (status == 200 && isDbOprationRequired) {
+                if (status == 201 && isDbOprationRequired) {
                     LOGGER.info("Success: adapter call Success with {}", status);
                     String resource_Id = json.getJsonArray("id").getString(0);
                     StringBuilder insertQuery = new StringBuilder(ISERT_ASYNC_REQUEST_DETAIL_SQL
@@ -336,7 +343,11 @@ public class AsyncRestApi {
                                     if (resultJson.getString((JSON_TYPE)).equalsIgnoreCase(ResponseUrn.SUCCESS_URN.getUrn())) {
                                         adapterResponse.put(JSON_TYPE, ResponseUrn.SUCCESS_URN.getUrn());
                                         adapterResponse.put(JSON_TITLE, "query submitted successfully");
-                                        response.end(adapterResponse.toString());
+                                        JsonObject userResponse = new JsonObject();
+                                        userResponse.put(JSON_TYPE, ResponseUrn.SUCCESS_URN.getUrn());
+                                        userResponse.put(JSON_TITLE, "query submitted successfully");
+                                        userResponse.put("results", new JsonArray().add(new JsonObject().put("searchId", adapterResponse.getString("searchId"))));
+                                        response.end(userResponse.toString());
                                         context.data().put(RESPONSE_SIZE, response.bytesWritten());
                                     }
                                 } else {
@@ -350,10 +361,17 @@ public class AsyncRestApi {
                             });
                 } else if (status == 200 && !isDbOprationRequired) {
                     LOGGER.info("Success: adapter call Success with {}", status);
-                    JsonObject adapterResponse3 = new JsonObject();
-                    adapterResponse.put(JSON_TYPE, ResponseUrn.SUCCESS_URN.getUrn());
-                    adapterResponse.put(JSON_TITLE, "query submitted successfully");
-                    response.end(adapterResponse.toString());
+                    JsonObject userResponse = new JsonObject();
+                    userResponse.put(JSON_TYPE, ResponseUrn.SUCCESS_URN.getUrn());
+                    userResponse.put(JSON_TITLE, "Success");
+                    String userId = authInfo.getString(USER_ID);
+                    // Extract the "results" section from adapter response
+                    JsonArray results = adapterResponse.getJsonArray("results");
+                    JsonObject resultsObject = results.getJsonObject(0);
+                    // Add user_id field after searchId in each object within the results array
+                    resultsObject.put("userId", userId);
+                    userResponse.put("results", results);
+                    response.end(userResponse.toString());
                     context.data().put(RESPONSE_SIZE, response.bytesWritten());
                     Future.future(fu -> updateAuditTable(context));
 

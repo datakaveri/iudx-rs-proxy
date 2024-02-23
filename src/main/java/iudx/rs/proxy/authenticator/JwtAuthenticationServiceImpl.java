@@ -1,6 +1,5 @@
 package iudx.rs.proxy.authenticator;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ITEM_TYPES;
 import static iudx.rs.proxy.authenticator.Constants.*;
 
 import com.google.common.cache.Cache;
@@ -11,7 +10,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -34,10 +32,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -171,10 +166,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
       // 1. check group accessPolicy.
       // 2. check resource exist, if exist set accessPolicy to group accessPolicy. else fail
-      Future<String> groupACLFuture = getGroupAccessPolicy(groupId);
+      Future<String> groupACLFuture = getResourceAccessPolicy(id);
       groupACLFuture.compose(groupACLResult -> {
             String groupPolicy = groupACLResult;
-            return isResourceExist(id, groupPolicy);
+            return isResourceExist(id);
           }).onSuccess(handler -> promise.complete(resourceIdCache.getIfPresent(id)))
           .onFailure(handler -> {
             LOGGER.error("cat response failed for Id : (" + id + ")" + handler.getCause());
@@ -300,7 +295,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     return promise.future();
   }
 
-  Future<Boolean> isResourceExist(String id, String groupACL) {
+  Future<Boolean> isResourceExist(String id) {
     LOGGER.trace("isResourceExist() started");
     Promise<Boolean> promise = Promise.promise();
     String resourceExist = resourceIdCache.getIfPresent(id);
@@ -310,7 +305,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     } else {
       LOGGER.info("Info : Cache miss : call cat server");
       catWebClient.get(port, host, path).addQueryParam("property", "[id]")
-          .addQueryParam("value", "[[" + id + "]]").addQueryParam("filter", "[id]")
+          .addQueryParam("value", "[[" + id + "]]").addQueryParam("filter", "[id,accessPolicy]")
           .expect(ResponsePredicate.JSON).send(responseHandler -> {
             if (responseHandler.failed()) {
               promise.fail("false");
@@ -326,7 +321,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
               promise.fail("Not Found");
             } else {
               LOGGER.debug("is Exist response : " + responseBody);
-              resourceIdCache.put(id, groupACL);
+              resourceIdCache.put(id, responseBody.getJsonArray("results").getJsonObject(0).getString("accessPolicy"));
               promise.complete(true);
             }
           });
@@ -334,7 +329,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     return promise.future();
   }
 
-  Future<String> getGroupAccessPolicy(String groupId) {
+  Future<String> getResourceAccessPolicy(String groupId) {
     LOGGER.trace("getGroupAccessPolicy() started");
     Promise<String> promise = Promise.promise();
     String groupACL = resourceGroupCache.getIfPresent(groupId);
@@ -356,6 +351,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
               promise.fail("Resource not found");
               return;
             }
+            LOGGER.debug(response.body());
             JsonObject responseBody = response.bodyAsJsonObject();
             if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
               promise.fail("Resource not found");
@@ -363,6 +359,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             }
             String resourceACL = "SECURE";
             try {
+              LOGGER.debug("resp from cat : " + responseBody);
               resourceACL =
                   responseBody.getJsonArray("results").getJsonObject(0).getString("accessPolicy");
               resourceGroupCache.put(groupId, resourceACL);
