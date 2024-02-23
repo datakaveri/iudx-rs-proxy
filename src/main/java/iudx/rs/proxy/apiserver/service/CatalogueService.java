@@ -41,13 +41,11 @@ public class CatalogueService {
   private static Cache<String, JsonObject> catalogueItemCache =
       CacheBuilder.newBuilder()
           .maximumSize(10000)
-          .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES)
           .build();
   ;
   private final Cache<String, List<String>> applicableFilterCache =
       CacheBuilder.newBuilder()
           .maximumSize(1000)
-          .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES)
           .build();
   private long cacheTimerid;
   private String catBasePath;
