@@ -1,21 +1,16 @@
-'''
-Surat-ITMS Adapter Code
+"""
+Pune Flood Data Adapter Code
 
-This code serves as an adapter for querying Surat-ITMS data from an Elasticsearch
-database. It interacts with a RabbitMQ server to receive search requests and publish
-the results, and utilizes an Elasticsearch client for data retrieval.
+This code serves as an adapter for querying Pune flood data from an Elasticsearch
+database which interacts with a RabbitMQ server to receive search requests
+and publish the results and Elasticsearch client for data retrieval.
 
-It supports various types of search and count queries, including spatial search,
-spatial count, latest search, complex search, and complex count. These capabilities are indicated
-by the "applicableFilters" parameter, which includes "ATTR" and "TEMPORAL".
+It supports search and count queries such as attribute search ,attribute count and
+temporal search, temporal count as indicated by "applicableFilters":["ATTR","TEMPORAL"]
+and also involves logic for spatial and complex search and count queries and can
+be utilised whenever it is necessary.
 
-Additionally, the adapter includes logic for temporal and attribute search and count queries,
-making it versatile and suitable for a wide range of querying scenarios related to surat itms data.
-
-This adapter code can be utilized whenever there is a need to query surat itms data stored in an Elasticsearch database.
-'''
-
-
+"""
 import json
 import re
 import logging
@@ -68,7 +63,7 @@ class SearchDatabase:
     def __init__(self, config):
         self.config = config
 
-    def search_surat_itms_data(self, json_object, query, rout_key, corr_id, method):
+    def search_pune_flood_data(self, json_object, query, rout_key, corr_id, method):
         elk_config = self.config['elasticsearch']
         client = Elasticsearch(
                     [f"http://{elk_config['databaseURI']}:{elk_config['databasePort']}"],
@@ -223,7 +218,7 @@ class SearchDatabase:
             #logging.info(response_payload)
             server.publish(response_payload, rout_key, corr_id, method)
 
-        logging.info("Query Completed for Surat-ITMS data")
+        logging.info("Query Completed for PUNE-FLOOD data")
 
 def process_request(ch, method, properties, body):
     logging.info("Request JSON received")
@@ -231,13 +226,13 @@ def process_request(ch, method, properties, body):
     json_object = json.loads(body)
     rout_key = properties.reply_to
     corr_id = properties.correlation_id
-    surat_itms_db_search = SearchDatabase(config=config)
+    pune_flood_db_search = SearchDatabase(config=config)
     #Async status
     apiEndpoint = json_object.get('api')
     #logging.info("api.."+apiEndpoint)
     if apiEndpoint == '/ngsi-ld/v1/async/status':
         searchId = json_object.get("searchId")
-        surat_itms_db_search.search_surat_itms_data(json_object, None, rout_key, corr_id, method)
+        pune_flood_db_search.search_pune_flood_data(json_object, None, rout_key, corr_id, method)
 
     else:
         search_types = json_object['searchType'].split('_')
@@ -252,14 +247,14 @@ def process_request(ch, method, properties, body):
                 temporal_query = build_temporal_query(json_object.get('temporal-query'))
                 id = json_object.get('id')
                 combined_query = build_combined_query(None, None, None, id)
-                surat_itms_db_search.search_surat_itms_data(json_object, temporal_query, rout_key, corr_id, method)
+                pune_flood_db_search.search_pune_flood_data(json_object, temporal_query, rout_key, corr_id, method)
             elif search_type == 'attributeSearch':
                 attribute_query = build_attribute_query(json_object.get('attr-query'))
                 id = json_object.get('id')
                 # Add time range query
                 time_range_query = build_temporal_query({"time":"2020-10-12T00:00:00Z","endtime":"2020-10-22T00:00:00Z","timerel":"during"})
                 combined_query = build_combined_query(time_range_query, attribute_query, None, id)
-                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+                pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
             elif search_type == 'geoSearch':
                 logging.info(json_object.get('geo-query'))
                 geo_query = build_geo_query(json_object)
@@ -269,7 +264,7 @@ def process_request(ch, method, properties, body):
                 # Add time range query
                 time_range_query = build_temporal_query({"time":"2020-10-12T00:00:00Z","endtime":"2020-10-22T00:00:00Z","timerel":"during"})
                 combined_query = build_combined_query(time_range_query, None, geo_query, id)
-                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+                pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
             else:
                 logging.error("Unsupported searchType: %s", search_type)
                 return
@@ -279,7 +274,7 @@ def process_request(ch, method, properties, body):
             geo_query = build_geo_query(json_object)
             id = json_object.get('id')
             combined_query = build_combined_query(temporal_query, attribute_query, geo_query, id)
-            surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+            pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
 
 #temporal query
 def build_temporal_query(temporal_query_params):
@@ -331,27 +326,27 @@ def build_after_query(temporal_query_params):
 
 #Attribute Query
 def build_single_attribute_query(condition):
-    parts = re.split('(==|>=|<=|>|<)', condition)
-    if len(parts) == 3:
-        # Equality or Inequality condition
+    parts = condition.split('==')
+    if len(parts) == 2:
+        # Equality condition
         field = parts[0]
-        operator = parts[1]
-        value = parts[2]
-        if operator == '==':
-            return Q('term', **{field: value})
-        elif operator == '>=':
-            return Q('range', **{field: {'gte': value}})
-        elif operator == '<=':
-            return Q('range', **{field: {'lte': value}})
-        elif operator == '>':
-            return Q('range', **{field: {'gt': value}})
-        elif operator == '<':
-            return Q('range', **{field: {'lt': value}})
-        else:
-            logging.error("Unsupported operator in attribute query: %s", operator)
-            return None
+        value = parts[1]
+        return Q('term', **{field: value})
     else:
-        logging.error("Unsupported attribute query condition: %s", condition)
+        # Inequality condition
+        parts = condition.split('>')
+        if len(parts) == 2:
+            operator = 'gte' if '=' in parts[1] else 'gt'  # Check for >= or >
+            field = parts[0]
+            value = parts[1].strip('=')
+            return Q('range', **{field: {operator: value}})
+        parts = condition.split('<')
+        if len(parts) == 2:
+            operator = 'lte' if '=' in parts[1] else 'lt'  # Check for <= or <
+            field = parts[0]
+            value = parts[1].strip('=')
+            return Q('range', **{field: {operator: value}})
+        logging.error("Unsupported attribute query condition: %s", json.dumps(condition))
         return None
 
 def build_attribute_query(attribute_query_params):
