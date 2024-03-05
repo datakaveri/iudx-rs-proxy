@@ -43,7 +43,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
                                                  Handler<AsyncResult<JsonObject>> handler) {
         LOGGER.info("tokenIntrospect() started");
         String id = authenticationInfo.getString("id");
-        String ppbNumber = authenticationInfo.getString(PPB_NUMBER);
+        String ppbNumber = authenticationInfo.getString(PPB_NUMBER,"");
 
         ResultContainer result = new ResultContainer();
         result.jwtData = jwtData;
@@ -114,7 +114,6 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
         CacheType cacheType = CacheType.REVOKED_CLIENT;
         String subId = jwtData.getSub();
         JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", subId);
-        LOGGER.info("cacheType " + cache);
         Future<JsonObject> cacheCallFuture = cache.get(requestJson);
         cacheCallFuture
                 .onSuccess(

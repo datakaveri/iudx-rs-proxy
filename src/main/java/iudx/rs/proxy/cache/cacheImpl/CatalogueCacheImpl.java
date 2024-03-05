@@ -27,7 +27,6 @@ public class CatalogueCacheImpl implements IudxCache {
     private String catBasePath;
 
     public CatalogueCacheImpl(Vertx vertx, JsonObject config) {
-        LOGGER.debug("config : {}", config);
         this.catHost = config.getString("catServerHost");
         this.catPort = config.getInteger("catServerPort");
         this.catBasePath = config.getString("dxCatalogueBasePath");
