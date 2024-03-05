@@ -1,10 +1,15 @@
 package iudx.rs.proxy.cache.cacheImpl;
 
+import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
+
 public interface IudxCache {
 
-  public void put(String key, String value);
+  Future<Void> put(String key, CacheValue<JsonObject> value);
 
-  public String get(String key);
+  Future<CacheValue<JsonObject>> get(String key);
 
-  public void refreshCache();
+  Future<Void> refreshCache();
+
+  CacheValue<JsonObject> createCacheValue(String key, String value);
 }

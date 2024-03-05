@@ -11,15 +11,17 @@ import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
 
 import io.vertx.core.json.JsonArray;
-import iudx.rs.proxy.apiserver.handlers.TokenDecodeHandler;
+import iudx.rs.proxy.apiserver.handlers.*;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.optional.consentlogs.ConsentLoggingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,10 +44,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
-import iudx.rs.proxy.apiserver.handlers.AuthHandler;
-import iudx.rs.proxy.apiserver.handlers.ConsentLogRequestHandler;
-import iudx.rs.proxy.apiserver.handlers.FailureHandler;
-import iudx.rs.proxy.apiserver.handlers.ValidationHandler;
 import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
@@ -79,6 +77,7 @@ public class ApiServerVerticle extends AbstractVerticle {
   private String dxAuthBasePath;
   private String dxApiBasePath;
   private ConsentLoggingService consentLoggingService;
+  private CacheService cacheService;
   private boolean isAdexInstance;
 
   @Override
@@ -89,6 +88,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
     validator = new ParamsValidator(catalogueService);
     consentLoggingService = ConsentLoggingService.createProxy(vertx,CONSEENTLOG_SERVICE_ADDRESS);
+    cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
 
     /* Get base paths from config */
     dxApiBasePath=config().getString("dxApiBasePath");
@@ -110,7 +110,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(entityValidationHandler)
             .handler(TokenDecodeHandler.create(vertx))
             .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-            .handler(AuthHandler.create(vertx, apis))
+            .handler(AuthHandler.create(vertx, apis,isAdexInstance))
             .handler(this::handleEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
@@ -121,7 +121,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(temporalValidationHandler)
             .handler(TokenDecodeHandler.create(vertx))
             .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-            .handler(AuthHandler.create(vertx, apis))
+            .handler(AuthHandler.create(vertx, apis, isAdexInstance))
             .handler(this::handleTemporalQuery)
             .failureHandler(validationsFailureHandler);
 
@@ -129,14 +129,14 @@ public class ApiServerVerticle extends AbstractVerticle {
             .get(apis.getConsumerAuditEndpoint())
             .handler(TokenDecodeHandler.create(vertx))
             .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-            .handler(AuthHandler.create(vertx, apis))
+            .handler(AuthHandler.create(vertx, apis, isAdexInstance))
             .handler(this::getConsumerAuditDetail);
 
     router
             .get(apis.getProviderAuditEndpoint())
             .handler(TokenDecodeHandler.create(vertx))
             .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-            .handler(AuthHandler.create(vertx, apis))
+            .handler(AuthHandler.create(vertx, apis, isAdexInstance))
             .handler(this::getProviderAuditDetail);
 
     // Post Queries
@@ -148,7 +148,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(postEntitiesValidationHandler)
             .handler(TokenDecodeHandler.create(vertx))
             .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-            .handler(AuthHandler.create(vertx, apis))
+            .handler(AuthHandler.create(vertx, apis,isAdexInstance))
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
 
@@ -160,7 +160,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             .handler(postTemporalValidationHandler)
             .handler(TokenDecodeHandler.create(vertx))
             .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-            .handler(AuthHandler.create(vertx,apis))
+            .handler(AuthHandler.create(vertx,apis,isAdexInstance))
             .handler(this::handlePostEntitiesQuery)
             .failureHandler(validationsFailureHandler);
     /** Documentation routes */
@@ -178,7 +178,7 @@ public class ApiServerVerticle extends AbstractVerticle {
 
       router.route(apis.getAsyncPath() + "/*").subRouter(new AsyncRestApi(vertx, router, apis,config()).init());
 // todo need to identify the the way to handle "addBodyEndHandler" currently it is handling from AsyncRestApi class.
-     /* router.route().handler(context -> {
+    /*  router.route().handler(context -> {
           context.addBodyEndHandler(endHandler -> {
               Future.future(future -> logConsentResponse(context));
           });
@@ -258,38 +258,39 @@ public class ApiServerVerticle extends AbstractVerticle {
     private Future<Void> logConsentResponse(RoutingContext routingContext) {
         LOGGER.info("logging consent log for response");
         Promise<Void> promise = Promise.promise();
-        String consentLog = null;
-        switch (routingContext.response().getStatusCode()) {
-            case 200:
-            case 201: {
-                consentLog = "DATA_SENT";
-                break;
+        if (isAdexInstance) {
+            String consentLog = null;
+            switch (routingContext.response().getStatusCode()) {
+                case 200:
+                case 201: {
+                    consentLog = "DATA_SENT";
+                    break;
+                }
+                case 400:
+                case 401:
+                case 404: {
+                    consentLog = "DATA_DENIED";
+                    break;
+                }
             }
-            case 400:
-            case 401:
-            case 404: {
-                consentLog = "DATA_DENIED";
-                break;
-            }
+            LOGGER.info("response ended : {}", routingContext.response());
+            LOGGER.info("consent log : {}", consentLog);
+            LOGGER.info("response code : {}", routingContext.response().getStatusCode());
+            LOGGER.info("response body : {}", routingContext.response().bodyEndHandler(null));
+
+            String finalConsentLog = consentLog;
+
+            JsonObject logRequest = new JsonObject();
+            logRequest.put("logType", finalConsentLog);
+
+            Future<JsonObject> consentAuditLog = consentLoggingService.log(logRequest, routingContext.get("jwtData"));
+            consentAuditLog.onSuccess(auditLogHandler -> promise.complete())
+                    .onFailure(auditLogFailure -> {
+                        LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                        promise.fail(auditLogFailure);
+                    });
+
         }
-        LOGGER.info("response ended : {}", routingContext.response());
-        LOGGER.info("consent log : {}", consentLog);
-        LOGGER.info("response code : {}", routingContext.response().getStatusCode());
-        LOGGER.info("response body : {}", routingContext.response().bodyEndHandler(null));
-
-        String finalConsentLog = consentLog;
-
-        JsonObject logRequest = new JsonObject();
-        logRequest.put("logType", finalConsentLog);
-
-        Future<JsonObject> consentAuditLog = consentLoggingService.log(logRequest, routingContext.get("jwtData"));
-        consentAuditLog.onSuccess(auditLogHandler -> promise.complete())
-                .onFailure(auditLogFailure -> {
-                    LOGGER.error("failed info: {}", auditLogFailure.getMessage());
-                    promise.fail(auditLogFailure);
-                });
-
-
         return promise.future();
     }
 
@@ -469,12 +470,12 @@ public class ApiServerVerticle extends AbstractVerticle {
           JsonObject responseJson=ResponseUtil.generateResponse(responseUrn,adapterFailureMessage);
           response.end(responseJson.toString());
         }
-                
+
       } else {
-        LOGGER.error("Failure: Adapter Search Fail");
-        response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .setStatusCode(400)
-                .end(handler.cause().getMessage());
+          LOGGER.error("Failure: Adapter Search Fail");
+          response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                  .setStatusCode(400)
+                  .end(handler.cause().getMessage());
       }
     });
       context.next();
@@ -672,55 +673,67 @@ public class ApiServerVerticle extends AbstractVerticle {
     });
   }
 
-  private void updateAuditTable(RoutingContext context) {
-    Promise<Void> promise = Promise.promise();
-    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
+    private void updateAuditTable(RoutingContext context) {
+        Promise<Void> promise = Promise.promise();
+        JsonObject authInfo = (JsonObject) context.data().get("authInfo");
 
-    JsonObject request = new JsonObject();
+        JsonObject request = new JsonObject();
 
-    ZonedDateTime zst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-    long time = zst.toInstant().toEpochMilli();
-    String isoTime = zst.truncatedTo(ChronoUnit.SECONDS).toString();
-    String resourceid= authInfo.getString(ID);
-    String role = authInfo.getString(ROLE);
-    String drl = authInfo.getString(DRL);
-    if (role.equalsIgnoreCase("delegate") && drl != null) {
-      request.put(DELEGATOR_ID, authInfo.getString(DID));
-    } else {
-      request.put(DELEGATOR_ID, authInfo.getString(USER_ID));
+        ZonedDateTime zst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        long time = zst.toInstant().toEpochMilli();
+        String isoTime = zst.truncatedTo(ChronoUnit.SECONDS).toString();
+        String resourceid = authInfo.getString(ID);
+        String role = authInfo.getString(ROLE);
+        String drl = authInfo.getString(DRL);
+        if (role.equalsIgnoreCase("delegate") && drl != null) {
+            request.put(DELEGATOR_ID, authInfo.getString(DID));
+        } else {
+            request.put(DELEGATOR_ID, authInfo.getString(USER_ID));
+        }
+
+        CacheType cacheType = CacheType.CATALOGUE_CACHE;
+        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", resourceid);
+
+        getCacheItem(requestJson)
+                .onComplete(cacheItemHandler -> {
+                    if (cacheItemHandler.succeeded()) {
+                        JsonObject cacheJson = cacheItemHandler.result();
+
+                        String providerID = cacheJson.getString("provider");
+                        String type =
+                                cacheJson.getString(TYPE_KEY);
+                        String resourceGroup =
+                                cacheJson.getString(RESOURCE_GROUP);
+
+                        request.put(RESOURCE_GROUP, resourceGroup);
+                        request.put(TYPE_KEY, type);
+                        request.put(EPOCH_TIME, time);
+                        request.put(ISO_TIME, isoTime);
+                        request.put(USER_ID, authInfo.getValue(USER_ID));
+                        request.put(ID, authInfo.getValue(ID));
+                        request.put(API, authInfo.getValue(API_ENDPOINT));
+                        request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
+                        request.put(PROVIDER_ID, providerID);
+
+                        meteringService.insertMeteringValuesInRMQ(
+                                request,
+                                handler -> {
+                                    if (handler.succeeded()) {
+                                        LOGGER.info("message published in RMQ.");
+                                        promise.complete();
+                                    } else {
+                                        LOGGER.error("failed to publish message in RMQ.");
+                                        promise.fail(handler.cause().getMessage());
+                                    }
+                                });
+                    } else {
+                        LOGGER.error("info failed [auditing]: " + cacheItemHandler.cause().getMessage());
+                        promise.fail("info failed: [] " + cacheItemHandler.cause().getMessage());
+                    }
+                });
+
+        promise.future();
     }
-    JsonObject jsonObject = CatalogueService.getCatalogueItemJson(resourceid);
-    String providerID = jsonObject.getString("provider");
-    String type =
-            jsonObject.containsKey(RESOURCE_GROUP) ? "RESOURCE" : "RESOURCE_GROUP";
-    String resourceGroup =
-            jsonObject.containsKey(RESOURCE_GROUP)
-                    ? jsonObject.getString(RESOURCE_GROUP)
-                    : jsonObject.getString(ID);
-    request.put(RESOURCE_GROUP, resourceGroup);
-    request.put(TYPE_KEY, type);
-    request.put(EPOCH_TIME,time);
-    request.put(ISO_TIME,isoTime);
-    request.put(USER_ID, authInfo.getValue(USER_ID));
-    request.put(ID, authInfo.getValue(ID));
-    request.put(API, authInfo.getValue(API_ENDPOINT));
-    request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
-    request.put(PROVIDER_ID,providerID);
-
-    meteringService.insertMeteringValuesInRMQ(
-            request,
-            handler -> {
-              if (handler.succeeded()) {
-                LOGGER.info("message published in RMQ.");
-                promise.complete();
-              } else {
-                LOGGER.error("failed to publish message in RMQ.");
-                promise.complete();
-              }
-            });
-
-      promise.future();
-  }
 
     private void printDeployedEndpoints(Router router) {
         for (Route route : router.getRoutes()) {
@@ -730,13 +743,44 @@ public class ApiServerVerticle extends AbstractVerticle {
         }
     }
 
-  public String extractPPBNo(JsonObject authInfo) {
-    LOGGER.debug("auth info :{}",authInfo);
-    if(authInfo==null) return "";
-    JsonObject cons=authInfo.getJsonObject(JSON_CONS);
-    if(cons==null) return  "";
-    String ppbno=cons.getString("ppbNumber");
-    if(ppbno==null) return "";
-    return ppbno;
-  }
+    public String extractPPBNo(JsonObject authInfo) {
+        LOGGER.debug("info :extractPPBNo()");
+        if (authInfo == null) return "";
+        JsonObject cons = authInfo.getJsonObject(JSON_CONS);
+        if (cons == null) return "";
+        String ppbno = cons.getString("ppbNumber");
+        if (ppbno == null) return "";
+        return ppbno;
+    }
+
+    private Future<JsonObject> getCacheItem(JsonObject cacheJson) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        cacheService
+                .get(cacheJson)
+                .onSuccess(
+                        cacheServiceResult -> {
+                            Set<String> type =
+                                    new HashSet<String>(cacheServiceResult.getJsonArray("type").getList());
+                            Set<String> itemTypeSet =
+                                    type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
+                            itemTypeSet.retainAll(ITEM_TYPES);
+                            String resourceGroup;
+                            if (!itemTypeSet.contains("Resource")) {
+                                resourceGroup = cacheServiceResult.getString("id");
+                            } else {
+                                resourceGroup = cacheServiceResult.getString("resourceGroup");
+                            }
+                            cacheServiceResult.put("type", itemTypeSet.iterator().next());
+                            cacheServiceResult.put("resourceGroup", resourceGroup);
+                            promise.complete(cacheServiceResult);
+                        })
+                .onFailure(
+                        fail -> {
+                            LOGGER.debug("Failed: " + fail.getMessage());
+                            promise.fail(fail.getMessage());
+                        });
+
+        return promise.future();
+    }
 }
