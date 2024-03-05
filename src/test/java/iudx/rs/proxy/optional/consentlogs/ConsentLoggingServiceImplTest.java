@@ -1,12 +1,14 @@
 package iudx.rs.proxy.optional.consentlogs;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import iudx.rs.proxy.authenticator.model.JwtData;
+import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.metering.MeteringService;
 import iudx.rs.proxy.optional.consentlogs.dss.PayloadSigningManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,16 +37,16 @@ class ConsentLoggingServiceImplTest {
     private PayloadSigningManager payloadSigningManager;
     @Mock
     private MeteringService meteringService;
-    private ConsentLoggingServiceImpl consentLoggingService;
     @Mock
-    private JsonObject mockJson;
+    private CacheService cacheServiceMock;
+    private ConsentLoggingServiceImpl consentLoggingService;
 
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         consentLoggingServiceInterface = mock(ConsentLoggingServiceImpl.class);
-        consentLoggingService = new ConsentLoggingServiceImpl(Vertx.vertx(), payloadSigningManager, meteringService, mockJson);
+        consentLoggingService = new ConsentLoggingServiceImpl(Vertx.vertx(), payloadSigningManager, meteringService, cacheServiceMock);
     }
 
     @Test
@@ -62,6 +64,9 @@ class ConsentLoggingServiceImplTest {
         payloadSigningManager = mock(PayloadSigningManager.class);
         when(asyncResult.succeeded()).thenReturn(true);
         when(asyncResult.succeeded()).thenReturn(true);
+
+        when(cacheServiceMock.get(any())).thenReturn(Future.succeededFuture(new JsonObject().put("provider", "provider")));
+
         doAnswer(new Answer<AsyncResult<JsonObject>>() {
             @Override
             public AsyncResult<JsonObject> answer(InvocationOnMock arg1) throws Throwable {

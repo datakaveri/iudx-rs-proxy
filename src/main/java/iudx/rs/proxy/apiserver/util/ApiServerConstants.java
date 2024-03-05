@@ -67,6 +67,8 @@ public class ApiServerConstants {
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
   public static final String ID = "id";
+  public static final String PPB_NUMBER = "ppbNumber";
+  public static final String PII = "PII";
   public static final String IDS = "ids";
   // ngsi-ld/IUDX query paramaters
   public static final String NGSILDQUERY_ID = "id";

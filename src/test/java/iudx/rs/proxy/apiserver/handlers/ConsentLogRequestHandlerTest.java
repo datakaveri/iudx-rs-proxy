@@ -2,7 +2,6 @@ package iudx.rs.proxy.apiserver.handlers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.junit5.VertxExtension;
@@ -28,9 +27,6 @@ class ConsentLogRequestHandlerTest {
     @Mock
     private RoutingContext routingContext;
 
-    @Mock
-    private HttpServerRequest httpServerRequest;
-
     private ConsentLogRequestHandler consentLogRequestHandler;
 
     @BeforeEach
@@ -48,7 +44,7 @@ class ConsentLogRequestHandlerTest {
         when(consentLoggingService.log(any(), any())).thenReturn(Future.succeededFuture(new JsonObject()));
         consentLogRequestHandler.handle(routingContext);
         vertxTestContext.completeNow();
-        verify(routingContext, times(2)).next();
+        verify(routingContext, times(1)).next();
     }
 
 }

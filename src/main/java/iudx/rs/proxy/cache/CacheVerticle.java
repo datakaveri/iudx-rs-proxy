@@ -2,6 +2,8 @@ package iudx.rs.proxy.cache;
 
 import static iudx.rs.proxy.common.Constants.CACHE_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.DATABASE_SERVICE_ADDRESS;
+
+import iudx.rs.proxy.cache.cacheImpl.CatalogueCacheImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.AbstractVerticle;
@@ -19,13 +21,16 @@ public class CacheVerticle extends AbstractVerticle {
 
   private CacheService cacheService;
   private DatabaseService pgService;
+  private CatalogueCacheImpl catalogueCache;
 
   @Override
   public void start() throws Exception {
 
     pgService = DatabaseService.createProxy(vertx, DATABASE_SERVICE_ADDRESS);
 
-    cacheService = new CacheServiceImpl(vertx, pgService);
+    catalogueCache = new CatalogueCacheImpl(vertx, config());
+    cacheService = new CacheServiceImpl(vertx, pgService, catalogueCache);
+
 
     binder = new ServiceBinder(vertx);
     consumer = binder.setAddress(CACHE_SERVICE_ADDRESS).register(CacheService.class, cacheService);

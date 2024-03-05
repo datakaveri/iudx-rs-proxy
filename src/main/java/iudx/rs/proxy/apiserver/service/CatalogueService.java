@@ -21,10 +21,8 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import iudx.rs.proxy.authenticator.Constants;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -41,13 +39,10 @@ public class CatalogueService {
   private static Cache<String, JsonObject> catalogueItemCache =
       CacheBuilder.newBuilder()
           .maximumSize(10000)
-          .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES)
           .build();
-  ;
   private final Cache<String, List<String>> applicableFilterCache =
       CacheBuilder.newBuilder()
           .maximumSize(1000)
-          .expireAfterAccess(Constants.CACHE_TIMEOUT_AMOUNT, TimeUnit.MINUTES)
           .build();
   private long cacheTimerid;
   private String catBasePath;
@@ -108,8 +103,15 @@ public class CatalogueService {
                       String id = res.getString("id");
 
                       Set<String> type = new HashSet<String>(res.getJsonArray("type").getList());
-                      Set<String> itemTypeSet =
-                          type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
+
+                        Set<String> itemTypeSet = type.stream().map(e -> {
+                            if (e.contains(":")) {
+                                return e.split(":")[1];
+                            } else {
+                                return null;
+                            }
+                        }).filter(Objects::nonNull).collect(Collectors.toSet());
+
                       itemTypeSet.retainAll(ITEM_TYPES);
 
                       res.put("type", itemTypeSet.iterator().next());
