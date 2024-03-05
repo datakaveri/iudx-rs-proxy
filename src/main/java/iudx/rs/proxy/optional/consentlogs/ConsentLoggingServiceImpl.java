@@ -3,57 +3,42 @@ package iudx.rs.proxy.optional.consentlogs;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import iudx.rs.proxy.apiserver.handlers.ConsentLogRequestHandler;
 import iudx.rs.proxy.authenticator.model.JwtData;
+import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.ConsentLogType;
 import iudx.rs.proxy.metering.MeteringService;
 import iudx.rs.proxy.optional.consentlogs.dss.PayloadSigningManager;
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ITEM_TYPES;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.VALIDATION_ID_PATTERN;
-import static iudx.rs.proxy.authenticator.Constants.CAT_SEARCH_PATH;
 import static iudx.rs.proxy.metering.util.Constants.ORIGIN;
 
 public class ConsentLoggingServiceImpl implements ConsentLoggingService {
 
     private static final Logger LOGGER = LogManager.getLogger(ConsentLoggingServiceImpl.class);
     static WebClient catWebClient;
-    final String host;
-    final int port;
-    final String path;
-    final String catBasePath;
     private final PayloadSigningManager payloadSigningManager;
     private final MeteringService meteringService;
+    private final CacheService cacheService;
     Supplier<String> isoTimeSupplier =
             () -> ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get("IST"))).toString();
     Supplier<String> primaryKeySuppler = () -> UUID.randomUUID().toString();
 
 
-    public ConsentLoggingServiceImpl(Vertx vertx, PayloadSigningManager signingManager, MeteringService meteringService, JsonObject config) {
+    public ConsentLoggingServiceImpl(Vertx vertx, PayloadSigningManager signingManager, MeteringService meteringService, CacheService cacheService) {
         this.payloadSigningManager = signingManager;
         this.meteringService = meteringService;
-        this.host = config.getString("catServerHost");
-        this.port = config.getInteger("catServerPort");
-        this.catBasePath = config.getString("dxCatalogueBasePath");
-        this.path = catBasePath + CAT_SEARCH_PATH;
+        this.cacheService = cacheService;
         WebClientOptions options = new WebClientOptions();
         options.setTrustAll(true).setVerifyHost(false).setSsl(true);
         catWebClient = WebClient.create(vertx, options);
@@ -62,6 +47,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
     @Override
     public Future<JsonObject> log(JsonObject request, JwtData jwtData) {
         LOGGER.trace("log started");
+        LOGGER.debug("consent loag::: " + request);
         Promise<JsonObject> promise = Promise.promise();
         String LogType = request.getString("logType");
         ConsentLogType consentLogType;
@@ -79,7 +65,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
             getCatItem(jwtData)
                     .onSuccess(catItems -> {
                         jwtData.setProvider(catItems.getString("provider"));
-                        jwtData.setType(catItems.getString("type"));
+                        // jwtData.setType(catItems.getString("type"));
                         JsonObject consentAuditLog = generateConsentAuditLog(consentLogType.toString(), jwtData);
                         Future<Void> consentAuditFuture = auditingConsentLog(consentAuditLog);
                         consentAuditFuture.onComplete(auditHandler -> {
@@ -119,10 +105,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
         LOGGER.trace("generateAuditLog started");
         JsonObject cons = jwtData.getCons();
         String item_id = jwtData.getIid().split(":")[1];
-        String type = jwtData.getType().toUpperCase();
-        if (!type.equalsIgnoreCase("RESOURCE")) {
-            type = "RESOURCE_GROUP";
-        }
+        String type = "RESOURCE"; // make sure item should be RESOURCE only
         SignLogBuider signLog = new SignLogBuider.Builder()
                 .withPrimaryKey(primaryKeySuppler.get())
                 .forAiu_id(jwtData.getSub())
@@ -134,7 +117,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
                 .withArtifactId(cons.getString("artifact"))
                 .atIsoTime(isoTimeSupplier.get())
                 .build();
-        LOGGER.debug(signLog.toJson());
+        LOGGER.debug("log to be singed: " + signLog.toJson());
         String signedLog = payloadSigningManager.signDocWithPKCS12(signLog.toJson());
         JsonObject consentAuditLog = signLog.toJson();
         consentAuditLog.put("log", signedLog);
@@ -173,55 +156,24 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
 
     private Future<JsonObject> getCatItem(JwtData jwtData) {
         String resourceId = jwtData.getIid().split(":")[1];
-        LOGGER.trace("resourceid :{} ", resourceId);
+        LOGGER.debug("resourceId :{} ", resourceId);
         Promise promise = Promise.promise();
 
-        catWebClient
-                .get(port, host, path)
-                .addQueryParam("property", "[id]")
-                .addQueryParam("value", "[[" + resourceId + "]]")
-                .addQueryParam("filter", "[id,provider,resourceGroup,type,accessPolicy]")
-                .expect(ResponsePredicate.JSON)
-                .send(httpResponseAsyncResult -> {
-                    if (httpResponseAsyncResult.failed()) {
-                        LOGGER.error(httpResponseAsyncResult.cause());
-                        promise.fail("Resource not found");
-                        return;
-                    }
-                    HttpResponse<Buffer> response = httpResponseAsyncResult.result();
-                    if (response.statusCode() != HttpStatus.SC_OK) {
-                        promise.fail("Resource not found");
-                        return;
-                    }
-                    JsonObject responseBody = response.bodyAsJsonObject();
-                    LOGGER.debug("responseBody:: " + responseBody);
-                    if (!responseBody.getString("type").equals("urn:dx:cat:Success")) {
-                        promise.fail("Resource not found");
-                        return;
-                    }
-                    if (responseBody.getInteger("totalHits") <= 0) {
-                        promise.fail("Empty response/Resource not found");
-                        return;
-                    }
-                    try {
-                        JsonArray results = responseBody.getJsonArray("results");
-                        results.forEach(
-                                json -> {
-                                    JsonObject CatResult = (JsonObject) json;
-                                    Set<String> type = new HashSet<String>(CatResult.getJsonArray("type").getList());
-                                    Set<String> itemTypeSet =
-                                            type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
-                                    itemTypeSet.retainAll(ITEM_TYPES);
-                                    CatResult.put("type", itemTypeSet.iterator().next());
-                                    promise.complete(CatResult);
-                                });
-                    } catch (Exception ignored) {
-                        LOGGER.error("Info: ID invalid : Empty response in results from Catalogue",
-                                ignored);
-                        promise.fail("Resource not found");
-                    }
-                });
-        return promise.future();
-    }
+        CacheType cacheType = CacheType.CATALOGUE_CACHE;
+        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", resourceId);
+        cacheService.get(requestJson)
+                .onSuccess(cacheResult -> {
+                    if (cacheResult == null) {
+                        promise.fail("Info: ID invalid [" + resourceId + "]: Empty response in results from Catalogue");
+                    } else {
 
+                        promise.complete(cacheResult);
+                    }
+                })
+                .onFailure(
+                        failureHandler ->
+                                promise.fail("catalogue_cache call result : [fail] " + failureHandler));
+        return promise.future();
+
+    }
 }
