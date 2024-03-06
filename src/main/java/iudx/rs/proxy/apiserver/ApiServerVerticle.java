@@ -48,7 +48,6 @@ import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
 import iudx.rs.proxy.apiserver.response.ResponseUtil;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
@@ -69,7 +68,6 @@ public class ApiServerVerticle extends AbstractVerticle {
   private String keystore, keystorePassword;
  // private boolean isSSL, isProduction;
   private ParamsValidator validator;
-  private CatalogueService catalogueService;
   private DatabaseService databaseService;
   private MeteringService meteringService;
   private DatabrokerService brokerService;
@@ -82,13 +80,12 @@ public class ApiServerVerticle extends AbstractVerticle {
 
   @Override
   public void start() throws Exception {
-    catalogueService = new CatalogueService(vertx, config());
     databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
-    validator = new ParamsValidator(cacheService);
     consentLoggingService = ConsentLoggingService.createProxy(vertx,CONSEENTLOG_SERVICE_ADDRESS);
     cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
+    validator = new ParamsValidator(cacheService);
 
     /* Get base paths from config */
     dxApiBasePath=config().getString("dxApiBasePath");
@@ -360,7 +357,6 @@ public class ApiServerVerticle extends AbstractVerticle {
     String instanceID = request.getHeader(HEADER_HOST);
     MultiMap params = getQueryParams(routingContext, response).get();
     Future<Boolean> validationResult = validator.validate(params);
-
     validationResult.onComplete(validationHandler -> {
       if (validationHandler.succeeded()) {
         NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
@@ -415,6 +411,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     if(isAdexInstance) {
       json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
     }
+      LOGGER.debug("publishing into rmq :" + json);
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         LOGGER.info("Success: Count Success");
@@ -451,6 +448,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     if (isAdexInstance) {
       json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
     }
+    LOGGER.debug("publishing into rmq :" + json);
     brokerService.executeAdapterQueryRPC(json, handler -> {
       if (handler.succeeded()) {
         JsonObject adapterResponse=handler.result();

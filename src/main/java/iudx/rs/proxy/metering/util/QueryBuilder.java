@@ -1,11 +1,9 @@
 package iudx.rs.proxy.metering.util;
 
 import io.vertx.core.json.JsonObject;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.LIMITPARAM;

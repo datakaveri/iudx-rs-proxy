@@ -45,8 +45,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rabbitmq.RabbitMQClient;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
-import iudx.rs.proxy.apiserver.service.CatalogueServiceTest;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.configuration.Configuration;
 

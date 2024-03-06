@@ -6,7 +6,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
