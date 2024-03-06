@@ -86,7 +86,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
     meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
     brokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
-    validator = new ParamsValidator(catalogueService);
+    validator = new ParamsValidator(cacheService);
     consentLoggingService = ConsentLoggingService.createProxy(vertx,CONSEENTLOG_SERVICE_ADDRESS);
     cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
 
@@ -310,17 +310,23 @@ public class ApiServerVerticle extends AbstractVerticle {
                   "Temporal parameters are not allowed in entities query.");
           routingContext.fail(ex);
         }
-        QueryMapper queryMapper = new QueryMapper();
-        JsonObject json = queryMapper.toJson(ngsildQuery, false);
-        Future<List<String>> filtersFuture =
-            catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
-        String instanceID = request.getHeader(HEADER_HOST);
-        json.put(JSON_INSTANCEID, instanceID);
+          QueryMapper queryMapper = new QueryMapper();
+          JsonObject json = queryMapper.toJson(ngsildQuery, false);
+          CacheType cacheType = CacheType.CATALOGUE_CACHE;
+          JsonObject requestJson = new JsonObject()
+                  .put("type", cacheType)
+                  .put("key", json.getJsonArray("id").getString(0));
+
+          Future<JsonObject> filtersFuture =
+                  cacheService.get(requestJson);
+          String instanceID = request.getHeader(HEADER_HOST);
+          json.put(JSON_INSTANCEID, instanceID);
         JsonObject requestBody = new JsonObject();
         requestBody.put("ids", json.getJsonArray("id"));
         filtersFuture.onComplete(filtersHandler -> {
           if (filtersHandler.succeeded()) {
-            json.put("applicableFilters", filtersHandler.result());
+              JsonObject catItemJson = filtersFuture.result();
+              json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
             if (json.containsKey(IUDXQUERY_OPTIONS) &&
                 JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
               adapterResponseForCountQuery(routingContext, json, response);
@@ -360,15 +366,21 @@ public class ApiServerVerticle extends AbstractVerticle {
         NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
         QueryMapper queryMapper = new QueryMapper();
         JsonObject json = queryMapper.toJson(ngsildquery, true);
-        Future<List<String>> filtersFuture =
-            catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
-        json.put(JSON_INSTANCEID, instanceID);
-        LOGGER.debug("Info: IUDX temporal json query;" + json);
-        JsonObject requestBody = new JsonObject();
-        requestBody.put("ids", json.getJsonArray("id"));
-        filtersFuture.onComplete(filtersHandler -> {
-          if (filtersHandler.succeeded()) {
-            json.put("applicableFilters", filtersHandler.result());
+
+          CacheType cacheType = CacheType.CATALOGUE_CACHE;
+          JsonObject requestJson = new JsonObject()
+                  .put("type", cacheType)
+                  .put("key", json.getJsonArray("id").getString(0));
+          Future<JsonObject> filtersFuture = cacheService.get(requestJson);
+
+          json.put(JSON_INSTANCEID, instanceID);
+          LOGGER.debug("Info: IUDX temporal json query;" + json);
+          JsonObject requestBody = new JsonObject();
+          requestBody.put("ids", json.getJsonArray("id"));
+          filtersFuture.onComplete(filtersHandler -> {
+              if (filtersHandler.succeeded()) {
+              JsonObject catItemJson = filtersFuture.result();
+              json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
             if (json.containsKey(IUDXQUERY_OPTIONS) &&
                 JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
               adapterResponseForCountQuery(routingContext, json, response);
@@ -645,16 +657,20 @@ public class ApiServerVerticle extends AbstractVerticle {
         NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
         QueryMapper queryMapper = new QueryMapper();
         JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
-        LOGGER.debug("json value : "+json);
-        Future<List<String>> filtersFuture =
-                catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
+          CacheType cacheType = CacheType.CATALOGUE_CACHE;
+          JsonObject cacheRequest = new JsonObject()
+                  .put("type", cacheType)
+                  .put("key", json.getJsonArray("id").getString(0));
+          Future<JsonObject> filtersFuture = cacheService.get(cacheRequest);
+
         String instanceID = request.getHeader(HEADER_HOST);
         json.put(JSON_INSTANCEID, instanceID);
         requestJson.put("ids", json.getJsonArray("id"));
         LOGGER.debug("Info: IUDX query json: " + json);
         filtersFuture.onComplete(filtersHandler -> {
           if (filtersHandler.succeeded()) {
-            json.put("applicableFilters", filtersHandler.result());
+              JsonObject catItemJson = filtersFuture.result();
+              json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
             if (json.containsKey(IUDXQUERY_OPTIONS) &&
                     JSON_COUNT.equalsIgnoreCase(json.getString(IUDXQUERY_OPTIONS))) {
               adapterResponseForCountQuery(routingContext, json, response);

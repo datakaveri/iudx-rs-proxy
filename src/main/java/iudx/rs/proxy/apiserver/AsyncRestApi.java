@@ -72,7 +72,7 @@ public class AsyncRestApi {
         this.router = router;
         this.databrokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
         this.catalogueService = new CatalogueService(vertx, config);
-        this.validator = new ParamsValidator(catalogueService);
+        this.validator = new ParamsValidator(cacheService);
         this.databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
         this.meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
         this.consentLoggingService = ConsentLoggingService.createProxy(vertx, CONSEENTLOG_SERVICE_ADDRESS);
@@ -188,13 +188,15 @@ public class AsyncRestApi {
                         if (routingContext.request().getHeader(HEADER_RESPONSE_FILE_FORMAT) != null) {
                             json.put("format", routingContext.request().getHeader(HEADER_RESPONSE_FILE_FORMAT));
                         }
-
-                        Future<List<String>> filtersFuture =
-                                catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
+                        CacheType cacheType = CacheType.CATALOGUE_CACHE;
+                        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", json.getJsonArray("id").getString(0));
+                        Future<JsonObject> filtersFuture =
+                                cacheService.get(requestJson);
                         filtersFuture.onComplete(
                                 filtersHandler -> {
                                     if (filtersHandler.succeeded()) {
-                                        json.put("applicableFilters", filtersHandler.result());
+                                        JsonObject catItemJson = filtersFuture.result();
+                                        json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
                                         LOGGER.debug("Async Json :" + json);
                                         adapterResponseForSearchQuery(routingContext, json, response, true);
                                     } else {
