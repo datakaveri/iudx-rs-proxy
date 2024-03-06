@@ -19,7 +19,6 @@ import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
 import iudx.rs.proxy.apiserver.response.ResponseUtil;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
 import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.Api;
@@ -56,7 +55,6 @@ public class AsyncRestApi {
     private final Vertx vertx;
     private final Router router;
     private final DatabrokerService databrokerService;
-    private final CatalogueService catalogueService;
     private final DatabaseService databaseService;
     private final MeteringService meteringService;
     private final ConsentLoggingService consentLoggingService;
@@ -71,12 +69,11 @@ public class AsyncRestApi {
         this.vertx = vertx;
         this.router = router;
         this.databrokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
-        this.catalogueService = new CatalogueService(vertx, config);
-        this.validator = new ParamsValidator(catalogueService);
         this.databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
         this.meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
         this.consentLoggingService = ConsentLoggingService.createProxy(vertx, CONSEENTLOG_SERVICE_ADDRESS);
         this.cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
+        this.validator = new ParamsValidator(cacheService);
         this.api = api;
         isAdexInstance = config.getBoolean("isAdexInstance");
     }
@@ -188,13 +185,15 @@ public class AsyncRestApi {
                         if (routingContext.request().getHeader(HEADER_RESPONSE_FILE_FORMAT) != null) {
                             json.put("format", routingContext.request().getHeader(HEADER_RESPONSE_FILE_FORMAT));
                         }
-
-                        Future<List<String>> filtersFuture =
-                                catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
+                        CacheType cacheType = CacheType.CATALOGUE_CACHE;
+                        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", json.getJsonArray("id").getString(0));
+                        Future<JsonObject> filtersFuture =
+                                cacheService.get(requestJson);
                         filtersFuture.onComplete(
                                 filtersHandler -> {
                                     if (filtersHandler.succeeded()) {
-                                        json.put("applicableFilters", filtersHandler.result());
+                                        JsonObject catItemJson = filtersFuture.result();
+                                        json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
                                         LOGGER.debug("Async Json :" + json);
                                         adapterResponseForSearchQuery(routingContext, json, response, true);
                                     } else {

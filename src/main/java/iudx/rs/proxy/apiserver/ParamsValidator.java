@@ -6,13 +6,16 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import iudx.rs.proxy.apiserver.validation.types.*;
+import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.HttpStatusCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,10 +68,10 @@ public class ParamsValidator {
 
   }
 
-  private final CatalogueService catalogueService;
+  private CacheService cacheService;
 
-  public ParamsValidator(CatalogueService catalogueService) {
-    this.catalogueService = catalogueService;
+  public ParamsValidator(CacheService cacheService) {
+    this.cacheService = cacheService;
   }
 
   /**
@@ -166,10 +169,15 @@ public class ParamsValidator {
 
   private Future<Boolean> isValidQueryWithFilters(MultiMap paramsMap) {
     Promise<Boolean> promise = Promise.promise();
-    Future<List<String>> filtersFuture = catalogueService.getApplicableFilters(paramsMap.get("id"));
+    CacheType cacheType = CacheType.CATALOGUE_CACHE;
+    JsonObject cacheRequest = new JsonObject()
+            .put("type", cacheType)
+            .put("key", paramsMap.get("id"));
+    Future<JsonObject> filtersFuture = cacheService.get(cacheRequest);
     filtersFuture.onComplete(handler -> {
       if (handler.succeeded()) {
-        List<String> filters = filtersFuture.result();
+        JsonObject catItemJson = filtersFuture.result();
+        List<String> filters = new ArrayList<>(catItemJson.getJsonArray("iudxResourceAPIs").getList());
         if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
           promise.fail("Temporal parameters are not supported by RS group/Item.");
           return;
