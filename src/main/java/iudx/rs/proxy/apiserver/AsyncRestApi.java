@@ -127,6 +127,8 @@ public class AsyncRestApi {
                     consentLog = "DATA_DENIED";
                     break;
                 }
+                default:
+                    consentLog = "DATA_DENIED";
             }
             LOGGER.info("response ended : {}", routingContext.response());
             LOGGER.info("consent log : {}", consentLog);
@@ -320,6 +322,8 @@ public class AsyncRestApi {
         if (isAdexInstance) {
             json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
         }
+
+        LOGGER.debug("publishing async query into rmq :" + json);
         databrokerService.executeAdapterQueryRPC(json, handler -> {
             if (handler.succeeded()) {
                 JsonObject adapterResponse = handler.result();

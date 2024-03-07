@@ -80,9 +80,14 @@ public class AuthHandler implements Handler<RoutingContext> {
 
         LOGGER.debug("Info :" + context.request().path());
         String id = getId(context, ID);
+        LOGGER.error("ID : {}", id);
+
         if (isAdexInstance) {
-            String ppbNumber = getId(context, NGSLILDQUERY_Q);
-            authInfo.put(PPB_NUMBER, ppbNumber);
+            String  ppbNumber = getId(context, NGSLILDQUERY_Q);
+            LOGGER.debug("ppbNumber :{}", ppbNumber);
+             if(ppbNumber!=null){
+                 authInfo.put(PPB_NUMBER, ppbNumber);
+             }
         }
 
         authInfo.put(ID, id);
@@ -91,6 +96,7 @@ public class AuthHandler implements Handler<RoutingContext> {
         for (String i : idArray) {
             ids.add(i);
         }
+        LOGGER.debug("authInfo: "+authInfo);
         requestJson.put(IDS, ids);
         authenticator.tokenIntrospect(
                 requestJson,
@@ -162,7 +168,7 @@ public class AuthHandler implements Handler<RoutingContext> {
 
     private String getId4rmRequest(String option) {
         if (option.equalsIgnoreCase(NGSLILDQUERY_Q)) {
-            String ppbnoValue = null;
+            String ppbnoValue = "";
             try {
                 ppbnoValue = extractPpbno(request.getParam(option));
 
@@ -177,7 +183,7 @@ public class AuthHandler implements Handler<RoutingContext> {
     private String getId4rmBody(RoutingContext context, String option) {
         JsonObject body = context.body().asJsonObject();
         if (option.equalsIgnoreCase(NGSLILDQUERY_Q) && body != null) {
-            String ppbnoValue = null;
+            String ppbnoValue = "";
             try {
                 ppbnoValue = extractPpbno(body.getString(NGSLILDQUERY_Q));
 
@@ -201,11 +207,18 @@ public class AuthHandler implements Handler<RoutingContext> {
 
     private String extractPpbno(String q) {
         LOGGER.info("q: " + q);
-        int PpbIndex = q.indexOf("Ppbno==");
-        int firstSemiIndex = q.indexOf(';', PpbIndex);
-        firstSemiIndex = firstSemiIndex == -1 ? q.length() : firstSemiIndex;
-        String ppbno = q.substring(PpbIndex + 7, firstSemiIndex);
-        return ppbno;
+        try{
+            int PpbIndex = q.indexOf("Ppbno==");
+            int firstSemiIndex = q.indexOf(';', PpbIndex);
+            firstSemiIndex = firstSemiIndex == -1 ? q.length() : firstSemiIndex;
+            String ppbno = q.substring(PpbIndex + 7, firstSemiIndex);
+            LOGGER.debug("ppbno:: "+ppbno);
+            return ppbno;
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
 
