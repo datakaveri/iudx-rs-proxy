@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.stream.Stream;
 
@@ -55,7 +55,7 @@ class OptionsHeaderValidatorTest {
                 Arguments.of("AND XYZ=XYZ", true),
                 Arguments.of(random600Id, true),
                 Arguments.of("%2cX%2c", true),
-                Arguments.of(" "," "));
+                Arguments.of(" ",true));
     }
 
     @ParameterizedTest
