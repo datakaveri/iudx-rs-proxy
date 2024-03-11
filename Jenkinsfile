@@ -23,7 +23,6 @@ pipeline {
           echo 'Pulled - ' + env.GIT_BRANCH
           devImage = docker.build( devRegistry, "-f ./docker/dev.dockerfile .")
           deplImage = docker.build( deplRegistry, "-f ./docker/depl.dockerfile .")
-          testImage = docker.build( testRegistry, "-f ./docker/test.dockerfile .")
         }
       }
     }
@@ -31,8 +30,9 @@ pipeline {
     stage('Unit Tests and Code Coverage Test'){
       steps{
         script{
-          sh 'chmod +x docker/runTests.sh'
-          sh 'docker compose -f docker-compose.test.yml up test'
+          sh 'cp /home/ubuntu/configs/rs-proxy-config-test.json ./secrets/all-verticles-configs/config-test.json'
+          sh 'cp /home/ubuntu/configs/keystore-rs-proxy.jks ./configs/keystore.jks'
+          sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
         }
         xunit (
           thresholds: [ skipped(failureThreshold: '1'), failed(failureThreshold: '0') ],
