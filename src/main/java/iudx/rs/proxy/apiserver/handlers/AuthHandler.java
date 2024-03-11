@@ -80,7 +80,7 @@ public class AuthHandler implements Handler<RoutingContext> {
 
         LOGGER.debug("Info :" + context.request().path());
         String id = getId(context, ID);
-        LOGGER.error("ID : {}", id);
+        LOGGER.debug("ID : {}", id);
 
         if (isAdexInstance) {
             String  ppbNumber = getId(context, NGSLILDQUERY_Q);
