@@ -31,7 +31,6 @@ pipeline {
       steps{
         script{
           sh 'cp /home/ubuntu/configs/rs-proxy-config-test.json ./secrets/all-verticles-configs/config-test.json'
-          sh 'cp /home/ubuntu/configs/keystore-rs-proxy.jks ./secrets/all-verticles-configs/keystore.jks'
           sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
         }
         xunit (
