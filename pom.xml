@@ -295,7 +295,8 @@
 						<!-- class present in generated-sources -->
 						<exclude>**/JwtDataConverter.class</exclude>
 						<exclude>**/PayloadSigningManager.class</exclude>
-
+						<exclude>iudx/rs/proxy/apiserver/ApiServerVerticle.class</exclude>
+						<exclude>iudx/rs/proxy/database/example/postgres/PostgresServiceImpl.class</exclude>
 
 
 					</excludes>
