@@ -177,7 +177,8 @@ public class ParamsValidator {
     filtersFuture.onComplete(handler -> {
       if (handler.succeeded()) {
         JsonObject catItemJson = filtersFuture.result();
-        List<String> filters = new ArrayList<>(catItemJson.getJsonArray("iudxResourceAPIs").getList());
+        LOGGER.debug("for filters:: "+catItemJson);
+        List<String> filters = new ArrayList<>(catItemJson.getJsonArray("iudxResourceAPIs",new JsonArray()).getList());
         if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
           promise.fail("Temporal parameters are not supported by RS group/Item.");
           return;

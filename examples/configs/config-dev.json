@@ -23,6 +23,8 @@
     {
       "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
       "verticleInstances": 1,
+      "keystore": "",
+      "keystorePassword": "",
       "audience": "",
       "authServerHost": "",
       "jwtIgnoreExpiry": true
@@ -59,7 +61,10 @@
       "verticleInstances": 1,
       "dataBrokerIP": "",
       "dataBrokerPort": 1234,
+      "prodVhost": "",
       "internalVhost": "",
+      "externalVhost": "",
+      "adapterQueryPublishExchange": "",
       "dataBrokerUserName": "",
       "dataBrokerPassword": "",
       "dataBrokerManagementPort": 30042,
@@ -68,13 +73,10 @@
       "handshakeTimeout": 6000,
       "requestedChannelMax": 5,
       "networkRecoveryInterval": 500,
-      "automaticRecoveryEnabled": "",
-      "adapterQueryPublishExchange": "",
-      "adapterQueryReplyQueue": ""
+      "automaticRecoveryEnabled": ""
     },
     {
       "id": "iudx.rs.proxy.optional.consentlogs.ConsentLoggingVerticle",
-      "isWorkerVerticle": true,
       "verticleInstances": 1,
       "certFileName": "",
       "password": ""
