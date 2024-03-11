@@ -31,6 +31,7 @@ pipeline {
     stage('Unit Tests and Code Coverage Test'){
       steps{
         script{
+          sh 'chmod +x docker/runTests.sh'
           sh 'docker compose -f docker-compose.test.yml up test'
         }
         xunit (
