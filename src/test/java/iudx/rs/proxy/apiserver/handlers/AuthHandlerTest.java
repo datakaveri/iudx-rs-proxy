@@ -76,7 +76,7 @@ class AuthHandlerTest {
     public void testCreate(VertxTestContext vertxTestContext) {
         AuthHandler.authenticator = mock(AuthenticationService.class);
         Api api = mock(Api.class);
-        assertNotNull(AuthHandler.create(Vertx.vertx(), api));
+        assertNotNull(AuthHandler.create(Vertx.vertx(), api,true));
         vertxTestContext.completeNow();
     }
 
@@ -122,6 +122,7 @@ class AuthHandlerTest {
         //String str = Constants.IUDX_ASYNC_STATUS;
         JsonObject jsonObject = new JsonObject();
         jsonObject.put("Dummy Key", "Dummy Value");
+        jsonObject.put("q","Ppbno==T13010001107;referenceLevel>15.0");
 
 
         when(routingContext.body()).thenReturn(requestBody);
@@ -129,6 +130,8 @@ class AuthHandlerTest {
         when(httpServerRequest.path()).thenReturn("/ngsi-ld/v1/entities");
         AuthHandler.authenticator = mock(AuthenticationService.class);
         AuthHandler.api = mock(Api.class);
+        when(routingContext.request()).thenReturn(httpServerRequest);
+        when(httpServerRequest.getParam(any())).thenReturn("Ppbno==T13010001107;referenceLevel>15.0");
 
         when(httpServerRequest.headers()).thenReturn(map);
         when(map.get(anyString())).thenReturn("Dummy token");
@@ -157,7 +160,7 @@ class AuthHandlerTest {
         verify(httpServerResponse, times(1)).setStatusCode(anyInt());
         verify(httpServerResponse, times(1)).putHeader(anyString(), anyString());
         verify(httpServerResponse, times(1)).end(anyString());
-        verify(routingContext, times(2)).body();
+        verify(routingContext, times(3)).body();
 
         vertxTestContext.completeNow();
 

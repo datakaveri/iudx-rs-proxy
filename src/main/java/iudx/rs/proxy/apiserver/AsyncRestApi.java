@@ -19,7 +19,8 @@ import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
 import iudx.rs.proxy.apiserver.response.ResponseUtil;
-import iudx.rs.proxy.apiserver.service.CatalogueService;
+import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
@@ -34,9 +35,8 @@ import org.apache.logging.log4j.Logger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
@@ -55,10 +55,10 @@ public class AsyncRestApi {
     private final Vertx vertx;
     private final Router router;
     private final DatabrokerService databrokerService;
-    private final CatalogueService catalogueService;
     private final DatabaseService databaseService;
     private final MeteringService meteringService;
     private final ConsentLoggingService consentLoggingService;
+    private CacheService cacheService;
 
     private final ParamsValidator validator;
     private boolean isAdexInstance;
@@ -69,11 +69,11 @@ public class AsyncRestApi {
         this.vertx = vertx;
         this.router = router;
         this.databrokerService = DatabrokerService.createProxy(vertx, DATABROKER_SERVICE_ADDRESS);
-        this.catalogueService = new CatalogueService(vertx, config);
-        this.validator = new ParamsValidator(catalogueService);
         this.databaseService = DatabaseService.createProxy(vertx, DB_SERVICE_ADDRESS);
         this.meteringService = MeteringService.createProxy(vertx, METERING_SERVICE_ADDRESS);
         this.consentLoggingService = ConsentLoggingService.createProxy(vertx, CONSEENTLOG_SERVICE_ADDRESS);
+        this.cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
+        this.validator = new ParamsValidator(cacheService);
         this.api = api;
         isAdexInstance = config.getBoolean("isAdexInstance");
     }
@@ -87,7 +87,7 @@ public class AsyncRestApi {
                 .handler(asyncSearchValidation)
                 .handler(TokenDecodeHandler.create(vertx))
                 .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-                .handler(AuthHandler.create(vertx, api))
+                .handler(AuthHandler.create(vertx, api,isAdexInstance))
                 .handler(this::handleAsyncSearchRequest)
                 .failureHandler(validationsFailureHandler);
 
@@ -97,7 +97,7 @@ public class AsyncRestApi {
                 .handler(asyncStatusValidation)
                 .handler(TokenDecodeHandler.create(vertx))
                 .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
-                .handler(AuthHandler.create(vertx, api))
+                .handler(AuthHandler.create(vertx, api ,isAdexInstance))
                 .handler(this::handleAsyncStatusRequest)
                 .failureHandler(validationsFailureHandler);
 
@@ -127,6 +127,8 @@ public class AsyncRestApi {
                     consentLog = "DATA_DENIED";
                     break;
                 }
+                default:
+                    consentLog = "DATA_DENIED";
             }
             LOGGER.info("response ended : {}", routingContext.response());
             LOGGER.info("consent log : {}", consentLog);
@@ -185,13 +187,15 @@ public class AsyncRestApi {
                         if (routingContext.request().getHeader(HEADER_RESPONSE_FILE_FORMAT) != null) {
                             json.put("format", routingContext.request().getHeader(HEADER_RESPONSE_FILE_FORMAT));
                         }
-
-                        Future<List<String>> filtersFuture =
-                                catalogueService.getApplicableFilters(json.getJsonArray("id").getString(0));
+                        CacheType cacheType = CacheType.CATALOGUE_CACHE;
+                        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", json.getJsonArray("id").getString(0));
+                        Future<JsonObject> filtersFuture =
+                                cacheService.get(requestJson);
                         filtersFuture.onComplete(
                                 filtersHandler -> {
                                     if (filtersHandler.succeeded()) {
-                                        json.put("applicableFilters", filtersHandler.result());
+                                        JsonObject catItemJson = filtersFuture.result();
+                                        json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
                                         LOGGER.debug("Async Json :" + json);
                                         adapterResponseForSearchQuery(routingContext, json, response, true);
                                     } else {
@@ -318,6 +322,8 @@ public class AsyncRestApi {
         if (isAdexInstance) {
             json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
         }
+
+        LOGGER.debug("publishing async query into rmq :" + json);
         databrokerService.executeAdapterQueryRPC(json, handler -> {
             if (handler.succeeded()) {
                 JsonObject adapterResponse = handler.result();
@@ -449,7 +455,7 @@ public class AsyncRestApi {
         ZonedDateTime zst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
         long time = zst.toInstant().toEpochMilli();
         String isoTime = zst.truncatedTo(ChronoUnit.SECONDS).toString();
-        String resourceid = authInfo.getString(ID);
+        String resourceId = authInfo.getString(ID);
         String role = authInfo.getString(ROLE);
         String drl = authInfo.getString(DRL);
         if (role.equalsIgnoreCase("delegate") && drl != null) {
@@ -457,37 +463,79 @@ public class AsyncRestApi {
         } else {
             request.put(DELEGATOR_ID, authInfo.getString(USER_ID));
         }
-        JsonObject jsonObject = CatalogueService.getCatalogueItemJson(resourceid);
-        String providerID = jsonObject.getString("provider");
-        String type =
-                jsonObject.containsKey(RESOURCE_GROUP) ? "RESOURCE" : "RESOURCE_GROUP";
-        String resourceGroup =
-                jsonObject.containsKey(RESOURCE_GROUP)
-                        ? jsonObject.getString(RESOURCE_GROUP)
-                        : jsonObject.getString(ID);
-        request.put(RESOURCE_GROUP, resourceGroup);
-        request.put(TYPE_KEY, type);
-        request.put(EPOCH_TIME, time);
-        request.put(ISO_TIME, isoTime);
-        request.put(USER_ID, authInfo.getValue(USER_ID));
-        request.put(ID, authInfo.getValue(ID));
-        request.put(API, authInfo.getValue(API_ENDPOINT));
-        request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
-        request.put(PROVIDER_ID, providerID);
 
-        meteringService.insertMeteringValuesInRMQ(
-                request,
-                handler -> {
-                    if (handler.succeeded()) {
-                        LOGGER.info("message published in RMQ.");
-                        promise.complete();
+        CacheType cacheType = CacheType.CATALOGUE_CACHE;
+        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", resourceId);
+
+        getCacheItem(requestJson)
+                .onComplete(cacheItemHandler -> {
+                    if (cacheItemHandler.succeeded()) {
+                        JsonObject cacheJson = cacheItemHandler.result();
+
+                        String providerID = cacheJson.getString("provider");
+                        String type =
+                                cacheJson.getString(TYPE_KEY);
+                        String resourceGroup =
+                                cacheJson.getString(RESOURCE_GROUP);
+
+                        request.put(RESOURCE_GROUP, resourceGroup);
+                        request.put(TYPE_KEY, type);
+                        request.put(EPOCH_TIME, time);
+                        request.put(ISO_TIME, isoTime);
+                        request.put(USER_ID, authInfo.getValue(USER_ID));
+                        request.put(ID, authInfo.getValue(ID));
+                        request.put(API, authInfo.getValue(API_ENDPOINT));
+                        request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
+                        request.put(PROVIDER_ID, providerID);
+
+                        meteringService.insertMeteringValuesInRMQ(
+                                request,
+                                handler -> {
+                                    if (handler.succeeded()) {
+                                        LOGGER.info("message published in RMQ.");
+                                        promise.complete();
+                                    } else {
+                                        LOGGER.error("failed to publish message in RMQ.");
+                                        promise.fail(handler.cause().getMessage());
+                                    }
+                                });
                     } else {
-                        LOGGER.error("failed to publish message in RMQ.");
-                        promise.complete();
+                        LOGGER.error("info failed [auditing]: " + cacheItemHandler.cause().getMessage());
+                        promise.fail("info failed: [] " + cacheItemHandler.cause().getMessage());
                     }
                 });
 
         promise.future();
     }
 
+    private Future<JsonObject> getCacheItem(JsonObject cacheJson) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        cacheService
+                .get(cacheJson)
+                .onSuccess(
+                        cacheServiceResult -> {
+                            Set<String> type =
+                                    new HashSet<String>(cacheServiceResult.getJsonArray("type").getList());
+                            Set<String> itemTypeSet =
+                                    type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
+                            itemTypeSet.retainAll(ITEM_TYPES);
+                            String resourceGroup;
+                            if (!itemTypeSet.contains("Resource")) {
+                                resourceGroup = cacheServiceResult.getString("id");
+                            } else {
+                                resourceGroup = cacheServiceResult.getString("resourceGroup");
+                            }
+                            cacheServiceResult.put("type", itemTypeSet.iterator().next());
+                            cacheServiceResult.put("resourceGroup", resourceGroup);
+                            promise.complete(cacheServiceResult);
+                        })
+                .onFailure(
+                        fail -> {
+                            LOGGER.debug("Failed: " + fail.getMessage());
+                            promise.fail(fail.getMessage());
+                        });
+
+        return promise.future();
+    }
 }

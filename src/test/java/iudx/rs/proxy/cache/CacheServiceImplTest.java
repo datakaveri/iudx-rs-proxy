@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import iudx.rs.proxy.cache.cacheImpl.CacheType;
+import iudx.rs.proxy.cache.cacheImpl.CatalogueCacheImpl;
 import iudx.rs.proxy.database.DatabaseService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,7 +20,8 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.*;
 class CacheServiceImplTest {
     static CacheService cacheService;
     static DatabaseService databaseService;
+    static CatalogueCacheImpl catalogueCache;
     static JsonObject testJson_0 = new JsonObject()
             .put("type", CacheType.REVOKED_CLIENT)
             .put("key", "revoked_client_id_0")
@@ -43,36 +46,41 @@ class CacheServiceImplTest {
             .put("value", "license_plate");
 
     @BeforeAll
-    public static void setup(Vertx vertx, VertxTestContext testContext){
+    public static void setup(Vertx vertx, VertxTestContext testContext) {
         databaseService = mock(DatabaseService.class);
-        cacheService = new CacheServiceImpl(vertx,databaseService);
+        catalogueCache = mock(CatalogueCacheImpl.class);
+        cacheService = new CacheServiceImpl(vertx, databaseService, catalogueCache);
         testContext.completeNow();
     }
 
     @Test
-    public void tesPut(Vertx vertx,VertxTestContext testContext){
+    public void tesPut(Vertx vertx, VertxTestContext testContext) {
 
-        cacheService.put(testJson_0, handler -> {
+        cacheService.put(testJson_0).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.completeNow();
             } else {
-                testContext.failNow("failed to insert in cache");;
+                testContext.failNow("failed to insert in cache");
+                ;
             }
         });
     }
+
     @Test
     public void cachePutTest2(Vertx vertx, VertxTestContext testContext) {
-        cacheService.put(testJson_1, handler -> {
+        cacheService.put(testJson_1).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.completeNow();
             } else {
-                testContext.failNow("failed to insert in cache");;
+                testContext.failNow("failed to insert in cache");
+                ;
             }
         });
     }
+
     @Test
     public void cachePutTest3(Vertx vertx, VertxTestContext testContext) {
-        cacheService.put(testJson_2, handler -> {
+        cacheService.put(testJson_2).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("No cache defined for given type");
 
@@ -82,11 +90,12 @@ class CacheServiceImplTest {
             }
         });
     }
+
     @Test
     public void failCachePutTestNoType(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_0.copy();
         json.remove("type");
-        cacheService.put(json, handler -> {
+        cacheService.put(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("failed - inserted in cache for no type");
             } else {
@@ -94,12 +103,13 @@ class CacheServiceImplTest {
             }
         });
     }
+
     @Description("fail for invalid type present in json request")
     @Test
     public void failCachePutTestInvalidType(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_0.copy();
         json.put("type", "invalid_cache_type");
-        cacheService.put(json, handler -> {
+        cacheService.put(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("failed - inserted in cache for no type");
             } else {
@@ -107,12 +117,13 @@ class CacheServiceImplTest {
             }
         });
     }
+
     @Description("fail for no key present in json request")
     @Test
     public void failCachePutTestNoKey(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_0.copy();
         json.remove("key");
-        cacheService.put(json, handler -> {
+        cacheService.put(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("failed - inserted in cache for no key");
             } else {
@@ -126,7 +137,7 @@ class CacheServiceImplTest {
     public void failCachePutTestNoValue(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_0.copy();
         json.remove("value");
-        cacheService.put(json, handler -> {
+        cacheService.put(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("failed - inserted in cache for no value");
             } else {
@@ -134,15 +145,16 @@ class CacheServiceImplTest {
             }
         });
     }
+
     @Test
     public void getValueFromCache(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_0.copy();
         json.remove("value");
 
-        cacheService.put(testJson_0, handler -> {
+        cacheService.put(testJson_0).onComplete(handler -> {
         });
 
-        cacheService.get(json, handler -> {
+        cacheService.get(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 JsonObject resultJson = handler.result();
                 assertTrue(resultJson.containsKey("value"));
@@ -160,10 +172,10 @@ class CacheServiceImplTest {
         JsonObject json = testJson_1.copy();
         json.remove("value");
 
-        cacheService.put(testJson_1, handler -> {
+        cacheService.put(testJson_1).onComplete(handler -> {
         });
 
-        cacheService.get(json, handler -> {
+        cacheService.get(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 JsonObject resultJson = handler.result();
                 assertTrue(resultJson.containsKey("value"));
@@ -174,13 +186,14 @@ class CacheServiceImplTest {
             }
         });
     }
+
     @Description("fail -  get cahce for no type")
     @Test
     public void failGetValueFromCacheNoType(Vertx vertx, VertxTestContext testContext) {
         JsonObject json = testJson_1.copy();
         json.remove("type");
 
-        cacheService.get(json, handler -> {
+        cacheService.get(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("get operation succeeded for no type in request");
             } else {
@@ -195,7 +208,7 @@ class CacheServiceImplTest {
         JsonObject json = testJson_1.copy();
         json.remove("key");
 
-        cacheService.get(json, handler -> {
+        cacheService.get(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("get operation succeeded for invalid(null) in request");
             } else {
@@ -210,7 +223,7 @@ class CacheServiceImplTest {
         JsonObject json = testJson_1.copy();
         json.put("key", "123");
 
-        cacheService.get(json, handler -> {
+        cacheService.get(json).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.failNow("get operation succeeded for key not in cache");
             } else {
@@ -222,13 +235,13 @@ class CacheServiceImplTest {
     @Description("refresh cache passing key and value")
     @Test
     public void refreshCacheTest(Vertx vertx, VertxTestContext testContext) {
-        cacheService.refresh(testJson_0, handler -> {
+        cacheService.refresh(testJson_0).onComplete(handler -> {
             if (handler.succeeded()) {
                 testContext.completeNow();
                 JsonObject json = testJson_0.copy();
                 json.remove("value");
 
-                cacheService.get(json, getHandler -> {
+                cacheService.get(json).onComplete(getHandler -> {
                     if (getHandler.succeeded()) {
                         assertEquals(testJson_0.getString("value"), getHandler.result().getString("value"));
                         testContext.completeNow();
@@ -275,14 +288,14 @@ class CacheServiceImplTest {
 
         // Test
         // call cache refresh
-        cacheService.refresh(refresh_JSON, handler -> {
+        cacheService.refresh(refresh_JSON).onComplete(handler -> {
             if (handler.succeeded()) {
                 JsonObject json = testJson_0.copy();
                 json.remove("value");
                 json.put("key", "key_from_postgres");
                 // verify
                 // cross check by calling cache get
-                cacheService.get(json, getHandler -> {
+                cacheService.get(json).onComplete(getHandler -> {
                     if (getHandler.succeeded()) {
                         //verify
                         assertEquals("2020-10-19T14:20:00Z", getHandler.result().getString("value"));
