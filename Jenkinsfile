@@ -38,7 +38,7 @@ pipeline {
           thresholds: [ skipped(failureThreshold: '1'), failed(failureThreshold: '0') ],
           tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
         )
-        jacoco classPattern: 'target/classes', exclusionPattern: '**/*VertxEBProxy.class,**/Constants.class,**/*Verticle.class,iudx/rs/proxy/apiserver/*.class,iudx/rs/proxy/deploy/*.class,**/*AuthenticationService.class,**/*MeteringService.class,**/*CacheService.class,**/*Method.class,**/*DatabaseService.class,**/*ApiServerConstants.class,**/*CacheServiceVertxProxyHandler.class,**/*MeteringServiceVertxProxyHandler.class,**/*AuthenticationServiceVertxProxyHandler.class,**/ConsentLoggingServiceVertxProxyHandler.class,**/database/**,**/databroker/**,**/JwtDataConverter.class,**/PayloadSigningManager.class', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java'
+        jacoco classPattern: 'target/classes', exclusionPattern: 'iudx/rs/proxy/apiserver/ApiServerVerticle.class,iudx/rs/proxy/database/example/postgres/PostgresServiceImpl.class,**/*VertxEBProxy.class,**/Constants.class,**/*Verticle.class,iudx/rs/proxy/apiserver/*.class,iudx/rs/proxy/deploy/*.class,**/*AuthenticationService.class,**/*MeteringService.class,**/*CacheService.class,**/*Method.class,**/*DatabaseService.class,**/*ApiServerConstants.class,**/*CacheServiceVertxProxyHandler.class,**/*MeteringServiceVertxProxyHandler.class,**/*AuthenticationServiceVertxProxyHandler.class,**/ConsentLoggingServiceVertxProxyHandler.class,**/database/**,**/databroker/**,**/JwtDataConverter.class,**/PayloadSigningManager.class', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java'
       }
       post{
       always {
