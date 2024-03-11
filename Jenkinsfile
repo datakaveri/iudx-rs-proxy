@@ -30,8 +30,8 @@ pipeline {
     stage('Unit Tests and Code Coverage Test'){
       steps{
         script{
-          sh 'cp /home/ubuntu/configs/rs-proxy-config-test.json ./secrets/all-verticles-configs/config-test.json'
-          sh 'cp /home/ubuntu/configs/keystore-rs-proxy.jks ./configs/keystore.jks'
+          sh 'cp -r /home/ubuntu/configs/rs-proxy-config-test.json ./secrets/all-verticles-configs/config-test.json'
+          sh 'cp -r /home/ubuntu/configs/keystore-rs-proxy.jks ./configs/keystore.jks'
           sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
         }
         xunit (
@@ -58,9 +58,6 @@ pipeline {
         )
       }
         failure{
-          script{
-            sh 'docker compose -f docker-compose.test.yml down --remove-orphans'
-          }
           error "Test failure. Stopping pipeline execution!"
         }
         cleanup{
