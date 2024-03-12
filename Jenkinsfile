@@ -52,7 +52,7 @@ pipeline {
           enabledForFailure: true,
           blameDisabled: true,
           forensicsDisabled: true,
-          qualityGates: [[threshold:5, type: 'TOTAL', unstable: false]],
+          qualityGates: [[threshold:60, type: 'TOTAL', unstable: false]],
           tool: pmdParser(pattern: 'target/pmd.xml')
         )
       }

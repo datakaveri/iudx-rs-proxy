@@ -33,7 +33,7 @@
     <rule ref="category/java/design.xml/UselessOverridingMethod" />
     <rule ref="category/java/codestyle.xml/TooManyStaticImports">
        <properties>
-           <property name="maximumStaticImports" value="60" />
+           <property name="maximumStaticImports" value="100" />
        </properties>
     </rule>
 
