@@ -1,31 +1,27 @@
 package iudx.rs.proxy.apiserver;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_VALUE_URN;
+
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
-
+import iudx.rs.proxy.apiserver.validation.types.*;
+import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.cache.cacheImpl.CacheType;
+import iudx.rs.proxy.common.HttpStatusCode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import iudx.rs.proxy.apiserver.validation.types.*;
-import iudx.rs.proxy.cache.CacheService;
-import iudx.rs.proxy.cache.cacheImpl.CacheType;
-import iudx.rs.proxy.common.HttpStatusCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
-import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_VALUE_URN;
-
-/**
- * This class is used to validate NGSI-LD request and request parameters.
- */
+/** This class is used to validate NGSI-LD request and request parameters. */
 public class ParamsValidator {
   private static final Logger LOGGER = LogManager.getLogger(ParamsValidator.class);
   private static final Set<String> validParams = new HashSet<String>();
@@ -65,7 +61,6 @@ public class ParamsValidator {
     validHeaders.add("User-Agent");
     validHeaders.add("Content-Type");
     validHeaders.add(HEADER_PUBLIC_KEY);
-
   }
 
   private CacheService cacheService;
@@ -78,7 +73,6 @@ public class ParamsValidator {
    * Validate a http request.
    *
    * @param parameterMap parameters map of request query
-   * @param response HttpServerResponse object
    */
   private boolean validateParams(MultiMap parameterMap) {
     final List<Entry<String, String>> entries = parameterMap.entries();
@@ -96,107 +90,114 @@ public class ParamsValidator {
    * @param paramsMap map of request parameters
    * @return Future future JsonObject
    */
- public Future<Boolean> validate(MultiMap paramsMap) {
+  public Future<Boolean> validate(MultiMap paramsMap) {
 
     Promise<Boolean> promise = Promise.promise();
     if (validateParams(paramsMap)) {
-      isValidQueryWithFilters(paramsMap).onComplete(handler -> {
-        if (handler.succeeded()) {
-          {
-            promise.complete(true);
-          }
-        } else {
-          promise.fail(handler.cause().getMessage());
-        }
-      });
+      isValidQueryWithFilters(paramsMap)
+          .onComplete(
+              handler -> {
+                if (handler.succeeded()) {
+                  {
+                    promise.complete(true);
+                  }
+                } else {
+                  promise.fail(handler.cause().getMessage());
+                }
+              });
     } else {
       promise.fail(MSG_BAD_QUERY);
     }
     return promise.future();
   }
 
-
   public Future<Boolean> validate(JsonObject requestJson) {
     Promise<Boolean> promise = Promise.promise();
     MultiMap paramsMap = MultiMap.caseInsensitiveMultiMap();
 
-    requestJson.forEach(entry -> {
-      if (entry.getKey().equalsIgnoreCase("geoQ") || entry.getKey().equalsIgnoreCase("temporalQ")) {
-        JsonObject innerObject = (JsonObject) entry.getValue();
-        paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
-        innerObject.forEach(innerentry -> {
-          paramsMap.add(innerentry.getKey().toString(), innerentry.getValue().toString());
+    requestJson.forEach(
+        entry -> {
+          if (entry.getKey().equalsIgnoreCase("geoQ")
+              || entry.getKey().equalsIgnoreCase("temporalQ")) {
+            JsonObject innerObject = (JsonObject) entry.getValue();
+            paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
+            innerObject.forEach(
+                innerentry -> {
+                  paramsMap.add(innerentry.getKey().toString(), innerentry.getValue().toString());
+                });
+          } else if (entry.getKey().equalsIgnoreCase("entities")) {
+            paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
+            JsonArray array = (JsonArray) entry.getValue();
+            JsonObject innerObject = array.getJsonObject(0);
+            innerObject.forEach(
+                innerentry -> {
+                  paramsMap.add(innerentry.getKey().toString(), innerentry.getValue().toString());
+                });
+          } else {
+            paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
+          }
         });
-      } else if (entry.getKey().equalsIgnoreCase("entities")) {
-        paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
-        JsonArray array = (JsonArray) entry.getValue();
-        JsonObject innerObject = array.getJsonObject(0);
-        innerObject.forEach(innerentry -> {
-          paramsMap.add(innerentry.getKey().toString(), innerentry.getValue().toString());
-        });
-      } else {
-        paramsMap.add(entry.getKey().toString(), entry.getValue().toString());
-      }
-
-    });
 
     String attrs = paramsMap.get(NGSILDQUERY_ATTRIBUTE);
-    String q = paramsMap.get(NGSLILDQUERY_Q);
+    // String q = paramsMap.get(NGSLILDQUERY_Q);
     String coordinates = paramsMap.get(NGSILDQUERY_COORDINATES);
     String geoRel = paramsMap.get(NGSILDQUERY_GEOREL);
     String[] georelArray = geoRel != null ? geoRel.split(";") : null;
 
     boolean validations1 =
-            !(new AttrsTypeValidator(attrs, false).isValid())
-                    //|| !(new QTypeValidator(q, false).isValid()) -- dropped this validation for IPeG
-                    || !(new CoordinatesTypeValidator(coordinates, false).isValid())
-                    || !(new GeoRelTypeValidator(georelArray != null ? georelArray[0] : null, false)
-                    .isValid())
-                    || !((georelArray != null && georelArray.length == 2)
-                    ? isValidDistance(georelArray[1])
-                    : isValidDistance(null));
+        !(new AttrsTypeValidator(attrs, false).isValid())
+            // || !(new QTypeValidator(q, false).isValid()) -- dropped this validation for IPeG
+            || !(new CoordinatesTypeValidator(coordinates, false).isValid())
+            || !(new GeoRelTypeValidator(georelArray != null ? georelArray[0] : null, false)
+                .isValid())
+            || !(georelArray != null && georelArray.length == 2
+                ? isValidDistance(georelArray[1])
+                : isValidDistance(null));
 
-    validate(paramsMap).onComplete(handler -> {
-      if (handler.succeeded() && !validations1) {
-        promise.complete(true);
-      } else {
-        promise.fail(MSG_BAD_QUERY);
-      }
-    });
+    validate(paramsMap)
+        .onComplete(
+            handler -> {
+              if (handler.succeeded() && !validations1) {
+                promise.complete(true);
+              } else {
+                promise.fail(MSG_BAD_QUERY);
+              }
+            });
     return promise.future();
   }
-
 
   private Future<Boolean> isValidQueryWithFilters(MultiMap paramsMap) {
     Promise<Boolean> promise = Promise.promise();
     CacheType cacheType = CacheType.CATALOGUE_CACHE;
-    JsonObject cacheRequest = new JsonObject()
-            .put("type", cacheType)
-            .put("key", paramsMap.get("id"));
+    JsonObject cacheRequest =
+        new JsonObject().put("type", cacheType).put("key", paramsMap.get("id"));
     Future<JsonObject> filtersFuture = cacheService.get(cacheRequest);
-    filtersFuture.onComplete(handler -> {
-      if (handler.succeeded()) {
-        JsonObject catItemJson = filtersFuture.result();
-        LOGGER.debug("for filters:: "+catItemJson);
-        List<String> filters = new ArrayList<>(catItemJson.getJsonArray("iudxResourceAPIs",new JsonArray()).getList());
-        if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
-          promise.fail("Temporal parameters are not supported by RS group/Item.");
-          return;
-        }
-        if (isAttributeQuery(paramsMap) && !filters.contains("ATTR")) {
-          promise.fail("Attribute parameters are not supported by RS group/Item.");
-          return;
-        }
-          if (isSpatialQuery(paramsMap) && !filters.contains("SPATIAL")) {
+    filtersFuture.onComplete(
+        handler -> {
+          if (handler.succeeded()) {
+            JsonObject catItemJson = filtersFuture.result();
+            LOGGER.debug("for filters:: " + catItemJson);
+            List<String> filters =
+                new ArrayList<>(
+                    catItemJson.getJsonArray("iudxResourceAPIs", new JsonArray()).getList());
+            if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
+              promise.fail("Temporal parameters are not supported by RS group/Item.");
+              return;
+            }
+            if (isAttributeQuery(paramsMap) && !filters.contains("ATTR")) {
+              promise.fail("Attribute parameters are not supported by RS group/Item.");
+              return;
+            }
+            if (isSpatialQuery(paramsMap) && !filters.contains("SPATIAL")) {
               promise.fail("Spatial parameters are not supported by RS group/Item.");
               return;
-          }
+            }
 
-          promise.complete(true);
-      } else {
-        promise.fail("fail to get filters for validation");
-      }
-    });
+            promise.complete(true);
+          } else {
+            promise.fail("fail to get filters for validation");
+          }
+        });
     return promise.future();
   }
 
@@ -210,11 +211,14 @@ public class ParamsValidator {
   private Boolean isAttributeQuery(MultiMap params) {
     return params.contains(NGSILDQUERY_ATTRIBUTE);
   }
-    private Boolean isSpatialQuery(MultiMap params) {
-        return params.contains(NGSILDQUERY_GEOREL) || params.contains(NGSILDQUERY_GEOMETRY)
-                || params.contains(NGSILDQUERY_GEOPROPERTY) || params.contains(NGSILDQUERY_COORDINATES);
 
-    }
+  private Boolean isSpatialQuery(MultiMap params) {
+    return params.contains(NGSILDQUERY_GEOREL)
+        || params.contains(NGSILDQUERY_GEOMETRY)
+        || params.contains(NGSILDQUERY_GEOPROPERTY)
+        || params.contains(NGSILDQUERY_COORDINATES);
+  }
+
   private boolean isValidDistance(String value) {
     if (value == null) {
       return true;
@@ -227,13 +231,17 @@ public class ParamsValidator {
         validator = new DistanceTypeValidator(distanceValue, false);
         return validator.isValid();
       } else {
-        throw new DxRuntimeException(HttpStatusCode.BAD_REQUEST.getValue(), INVALID_GEO_VALUE_URN,
-                INVALID_GEO_VALUE_URN.getMessage());
+        throw new DxRuntimeException(
+            HttpStatusCode.BAD_REQUEST.getValue(),
+            INVALID_GEO_VALUE_URN,
+            INVALID_GEO_VALUE_URN.getMessage());
       }
     } catch (Exception ex) {
       LOGGER.error(ex);
-      throw new DxRuntimeException(HttpStatusCode.BAD_REQUEST.getValue(), INVALID_GEO_VALUE_URN,
-              INVALID_GEO_VALUE_URN.getMessage());
+      throw new DxRuntimeException(
+          HttpStatusCode.BAD_REQUEST.getValue(),
+          INVALID_GEO_VALUE_URN,
+          INVALID_GEO_VALUE_URN.getMessage());
     }
   }
 }

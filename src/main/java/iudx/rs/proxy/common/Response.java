@@ -3,18 +3,15 @@ package iudx.rs.proxy.common;
 import io.vertx.core.json.JsonObject;
 
 /**
- * <p>
  * Response Object can be used to pass URN based messages/responses between different verticles,
  * mostly in case of failures. where following parameters can be used
- * 
+ *
  * <pre>
  *  type    : String representation of URN like urn:dx:rs:SomeErrorURN
  *  status  : HttpStatus code (e.g 404,400 etc.)
  *  title   : brief error title
  *  detail  : detailed message
  * </pre>
- * </p>
- * 
  */
 public class Response {
 
@@ -41,6 +38,26 @@ public class Response {
     return json;
   }
 
+  public String getType() {
+    return type;
+  }
+
+  public String getDetail() {
+    return detail;
+  }
+
+  public int getStatus() {
+    return status;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  @Override
+  public String toString() {
+    return toJson().toString();
+  }
 
   public static class Builder {
     private String type;
@@ -57,6 +74,7 @@ public class Response {
       this.status = status;
       return this;
     }
+
     public Builder withTitle(String title) {
       this.title = title;
       return this;
@@ -70,23 +88,5 @@ public class Response {
     public Response build() {
       return new Response(this);
     }
-  }
-
-  public String getType() {
-    return type;
-  }
-  public String getDetail(){
-    return  detail;
-  }
-  public int getStatus(){
-    return  status;
-  }
-  public String getTitle(){
-    return title;
-  }
-
-  @Override
-  public String toString() {
-    return toJson().toString();
   }
 }

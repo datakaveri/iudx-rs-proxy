@@ -4,20 +4,16 @@ import iudx.rs.proxy.common.Api;
 
 public class AuthorizationContextFactory {
 
-  public static AuthorizationStrategy create(IudxRole role,Api apis) {
+  public static AuthorizationStrategy create(IudxRole role, Api apis) {
     switch (role) {
-      case CONSUMER: {
+      case CONSUMER:
         return ConsumerAuthStrategy.getInstance(apis);
-      }
-      case PROVIDER: {
+      case PROVIDER:
         return ProviderAuthStrategy.getInstance(apis);
-      }
-      case DELEGATE: {
+      case DELEGATE:
         return DelegateAuthStrategy.getInstance(apis);
-      }
       default:
         throw new IllegalArgumentException(role + "role is not defined in IUDX");
     }
   }
-
 }

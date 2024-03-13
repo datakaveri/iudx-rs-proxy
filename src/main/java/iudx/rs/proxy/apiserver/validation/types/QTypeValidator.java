@@ -42,7 +42,7 @@ public final class QTypeValidator implements Validator {
     }
   }
 
-  private boolean isValidID(final JsonObject json) {
+  private boolean isValidId(final JsonObject json) {
     if (json.containsKey("id")) {
       String id = json.getString(JSON_VALUE);
       Matcher matcher = VALIDATION_ID_PATTERN.matcher(id);
@@ -52,11 +52,10 @@ public final class QTypeValidator implements Validator {
     }
   }
 
-  private boolean isValidAttributeValue(final String value) {
-    return VALIDATION_Q_ATTR_PATTERN.matches(value);
-  }
-
-
+  /*private boolean isValidAttributeValue(final String value) {
+      return VALIDATION_Q_ATTR_PATTERN.matches(value);
+    }
+  */
 
   JsonObject getQueryTerms(final String queryTerms) throws Exception {
     JsonObject json = new JsonObject();
@@ -76,7 +75,8 @@ public final class QTypeValidator implements Validator {
           // do nothing
         } else {
           LOGGER.error("Ignore " + c.toString());
-          throw new DxRuntimeException(failureCode(), INVALID_PARAM_VALUE_URN, failureMessage(value));
+          throw new DxRuntimeException(
+              failureCode(), INVALID_PARAM_VALUE_URN, failureMessage(value));
         }
       } else {
         if (specialCharFound && (Character.isLetter(c) || Character.isDigit(c))) {
@@ -85,9 +85,8 @@ public final class QTypeValidator implements Validator {
           break;
         }
       }
-
     }
-    LOGGER.info(json+" JSON");
+    LOGGER.info(json + " JSON");
     return json;
   }
 
@@ -132,7 +131,7 @@ public final class QTypeValidator implements Validator {
     // .generateNotMatchValidationException("Not a valid attribute value in <<q>> query");
     // }
 
-    if (!isValidID(qJson)) {
+    if (!isValidId(qJson)) {
       return false;
     }
     return true;
@@ -147,5 +146,4 @@ public final class QTypeValidator implements Validator {
   public String failureMessage() {
     return INVALID_PARAM_VALUE_URN.getMessage();
   }
-
 }

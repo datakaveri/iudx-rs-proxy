@@ -25,9 +25,8 @@ import org.apache.logging.log4j.Logger;
  *
  * <h1>Authentication Verticle</h1>
  *
- * <p>
- * The Authentication Verticle implementation in the the IUDX Resource Server exposes the
- * {@link iudx.rs.proxy.authenticator.AuthenticationService} over the Vert.x Event Bus.
+ * <p>The Authentication Verticle implementation in the the IUDX Resource Server exposes the {@link
+ * iudx.rs.proxy.authenticator.AuthenticationService} over the Vert.x Event Bus.
  *
  * @version 1.0
  * @since 2020-05-31
@@ -72,11 +71,11 @@ public class AuthenticationVerticle extends AbstractVerticle {
               String cert = handler;
               binder = new ServiceBinder(vertx);
 
-                JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
-                jwtAuthOptions.getJWTOptions().addAudience(config().getString("audience"));
-                jwtAuthOptions.addPubSecKey(
-                        new PubSecKeyOptions().setAlgorithm("ES256").setBuffer(cert));
-                /*
+              JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
+              jwtAuthOptions.getJWTOptions().addAudience(config().getString("audience"));
+              jwtAuthOptions.addPubSecKey(
+                  new PubSecKeyOptions().setAlgorithm("ES256").setBuffer(cert));
+              /*
                * Default jwtIgnoreExpiry is false. If set through config, then that value is taken
                */
               boolean jwtIgnoreExpiry =
@@ -89,12 +88,12 @@ public class AuthenticationVerticle extends AbstractVerticle {
               }
               JWTAuth jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
               cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
-              
-              dxApiBasePath=config().getString("dxApiBasePath");
-              Api apis=Api.getInstance(dxApiBasePath);
-              
+
+              dxApiBasePath = config().getString("dxApiBasePath");
+              Api apis = Api.getInstance(dxApiBasePath);
+
               jwtAuthenticationService =
-                  new JwtAuthenticationServiceImpl(vertx, jwtAuth, config(), cacheService,apis);
+                  new JwtAuthenticationServiceImpl(vertx, jwtAuth, config(), cacheService, apis);
 
               /* Publish the Authentication service with the Event Bus against an address. */
               consumer =
