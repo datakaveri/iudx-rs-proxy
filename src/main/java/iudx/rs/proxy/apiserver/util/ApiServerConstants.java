@@ -1,7 +1,6 @@
 package iudx.rs.proxy.apiserver.util;
 
 import io.vertx.core.http.HttpMethod;
-
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -22,7 +21,6 @@ public class ApiServerConstants {
   public static final String HEADER_JSON = "json";
   public static final String HEADER_PARQUET = "parquet";
   public static final String HEADER_RESPONSE_FILE_FORMAT = "format";
-
 
   public static final Set<String> ALLOWED_HEADERS =
       new HashSet<>(
@@ -143,10 +141,6 @@ public class ApiServerConstants {
   public static final int VALIDATION_COORDINATE_PRECISION_ALLOWED = 6;
   public static final int VALIDATIONS_MAX_ATTR_LENGTH = 100;
   public static final int VALIDATION_ALLOWED_COORDINATES = 10;
-
-  public static final Pattern ID_REGEX =
-      Pattern.compile(
-          "^[a-zA-Z0-9.-]{4,100}/{1}[a-zA-Z0-9.]{4,100}/{1}[a-zA-Z.-]{4,100}/{1}[a-zA-Z-_.]{4,100}/{1}[a-zA-Z0-9-_.]{4,100}$");
   public static final String ENCODED_PUBLIC_KEY_REGEX = "^[a-zA-Z0-9_-]{42,43}={0,2}$";
 
   public static final String RESPONSE_SIZE = "response_size";
@@ -200,10 +194,10 @@ public class ApiServerConstants {
   public static final String ITEM_TYPE_RESOURCE_SERVER = "ResourceServer";
   public static final String ITEM_TYPE_PROVIDER = "Provider";
   public static final ArrayList<String> ITEM_TYPES =
-          new ArrayList<String>(
-                  Arrays.asList(
-                          ITEM_TYPE_RESOURCE,
-                          ITEM_TYPE_RESOURCE_GROUP,
-                          ITEM_TYPE_RESOURCE_SERVER,
-                          ITEM_TYPE_PROVIDER));
+      new ArrayList<String>(
+          Arrays.asList(
+              ITEM_TYPE_RESOURCE,
+              ITEM_TYPE_RESOURCE_GROUP,
+              ITEM_TYPE_RESOURCE_SERVER,
+              ITEM_TYPE_PROVIDER));
 }

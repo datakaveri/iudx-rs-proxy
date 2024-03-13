@@ -1,28 +1,24 @@
 package iudx.rs.proxy.metering.util;
 
+import static iudx.rs.proxy.metering.util.Constants.*;
+
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.common.Api;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-
-import static iudx.rs.proxy.metering.util.Constants.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ParamsValidation {
+  private static final Logger LOGGER = LogManager.getLogger(ParamsValidation.class);
   private Api api;
 
-  public ParamsValidation(Api api)
-  {
+  public ParamsValidation(Api api) {
     this.api = api;
   }
-  private static final Logger LOGGER = LogManager.getLogger(ParamsValidation.class);
 
   public JsonObject paramsCheck(JsonObject request) {
-    String providerID = request.getString(PROVIDER_ID);
-    String iid = request.getString(IID);
 
     if (request.getString(TIME_RELATION) == null
         || !(request.getString(TIME_RELATION).equals(DURING)
@@ -42,7 +38,7 @@ public class ParamsValidation {
       return request;
     }
 
-    //since + is treated as space in uri
+    // since + is treated as space in uri
     String startTime = request.getString(START_TIME).trim().replaceAll("\\s", "+");
     String endTime = request.getString(END_TIME).trim().replaceAll("\\s", "+");
 
@@ -56,19 +52,18 @@ public class ParamsValidation {
       LOGGER.error("Invalid Date exception: " + e.getMessage());
       return new JsonObject().put(ERROR, INVALID_DATE_TIME);
     }
-    ZonedDateTime startZDT = ZonedDateTime.parse(startTime);
-    ZonedDateTime endZDT = ZonedDateTime.parse(endTime);
+    ZonedDateTime startZdt = ZonedDateTime.parse(startTime);
+    ZonedDateTime endZdt = ZonedDateTime.parse(endTime);
 
-    long zonedDateTimeDayDifference = zonedDateTimeDayDifference(startZDT, endZDT);
-    long zonedDateTimeMinuteDifference = zonedDateTimeMinuteDifference(startZDT, endZDT);
+    long zonedDateTimeDayDifference = zonedDateTimeDayDifference(startZdt, endZdt);
+    long zonedDateTimeMinuteDifference = zonedDateTimeMinuteDifference(startZdt, endZdt);
 
     LOGGER.trace(
         "PERIOD between given time day :{} , minutes :{}",
         zonedDateTimeDayDifference,
         zonedDateTimeMinuteDifference);
 
-    if (zonedDateTimeDayDifference < 0
-        || zonedDateTimeMinuteDifference <= 0) {
+    if (zonedDateTimeDayDifference < 0 || zonedDateTimeMinuteDifference <= 0) {
       LOGGER.error(INVALID_DATE_DIFFERENCE);
       return new JsonObject().put(ERROR, INVALID_DATE_DIFFERENCE);
     }
@@ -84,5 +79,4 @@ public class ParamsValidation {
   private long zonedDateTimeMinuteDifference(ZonedDateTime startTime, ZonedDateTime endTime) {
     return ChronoUnit.MINUTES.between(startTime, endTime);
   }
-
 }

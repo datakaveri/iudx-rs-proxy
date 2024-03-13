@@ -1,8 +1,7 @@
 package iudx.rs.proxy.databroker;
 
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -10,6 +9,8 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQOptions;
 import io.vertx.serviceproxy.ServiceBinder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DatabrokerVerticle extends AbstractVerticle {
 
@@ -18,7 +19,7 @@ public class DatabrokerVerticle extends AbstractVerticle {
   private RabbitMQOptions config;
   private WebClientOptions webConfig;
 
-  private String dataBrokerIP;
+  private String dataBrokerIp;
   private int dataBrokerPort;
   private int dataBrokerManagementPort;
   private String dataBrokerVhost;
@@ -33,7 +34,6 @@ public class DatabrokerVerticle extends AbstractVerticle {
   private String publishExchange;
   private String replyQueue;
 
-
   private RabbitMQClient rmqClient;
 
   private MessageConsumer<JsonObject> consumer;
@@ -43,11 +43,9 @@ public class DatabrokerVerticle extends AbstractVerticle {
   @Override
   public void start() throws Exception {
 
-
-    dataBrokerIP = config().getString("dataBrokerIP");
+    dataBrokerIp = config().getString("dataBrokerIP");
     dataBrokerPort = config().getInteger("dataBrokerPort");
-    dataBrokerManagementPort =
-        config().getInteger("dataBrokerManagementPort");
+    dataBrokerManagementPort = config().getInteger("dataBrokerManagementPort");
     dataBrokerVhost = config().getString("internalVhost");
     dataBrokerUserName = config().getString("dataBrokerUserName");
     dataBrokerPassword = config().getString("dataBrokerPassword");
@@ -55,8 +53,7 @@ public class DatabrokerVerticle extends AbstractVerticle {
     requestedHeartbeat = config().getInteger("requestedHeartbeat");
     handshakeTimeout = config().getInteger("handshakeTimeout");
     requestedChannelMax = config().getInteger("requestedChannelMax");
-    networkRecoveryInterval =
-        config().getInteger("networkRecoveryInterval");
+    networkRecoveryInterval = config().getInteger("networkRecoveryInterval");
 
     publishExchange = config().getString("adapterQueryPublishExchange");
     replyQueue = config().getString("adapterQueryReplyQueue");
@@ -65,7 +62,7 @@ public class DatabrokerVerticle extends AbstractVerticle {
     config = new RabbitMQOptions();
     config.setUser(dataBrokerUserName);
     config.setPassword(dataBrokerPassword);
-    config.setHost(dataBrokerIP);
+    config.setHost(dataBrokerIp);
     config.setPort(dataBrokerPort);
     config.setVirtualHost(dataBrokerVhost);
     config.setConnectionTimeout(connectionTimeout);
@@ -78,7 +75,7 @@ public class DatabrokerVerticle extends AbstractVerticle {
     webConfig = new WebClientOptions();
     webConfig.setKeepAlive(true);
     webConfig.setConnectTimeout(86400000);
-    webConfig.setDefaultHost(dataBrokerIP);
+    webConfig.setDefaultHost(dataBrokerIp);
     webConfig.setDefaultPort(dataBrokerManagementPort);
     webConfig.setKeepAliveTimeout(86400000);
 
@@ -86,17 +83,23 @@ public class DatabrokerVerticle extends AbstractVerticle {
 
     rmqClient
         .start()
-        .onSuccess(rmqClientStarthandler -> {
-          brokerService = new DatabrokerServiceImpl(vertx, rmqClient, publishExchange, replyQueue);
+        .onSuccess(
+            rmqClientStarthandler -> {
+              brokerService =
+                  new DatabrokerServiceImpl(vertx, rmqClient, publishExchange, replyQueue);
 
-          binder = new ServiceBinder(vertx);
-          consumer = binder.setAddress(DATABROKER_SERVICE_ADDRESS).register(DatabrokerService.class,
-              brokerService);
+              binder = new ServiceBinder(vertx);
+              consumer =
+                  binder
+                      .setAddress(DATABROKER_SERVICE_ADDRESS)
+                      .register(DatabrokerService.class, brokerService);
 
-          LOGGER.info("Databroker Verticle deployed.");
-        }).onFailure(rmqClientStartHandler -> {
-          LOGGER.error("RMQ client startup failure failed, {}", rmqClientStartHandler);
-        });
+              LOGGER.info("Databroker Verticle deployed.");
+            })
+        .onFailure(
+            rmqClientStartHandler -> {
+              LOGGER.error("RMQ client startup failure failed, {}", rmqClientStartHandler);
+            });
   }
 
   @Override

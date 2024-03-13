@@ -15,50 +15,46 @@ import io.vertx.serviceproxy.ServiceException;
 public interface DatabaseService {
 
   /**
-   * The searchQuery implements the search operation with the database.
-   * 
-   * @param request which is a JsonObject
-   * @param handler which is a Request Handler
-   * @return DatabaseService which is a Service
-   */
-
-  @Fluent
-  DatabaseService searchQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
-      throws ServiceException;
-
-  /**
-   * The countQuery implements the count operation with the database.
-   * 
-   * @param request which is a JsonObject
-   * @param handler which is a Request Handler
-   * @return DatabaseService which is a Service
-   */
-
-  @Fluent
-  DatabaseService countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
-      throws ServiceException;
-
-  /**
    * The create implements the count operation with the database.
-   * 
-   * @param client RestClient to perform ES queries.
+   *
    * @return DatabaseService object.
    */
-
   @GenIgnore
   static DatabaseService createProxy(Vertx vertx, String address) {
     return new DatabaseServiceVertxEBProxy(vertx, address);
   }
 
   /**
-   * The execute query implements the String query in the database.
+   * The searchQuery implements the search operation with the database.
    *
-   * @param query which is a String
+   * @param request which is a JsonObject
    * @param handler which is a Request Handler
    * @return DatabaseService which is a Service
    */
   @Fluent
-  DatabaseService executeQuery(final JsonObject jsonObject,
-                               Handler<AsyncResult<JsonObject>> handler) throws ServiceException;
+  DatabaseService searchQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
+      throws ServiceException;
 
+  /**
+   * The countQuery implements the count operation with the database.
+   *
+   * @param request which is a JsonObject
+   * @param handler which is a Request Handler
+   * @return DatabaseService which is a Service
+   */
+  @Fluent
+  DatabaseService countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler)
+      throws ServiceException;
+
+  /**
+   * The execute query implements the String query in the database.
+   *
+   * @param jsonObject which is a JsonObject
+   * @param handler which is a Request Handler
+   * @return DatabaseService which is a Service
+   */
+  @Fluent
+  DatabaseService executeQuery(
+      final JsonObject jsonObject, Handler<AsyncResult<JsonObject>> handler)
+      throws ServiceException;
 }

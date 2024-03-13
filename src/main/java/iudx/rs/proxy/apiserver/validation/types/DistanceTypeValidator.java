@@ -13,22 +13,23 @@ import org.apache.logging.log4j.Logger;
 public final class DistanceTypeValidator implements Validator {
 
   private static final Logger LOGGER = LogManager.getLogger(DistanceTypeValidator.class);
-  
+
   private final String value;
   private final boolean required;
   private final boolean isAsyncQuery;
+
   public DistanceTypeValidator(final String value, final boolean required) {
     this.value = value;
     this.required = required;
     isAsyncQuery = false;
   }
 
-  public DistanceTypeValidator(final String value, final boolean required, final  boolean isAsyncQuery) {
+  public DistanceTypeValidator(
+      final String value, final boolean required, final boolean isAsyncQuery) {
     this.value = value;
     this.required = required;
     this.isAsyncQuery = isAsyncQuery;
   }
-
 
   private boolean isValidDistance(final String distance) {
     try {
@@ -38,7 +39,7 @@ public final class DistanceTypeValidator implements Validator {
         throw new DxRuntimeException(failureCode(), INVALID_GEO_VALUE_URN, failureMessage(value));
       }
       if (isAsyncQuery
-              && (distanceValue > VALIDATION_ALLOWED_DIST_FOR_ASYNC || distanceValue < 1)) {
+          && (distanceValue > VALIDATION_ALLOWED_DIST_FOR_ASYNC || distanceValue < 1)) {
         LOGGER.error("Validation error : Distance outside (1,10000)m range not allowed");
         throw new DxRuntimeException(failureCode(), INVALID_GEO_VALUE_URN, failureMessage(value));
       }
@@ -52,7 +53,6 @@ public final class DistanceTypeValidator implements Validator {
     }
     return true;
   }
-
 
   @Override
   public boolean isValid() {

@@ -26,20 +26,16 @@ public final class CoordinatesTypeValidator implements Validator {
       "^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$";
   private static final String LONGITUDE_PATTERN =
       "^(\\+|-)?(?:180(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{1,6})?))$";
-  private final int allowedMaxCoordinates = VALIDATION_ALLOWED_COORDINATES;
   private static final Pattern pattern = Pattern.compile("[\\w]+[^\\,]*(?:\\.*[\\w])");
-
-
-
+  private final int allowedMaxCoordinates = VALIDATION_ALLOWED_COORDINATES;
   private final String value;
   private final boolean required;
+  private DecimalFormat df = new DecimalFormat("#.######");
 
   public CoordinatesTypeValidator(final String value, final boolean required) {
     this.value = value;
     this.required = required;
   }
-
-  private DecimalFormat df = new DecimalFormat("#.######");
 
   private boolean isValidLatitude(final String latitude) {
     Float latitudeValue = Float.parseFloat(latitude);
@@ -60,7 +56,7 @@ public final class CoordinatesTypeValidator implements Validator {
   }
 
   private boolean isPricisonLengthAllowed(final String value) {
-    return (new BigDecimal(value).scale() > VALIDATION_COORDINATE_PRECISION_ALLOWED);
+    return new BigDecimal(value).scale() > VALIDATION_COORDINATE_PRECISION_ALLOWED;
   }
 
   private boolean isValidCoordinateCount(final String coordinates) {
@@ -88,9 +84,7 @@ public final class CoordinatesTypeValidator implements Validator {
   private List<String> getCoordinatesValues(final String coordinates) {
     Matcher matcher = pattern.matcher(coordinates);
     List<String> coordinatesValues =
-        matcher.results()
-            .map(MatchResult::group)
-            .collect(Collectors.toList());
+        matcher.results().map(MatchResult::group).collect(Collectors.toList());
     return coordinatesValues;
   }
 

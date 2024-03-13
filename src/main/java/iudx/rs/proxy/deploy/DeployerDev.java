@@ -1,11 +1,5 @@
 package iudx.rs.proxy.deploy;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -14,6 +8,12 @@ import io.vertx.core.cli.CommandLine;
 import io.vertx.core.cli.Option;
 import io.vertx.core.eventbus.EventBusOptions;
 import io.vertx.core.json.JsonObject;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DeployerDev {
   private static final Logger LOGGER = LogManager.getLogger(DeployerDev.class);
@@ -26,10 +26,9 @@ public class DeployerDev {
     JsonObject moduleConfigurations = getConfigForModule(i, configs);
     String moduleName = moduleConfigurations.getString("id");
     int numInstances = moduleConfigurations.getInteger("verticleInstances");
-    vertx.deployVerticle(moduleName,
-        new DeploymentOptions()
-            .setInstances(numInstances)
-            .setConfig(moduleConfigurations),
+    vertx.deployVerticle(
+        moduleName,
+        new DeploymentOptions().setInstances(numInstances).setConfig(moduleConfigurations),
         ar -> {
           if (ar.succeeded()) {
             LOGGER.info("Deployed " + moduleName);
@@ -59,19 +58,29 @@ public class DeployerDev {
     Vertx vertx = Vertx.vertx(options);
     recursiveDeploy(vertx, configuration, 0);
   }
-  
-  private static JsonObject getConfigForModule(int moduleIndex,JsonObject configurations) {
-    JsonObject commonConfigs=configurations.getJsonObject("commonConfig");
+
+  private static JsonObject getConfigForModule(int moduleIndex, JsonObject configurations) {
+    JsonObject commonConfigs = configurations.getJsonObject("commonConfig");
     JsonObject config = configurations.getJsonArray("modules").getJsonObject(moduleIndex);
     return config.mergeIn(commonConfigs, true);
   }
 
   public static void main(String[] args) {
-    CLI cli = CLI.create("IUDX Cat").setSummary("A CLI to deploy the resource server")
-        .addOption(new Option().setLongName("help").setShortName("h").setFlag(true)
-            .setDescription("display help"))
-        .addOption(new Option().setLongName("config").setShortName("c")
-            .setRequired(true).setDescription("configuration file"));
+    CLI cli =
+        CLI.create("IUDX Cat")
+            .setSummary("A CLI to deploy the resource server")
+            .addOption(
+                new Option()
+                    .setLongName("help")
+                    .setShortName("h")
+                    .setFlag(true)
+                    .setDescription("display help"))
+            .addOption(
+                new Option()
+                    .setLongName("config")
+                    .setShortName("c")
+                    .setRequired(true)
+                    .setDescription("configuration file"));
 
     StringBuilder usageString = new StringBuilder();
     cli.usage(usageString);

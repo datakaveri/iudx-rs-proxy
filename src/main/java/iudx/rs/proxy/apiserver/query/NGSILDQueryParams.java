@@ -48,7 +48,6 @@ public class NGSILDQueryParams {
     this.setTemporalRelation(new TemporalRelation());
     this.setGeoRel(new GeoRelation());
     this.create(paramsMap);
-
   }
 
   /**
@@ -61,7 +60,6 @@ public class NGSILDQueryParams {
     this.setTemporalRelation(new TemporalRelation());
     this.setGeoRel(new GeoRelation());
     this.create(json);
-
   }
 
   public static void main(String[] args) {
@@ -91,49 +89,39 @@ public class NGSILDQueryParams {
     List<Entry<String, String>> entries = paramsMap.entries();
     for (final Entry<String, String> entry : entries) {
       switch (entry.getKey()) {
-
-        case NGSILDQUERY_ID: {
+        case NGSILDQUERY_ID:
           this.id = new ArrayList<URI>();
           String[] ids = entry.getValue().split(",");
           List<URI> uris = Arrays.stream(ids).map(toUriFunction).collect(Collectors.toList());
           this.id.addAll(uris);
           break;
-        }
-        case NGSILDQUERY_ATTRIBUTE: {
+        case NGSILDQUERY_ATTRIBUTE:
           this.attrs = new ArrayList<String>();
           this.attrs.addAll(
-                  Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
+              Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
           break;
-        }
-        case NGSILDQUERY_TIMEREL: {
+        case NGSILDQUERY_TIMEREL:
           this.temporalRelation.setTimeRel(entry.getValue());
           break;
-        }
-        case NGSILDQUERY_TIME: {
+        case NGSILDQUERY_TIME:
           this.temporalRelation.setTime(entry.getValue());
           break;
-        }
-        case NGSILDQUERY_ENDTIME: {
+        case NGSILDQUERY_ENDTIME:
           this.temporalRelation.setEndTime(entry.getValue());
           break;
-        }
-        case NGSLILDQUERY_Q: {
+        case NGSLILDQUERY_Q:
           this.textQuery = entry.getValue();
           break;
-        }
-        case IUDXQUERY_OPTIONS: {
+        case IUDXQUERY_OPTIONS:
           this.options = entry.getValue();
           break;
-        }
-        case NGSILDQUERY_SIZE: {
+        case NGSILDQUERY_SIZE:
           this.pageSize = entry.getValue();
           break;
-        }
-        case NGSILDQUERY_FROM: {
+        case NGSILDQUERY_FROM:
           this.pageFrom = entry.getValue();
           break;
-        }
-        case NGSILDQUERY_GEOREL: {
+        case NGSILDQUERY_GEOREL:
           String georel = entry.getValue();
           String[] values = georel.split(";");
           this.geoRel.setRelation(values[0]);
@@ -146,23 +134,18 @@ public class NGSILDQueryParams {
             }
           }
           break;
-        }
-        case NGSILDQUERY_GEOMETRY: {
+        case NGSILDQUERY_GEOMETRY:
           this.geometry = entry.getValue();
           break;
-        }
-        case NGSILDQUERY_COORDINATES: {
+        case NGSILDQUERY_COORDINATES:
           this.coordinates = entry.getValue();
           break;
-        }
-        case NGSILDQUERY_GEOPROPERTY: {
+        case NGSILDQUERY_GEOPROPERTY:
           this.geoProperty = entry.getValue();
           break;
-        }
-        default: {
+        default:
           LOGGER.warn(MSG_INVALID_PARAM + ":" + entry.getKey());
           break;
-        }
       }
     }
   }
@@ -204,8 +187,7 @@ public class NGSILDQueryParams {
             }
           } else if (entry.getKey().equalsIgnoreCase(IUDXQUERY_OPTIONS)) {
             this.options = requestJson.getString(entry.getKey());
-          }
-          else if (entry.getKey().equalsIgnoreCase("geoQ")) {
+          } else if (entry.getKey().equalsIgnoreCase("geoQ")) {
             JsonObject geoJson = requestJson.getJsonObject(entry.getKey());
             this.setGeometry(geoJson.getString("geometry"));
             this.setGeoProperty(geoJson.getString("geoproperty"));
@@ -223,8 +205,7 @@ public class NGSILDQueryParams {
                 }
               }
             }
-          }
-          else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_FROM)) {
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_FROM)) {
             this.pageFrom = requestJson.getString(entry.getKey());
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_SIZE)) {
             this.pageSize = requestJson.getString(NGSILDQUERY_SIZE);
@@ -261,10 +242,10 @@ public class NGSILDQueryParams {
   public List<String> getAttrs() {
     return attrs;
   }
+
   public void setAttrs(List<String> attrs) {
     this.attrs = attrs;
   }
-
 
   public List<String> getIdPattern() {
     return idPattern;
@@ -297,6 +278,7 @@ public class NGSILDQueryParams {
   public void setOptions(String options) {
     this.options = options;
   }
+
   public GeoRelation getGeoRel() {
     return geoRel;
   }
@@ -304,6 +286,7 @@ public class NGSILDQueryParams {
   public void setGeoRel(GeoRelation geoRel) {
     this.geoRel = geoRel;
   }
+
   public String getGeometry() {
     return geometry;
   }
@@ -327,6 +310,7 @@ public class NGSILDQueryParams {
   public void setGeoProperty(String geoProperty) {
     this.geoProperty = geoProperty;
   }
+
   public String getRelation() {
     return relation;
   }
@@ -334,6 +318,7 @@ public class NGSILDQueryParams {
   public void setRelation(String relation) {
     this.relation = relation;
   }
+
   public String getPageFrom() {
     return pageFrom;
   }
@@ -344,9 +329,28 @@ public class NGSILDQueryParams {
 
   @Override
   public String toString() {
-    return "NGSILDQueryParams [id=" + id + ", type=" + type + ", attrs=" + attrs + ", idPattern="
-            + idPattern + ", textQuery=" + textQuery + ", geoRel=" + geoRel + ", geometry=" + geometry
-            + ", coordinates=" + coordinates + ", geoProperty=" + geoProperty + ", temporalRelation="
-            + temporalRelation + ", options=" + options + "]";
+    return "NGSILDQueryParams [id="
+        + id
+        + ", type="
+        + type
+        + ", attrs="
+        + attrs
+        + ", idPattern="
+        + idPattern
+        + ", textQuery="
+        + textQuery
+        + ", geoRel="
+        + geoRel
+        + ", geometry="
+        + geometry
+        + ", coordinates="
+        + coordinates
+        + ", geoProperty="
+        + geoProperty
+        + ", temporalRelation="
+        + temporalRelation
+        + ", options="
+        + options
+        + "]";
   }
 }

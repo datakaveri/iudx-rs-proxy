@@ -1,9 +1,9 @@
 package iudx.rs.proxy.metering.util;
 
+import static iudx.rs.proxy.metering.util.Constants.*;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import static iudx.rs.proxy.metering.util.Constants.*;
 import iudx.rs.proxy.common.ResponseUrn;
 
 public class ResponseBuilder {
@@ -52,6 +52,7 @@ public class ResponseBuilder {
     response.put(RESULTS, jsonArray);
     return this;
   }
+
   public ResponseBuilder setTotalHits(int totalHits) {
     response.put(TOTAL_HITS, totalHits);
     return this;

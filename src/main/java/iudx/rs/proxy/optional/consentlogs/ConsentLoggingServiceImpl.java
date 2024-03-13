@@ -1,5 +1,8 @@
 package iudx.rs.proxy.optional.consentlogs;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.VALIDATION_ID_PATTERN;
+import static iudx.rs.proxy.metering.util.Constants.ORIGIN;
+
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -12,168 +15,174 @@ import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.ConsentLogType;
 import iudx.rs.proxy.metering.MeteringService;
 import iudx.rs.proxy.optional.consentlogs.dss.PayloadSigningManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.function.Supplier;
-
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.VALIDATION_ID_PATTERN;
-import static iudx.rs.proxy.metering.util.Constants.ORIGIN;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ConsentLoggingServiceImpl implements ConsentLoggingService {
 
-    private static final Logger LOGGER = LogManager.getLogger(ConsentLoggingServiceImpl.class);
-    static WebClient catWebClient;
-    private final PayloadSigningManager payloadSigningManager;
-    private final MeteringService meteringService;
-    private final CacheService cacheService;
-    Supplier<String> isoTimeSupplier =
-            () -> ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get("IST"))).toString();
-    Supplier<String> primaryKeySuppler = () -> UUID.randomUUID().toString();
+  private static final Logger LOGGER = LogManager.getLogger(ConsentLoggingServiceImpl.class);
+  static WebClient catWebClient;
+  private final PayloadSigningManager payloadSigningManager;
+  private final MeteringService meteringService;
+  private final CacheService cacheService;
+  Supplier<String> isoTimeSupplier =
+      () -> ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get("IST"))).toString();
+  Supplier<String> primaryKeySuppler = () -> UUID.randomUUID().toString();
 
+  public ConsentLoggingServiceImpl(
+      Vertx vertx,
+      PayloadSigningManager signingManager,
+      MeteringService meteringService,
+      CacheService cacheService) {
+    this.payloadSigningManager = signingManager;
+    this.meteringService = meteringService;
+    this.cacheService = cacheService;
+    WebClientOptions options = new WebClientOptions();
+    options.setTrustAll(true).setVerifyHost(false).setSsl(true);
+    catWebClient = WebClient.create(vertx, options);
+  }
 
-    public ConsentLoggingServiceImpl(Vertx vertx, PayloadSigningManager signingManager, MeteringService meteringService, CacheService cacheService) {
-        this.payloadSigningManager = signingManager;
-        this.meteringService = meteringService;
-        this.cacheService = cacheService;
-        WebClientOptions options = new WebClientOptions();
-        options.setTrustAll(true).setVerifyHost(false).setSsl(true);
-        catWebClient = WebClient.create(vertx, options);
+  @Override
+  public Future<JsonObject> log(JsonObject request, JwtData jwtData) {
+    LOGGER.trace("log started");
+    LOGGER.debug("consent loag::: " + request);
+    Promise<JsonObject> promise = Promise.promise();
+    String LogType = request.getString("logType");
+    ConsentLogType consentLogType;
+    try {
+      consentLogType = getLogType(LogType);
+    } catch (IllegalArgumentException e) {
+      return Future.failedFuture("No Consent defined for given type");
     }
 
-    @Override
-    public Future<JsonObject> log(JsonObject request, JwtData jwtData) {
-        LOGGER.trace("log started");
-        LOGGER.debug("consent loag::: " + request);
-        Promise<JsonObject> promise = Promise.promise();
-        String LogType = request.getString("logType");
-        ConsentLogType consentLogType;
-        try {
-            consentLogType = getLogType(LogType);
-        } catch (IllegalArgumentException e) {
-            return Future.failedFuture("No Consent defined for given type");
-        }
-
-        if (!isConsentRequired(jwtData)) {
-            LOGGER.info("token doesn't contains PII data/consent not required.");
-            return Future.failedFuture("token doesn't contains PII data/consent not required.");
-        }
-        if (consentLogType != null) {
-            getCatItem(jwtData)
-                    .onSuccess(catItems -> {
-                        jwtData.setProvider(catItems.getString("provider"));
-                        // jwtData.setType(catItems.getString("type"));
-                        JsonObject consentAuditLog = generateConsentAuditLog(consentLogType.toString(), jwtData);
-                        Future<Void> consentAuditFuture = auditingConsentLog(consentAuditLog);
-                        consentAuditFuture.onComplete(auditHandler -> {
-                            if (auditHandler.succeeded()) {
-                                promise.complete(consentAuditLog);
-                            } else {
-                                promise.fail(auditHandler.cause().getMessage());
-                            }
-                        });
-                    })
-                    .onFailure(err -> {
-                        LOGGER.error("cat failure : " + err.getMessage());
-                        promise.fail(err.getMessage());
+    if (!isConsentRequired(jwtData)) {
+      LOGGER.info("token doesn't contains PII data/consent not required.");
+      return Future.failedFuture("token doesn't contains PII data/consent not required.");
+    }
+    if (consentLogType != null) {
+      getCatItem(jwtData)
+          .onSuccess(
+              catItems -> {
+                jwtData.setProvider(catItems.getString("provider"));
+                // jwtData.setType(catItems.getString("type"));
+                JsonObject consentAuditLog =
+                    generateConsentAuditLog(consentLogType.toString(), jwtData);
+                Future<Void> consentAuditFuture = auditingConsentLog(consentAuditLog);
+                consentAuditFuture.onComplete(
+                    auditHandler -> {
+                      if (auditHandler.succeeded()) {
+                        promise.complete(consentAuditLog);
+                      } else {
+                        promise.fail(auditHandler.cause().getMessage());
+                      }
                     });
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("cat failure : " + err.getMessage());
+                promise.fail(err.getMessage());
+              });
 
-        } else {
-            promise.fail("null value passed as ConsentLogType");
-        }
-
-
-        return promise.future();
+    } else {
+      promise.fail("null value passed as ConsentLogType");
     }
 
+    return promise.future();
+  }
 
-    private ConsentLogType getLogType(String Type) {
-        ConsentLogType logType = null;
-        try {
-            logType = ConsentLogType.valueOf(Type);
+  private ConsentLogType getLogType(String Type) {
+    ConsentLogType logType = null;
+    try {
+      logType = ConsentLogType.valueOf(Type);
 
-        } catch (IllegalArgumentException ex) {
-            LOGGER.error("No consent type defined for given argument.");
-        }
-        return logType;
+    } catch (IllegalArgumentException ex) {
+      LOGGER.error("No consent type defined for given argument.");
     }
+    return logType;
+  }
 
-    private JsonObject generateConsentAuditLog(String consentLogType, JwtData jwtData) {
-        LOGGER.trace("generateAuditLog started");
-        JsonObject cons = jwtData.getCons();
-        String item_id = jwtData.getIid().split(":")[1];
-        String type = "RESOURCE"; // make sure item should be RESOURCE only
-        SignLogBuider signLog = new SignLogBuider.Builder()
-                .withPrimaryKey(primaryKeySuppler.get())
-                .forAiu_id(jwtData.getSub())
-                .forEvent(consentLogType)
-                .forItemType(type)
-                .forItem_id(item_id)
-                .witAipId(jwtData.getProvider())
-                .withDpId(cons.getString("ppbNumber"))
-                .withArtifactId(cons.getString("artifact"))
-                .atIsoTime(isoTimeSupplier.get())
-                .build();
-        LOGGER.debug("log to be singed: " + signLog.toJson());
-        String signedLog = payloadSigningManager.signDocWithPKCS12(signLog.toJson());
-        JsonObject consentAuditLog = signLog.toJson();
-        consentAuditLog.put("log", signedLog);
-        consentAuditLog.put(ORIGIN, "consent_log");
-        return consentAuditLog;
+  private JsonObject generateConsentAuditLog(String consentLogType, JwtData jwtData) {
+    LOGGER.trace("generateAuditLog started");
+    JsonObject cons = jwtData.getCons();
+    String item_id = jwtData.getIid().split(":")[1];
+    String type = "RESOURCE"; // make sure item should be RESOURCE only
+    SignLogBuider signLog =
+        new SignLogBuider.Builder()
+            .withPrimaryKey(primaryKeySuppler.get())
+            .forAiu_id(jwtData.getSub())
+            .forEvent(consentLogType)
+            .forItemType(type)
+            .forItem_id(item_id)
+            .witAipId(jwtData.getProvider())
+            .withDpId(cons.getString("ppbNumber"))
+            .withArtifactId(cons.getString("artifact"))
+            .atIsoTime(isoTimeSupplier.get())
+            .build();
+    LOGGER.debug("log to be singed: " + signLog.toJson());
+    String signedLog = payloadSigningManager.signDocWithPKCS12(signLog.toJson());
+    JsonObject consentAuditLog = signLog.toJson();
+    consentAuditLog.put("log", signedLog);
+    consentAuditLog.put(ORIGIN, "consent_log");
+    return consentAuditLog;
+  }
+
+  private Future<Void> auditingConsentLog(JsonObject consentAuditLog) {
+    LOGGER.trace("auditingConsentLog started");
+    Promise<Void> promise = Promise.promise();
+    meteringService.insertMeteringValuesInRMQ(
+        consentAuditLog,
+        handler -> {
+          if (handler.succeeded()) {
+            LOGGER.info("Log published into RMQ.");
+            promise.complete();
+          } else {
+            LOGGER.error("failed to publish log into RMQ.");
+            promise.fail("failed to publish log into RMQ.");
+          }
+        });
+    return promise.future();
+  }
+
+  private Boolean isConsentRequired(JwtData jwtData) {
+    String resourceId = jwtData.getIid().split(":")[1];
+    Boolean isRequired = false;
+    JsonObject cons = jwtData.getCons();
+    if (VALIDATION_ID_PATTERN.matcher(resourceId).matches()
+        && cons.containsKey("artifact")
+        && cons.containsKey("ppbNumber")) {
+      isRequired = true;
     }
+    return isRequired;
+  }
 
-    private Future<Void> auditingConsentLog(JsonObject consentAuditLog) {
-        LOGGER.trace("auditingConsentLog started");
-        Promise<Void> promise = Promise.promise();
-        meteringService.insertMeteringValuesInRMQ(
-                consentAuditLog,
-                handler -> {
-                    if (handler.succeeded()) {
-                        LOGGER.info("Log published into RMQ.");
-                        promise.complete();
-                    } else {
-                        LOGGER.error("failed to publish log into RMQ.");
-                        promise.fail("failed to publish log into RMQ.");
-                    }
-                });
-        return promise.future();
-    }
+  private Future<JsonObject> getCatItem(JwtData jwtData) {
+    String resourceId = jwtData.getIid().split(":")[1];
+    LOGGER.debug("resourceId :{} ", resourceId);
+    Promise promise = Promise.promise();
 
-    private Boolean isConsentRequired(JwtData jwtData) {
-        String resourceId = jwtData.getIid().split(":")[1];
-        Boolean isRequired = false;
-        JsonObject cons = jwtData.getCons();
-        if (VALIDATION_ID_PATTERN.matcher(resourceId).matches() &&
-                cons.containsKey("artifact") && cons.containsKey("ppbNumber")) {
-            isRequired = true;
+    CacheType cacheType = CacheType.CATALOGUE_CACHE;
+    JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", resourceId);
+    cacheService
+        .get(requestJson)
+        .onSuccess(
+            cacheResult -> {
+              if (cacheResult == null) {
+                promise.fail(
+                    "Info: ID invalid ["
+                        + resourceId
+                        + "]: Empty response in results from Catalogue");
+              } else {
 
-        }
-        return isRequired;
-    }
-
-    private Future<JsonObject> getCatItem(JwtData jwtData) {
-        String resourceId = jwtData.getIid().split(":")[1];
-        LOGGER.debug("resourceId :{} ", resourceId);
-        Promise promise = Promise.promise();
-
-        CacheType cacheType = CacheType.CATALOGUE_CACHE;
-        JsonObject requestJson = new JsonObject().put("type", cacheType).put("key", resourceId);
-        cacheService.get(requestJson)
-                .onSuccess(cacheResult -> {
-                    if (cacheResult == null) {
-                        promise.fail("Info: ID invalid [" + resourceId + "]: Empty response in results from Catalogue");
-                    } else {
-
-                        promise.complete(cacheResult);
-                    }
-                })
-                .onFailure(
-                        failureHandler ->
-                                promise.fail("catalogue_cache call result : [fail] " + failureHandler));
-        return promise.future();
-
-    }
+                promise.complete(cacheResult);
+              }
+            })
+        .onFailure(
+            failureHandler ->
+                promise.fail("catalogue_cache call result : [fail] " + failureHandler));
+    return promise.future();
+  }
 }

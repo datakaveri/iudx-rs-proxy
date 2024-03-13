@@ -1,5 +1,7 @@
 package iudx.rs.proxy.apiserver.handlers;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
+
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -13,20 +15,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
 
 public class ValidationHandler implements Handler<RoutingContext> {
 
-
-  private static final Logger LOGGER = LogManager.getLogger(ValidationHandler.class);
-
   private RequestType requestType;
   private Vertx vertx;
-
 
   public ValidationHandler(Vertx vertx, RequestType apiRequestType) {
     this.vertx = vertx;
@@ -35,21 +28,19 @@ public class ValidationHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext context) {
-    ValidatorsHandlersFactory validationFactory = new ValidatorsHandlersFactory();
-    MultiMap parameters = context.request().params();
-    MultiMap headers = context.request().headers();
-    RequestBody requestBody=context.body();
-    JsonObject body=null;
-    if(requestBody!=null) {
-      if(requestBody.asJsonObject()!=null) {
-        body=requestBody.asJsonObject().copy();
-      }
+    RequestBody requestBody = context.body();
+    JsonObject body = null;
+    if (requestBody != null && requestBody.asJsonObject() != null) {
+      body = requestBody.asJsonObject().copy();
     }
+    MultiMap parameters = context.request().params();
     Map<String, String> pathParams = context.pathParams();
-    parameters.set(HEADER_PUBLIC_KEY,context.request().getHeader(HEADER_PUBLIC_KEY));
+    parameters.set(HEADER_PUBLIC_KEY, context.request().getHeader(HEADER_PUBLIC_KEY));
     parameters.addAll(pathParams);
-    
-    List<Validator> validations = validationFactory.build(vertx,requestType, parameters,headers,body);
+    ValidatorsHandlersFactory validationFactory = new ValidatorsHandlersFactory();
+    MultiMap headers = context.request().headers();
+    List<Validator> validations =
+        validationFactory.build(vertx, requestType, parameters, headers, body);
     for (Validator validator : Optional.ofNullable(validations).orElse(Collections.emptyList())) {
       validator.isValid();
     }

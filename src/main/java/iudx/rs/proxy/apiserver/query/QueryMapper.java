@@ -1,19 +1,18 @@
 package iudx.rs.proxy.apiserver.query;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
+import static iudx.rs.proxy.common.ResponseUrn.*;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
-
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
-import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.ResponseUrn.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * QueryMapper class to convert NGSILD query into json object for the purpose of information
@@ -25,6 +24,7 @@ public class QueryMapper {
   private boolean isTemporal = false;
   private boolean isAttributeSearch = false;
   private boolean isGeoSearch = false;
+
   public JsonObject toJson(NGSILDQueryParams params, boolean isTemporal) {
     return toJson(params, isTemporal, false);
   }
@@ -56,17 +56,19 @@ public class QueryMapper {
       LOGGER.debug("Info : json " + json);
     }
     if (isGeoQuery(params)) {
-      LOGGER.debug("getGeoRel:"+params.getGeoRel().getRelation());
-      LOGGER.debug("getCoordinates:"+params.getCoordinates());
-      LOGGER.debug("getGeometry:"+params.getGeometry());
-      LOGGER.debug("getGeoProperty:"+params.getGeoProperty());
+      LOGGER.debug("getGeoRel:" + params.getGeoRel().getRelation());
+      LOGGER.debug("getCoordinates:" + params.getCoordinates());
+      LOGGER.debug("getGeometry:" + params.getGeometry());
+      LOGGER.debug("getGeoProperty:" + params.getGeoProperty());
 
-      if (params.getGeoRel().getRelation() != null && params.getCoordinates() != null
-              && params.getGeometry() != null && params.getGeoProperty() != null) {
+      if (params.getGeoRel().getRelation() != null
+          && params.getCoordinates() != null
+          && params.getGeometry() != null
+          && params.getGeoProperty() != null) {
         isGeoSearch = true;
         if (params.getGeometry().equalsIgnoreCase(GEOM_POINT)
-                && params.getGeoRel().getRelation().equals(JSON_NEAR)
-                && params.getGeoRel().getMaxDistance() != null) {
+            && params.getGeoRel().getRelation().equals(JSON_NEAR)
+            && params.getGeoRel().getMaxDistance() != null) {
           String[] coords = params.getCoordinates().replaceAll("\\[|\\]", "").split(",");
           geoJson.put(JSON_LAT, Double.parseDouble(coords[0]));
           geoJson.put(JSON_LON, Double.parseDouble(coords[1]));
@@ -74,8 +76,7 @@ public class QueryMapper {
         } else {
           geoJson.put(JSON_GEOMETRY, params.getGeometry());
           geoJson.put(JSON_COORDINATES, params.getCoordinates());
-          geoJson.put(JSON_GEOREL,
-                  getOrDefault(params.getGeoRel().getRelation(), JSON_WITHIN));
+          geoJson.put(JSON_GEOREL, getOrDefault(params.getGeoRel().getRelation(), JSON_WITHIN));
           if (params.getGeoRel().getMaxDistance() != null) {
             geoJson.put(JSON_MAXDISTANCE, params.getGeoRel().getMaxDistance());
           } else if (params.getGeoRel().getMinDistance() != null) {
@@ -84,20 +85,19 @@ public class QueryMapper {
         }
         LOGGER.debug("Info : json " + geoJson);
       } else {
-        throw new DxRuntimeException(BAD_REQUEST.getValue(), INVALID_GEO_PARAM_URN,
-                "incomplete geo-query geoproperty, geometry, georel, coordinates all are mandatory.");
+        throw new DxRuntimeException(
+            BAD_REQUEST.getValue(),
+            INVALID_GEO_PARAM_URN,
+            "incomplete geo-query geoproperty, geometry, georel, coordinates all are mandatory.");
       }
-      json.put(GEO_QUERY,geoJson);
+      json.put(GEO_QUERY, geoJson);
     }
     if (isTemporal
         && params.getTemporalRelation().getTimeRel() != null
         && params.getTemporalRelation().getTime() != null) {
       isTemporal = true;
-      if (params
-              .getTemporalRelation()
-              .getTimeRel()
-              .equalsIgnoreCase(JSON_DURING)
-              || params.getTemporalRelation().getTimeRel().equalsIgnoreCase(JSON_BETWEEN)) {
+      if (params.getTemporalRelation().getTimeRel().equalsIgnoreCase(JSON_DURING)
+          || params.getTemporalRelation().getTimeRel().equalsIgnoreCase(JSON_BETWEEN)) {
         LOGGER.debug("Info : inside during ");
 
         temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
@@ -105,27 +105,27 @@ public class QueryMapper {
         temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
 
         isValidTimeInterval(
-                JSON_DURING,
-                temporal.getString(JSON_TIME),
-                temporal.getString(JSON_ENDTIME),
-                isAsyncQuery);
+            JSON_DURING,
+            temporal.getString(JSON_TIME),
+            temporal.getString(JSON_ENDTIME),
+            isAsyncQuery);
       } else {
         LOGGER.debug("Info : outside during ");
         temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
         temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
       }
       LOGGER.debug("Info : json " + temporal);
-      json.put(TEMPORAL_QUERY,temporal);
+      json.put(TEMPORAL_QUERY, temporal);
     }
 
     if (params.getQ() != null) {
       isAttributeSearch = true;
-      //TODO: disabled this check for ESDS-IPeG deployment
-//      JsonArray query = new JsonArray();
-//      String[] qterms = params.getQ().split(";");
-//      for (String term : qterms) {
-//        query.add(getQueryTerms(term));
-//      }
+      // TODO: disabled this check for ESDS-IPeG deployment
+      //      JsonArray query = new JsonArray();
+      //      String[] qterms = params.getQ().split(";");
+      //      for (String term : qterms) {
+      //        query.add(getQueryTerms(term));
+      //      }
       json.put(JSON_ATTR_QUERY, params.getQ());
     }
     if (params.getGeoProperty() != null) {
@@ -152,14 +152,14 @@ public class QueryMapper {
    */
   // TODO : decide how to enforce for before and after queries.
   private void isValidTimeInterval(
-          String timeRel, String time, String endTime, boolean isAsyncQuery) {
+      String timeRel, String time, String endTime, boolean isAsyncQuery) {
     long totalDaysAllowed = 0;
     if (timeRel.equalsIgnoreCase(JSON_DURING)) {
       if (isNullOrEmpty(time) || isNullOrEmpty(endTime)) {
         throw new DxRuntimeException(
-                BAD_REQUEST.getValue(),
-                INVALID_TEMPORAL_PARAM_URN,
-                "time and endTime both are mandatory for during Query.");
+            BAD_REQUEST.getValue(),
+            INVALID_TEMPORAL_PARAM_URN,
+            "time and endTime both are mandatory for during Query.");
       }
 
       try {
@@ -179,14 +179,17 @@ public class QueryMapper {
 
     }
     if (!isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
-      throw new DxRuntimeException(BAD_REQUEST.getValue(), INVALID_TEMPORAL_PARAM_URN,
-              "time interval greater than 10 days is not allowed");
+      throw new DxRuntimeException(
+          BAD_REQUEST.getValue(),
+          INVALID_TEMPORAL_PARAM_URN,
+          "time interval greater than 10 days is not allowed");
     }
     if (isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC) {
-      throw new DxRuntimeException(BAD_REQUEST.getValue(), INVALID_TEMPORAL_PARAM_URN,
-              "time interval greater than 365 days is not allowed");
+      throw new DxRuntimeException(
+          BAD_REQUEST.getValue(),
+          INVALID_TEMPORAL_PARAM_URN,
+          "time interval greater than 365 days is not allowed");
     }
-
   }
 
   public boolean isNullOrEmpty(String value) {
@@ -197,8 +200,7 @@ public class QueryMapper {
     StringBuilder searchType = new StringBuilder();
     if (isTemporal) {
       searchType.append(JSON_TEMPORAL_SEARCH);
-    }
-    else if(!isTemporal && !isAsyncQuery){
+    } else if (!isTemporal && !isAsyncQuery) {
       searchType.append(JSON_LATEST_SEARCH);
     }
     if (isAttributeSearch) {
@@ -243,14 +245,17 @@ public class QueryMapper {
     }
     return json;
   }
+
   private boolean isGeoQuery(NGSILDQueryParams params) {
-    LOGGER
-            .debug("georel " + params.getGeoRel() + " relation : " + params.getGeoRel().getRelation());
-    return params.getGeoRel().getRelation() != null || params.getCoordinates() != null
-            || params.getGeometry() != null || params.getGeoProperty() != null;
+    LOGGER.debug(
+        "georel " + params.getGeoRel() + " relation : " + params.getGeoRel().getRelation());
+    return params.getGeoRel().getRelation() != null
+        || params.getCoordinates() != null
+        || params.getGeometry() != null
+        || params.getGeoProperty() != null;
   }
+
   private <T> T getOrDefault(T value, T def) {
     return (value == null) ? def : value;
   }
-
 }
