@@ -15,6 +15,7 @@ import json
 import re
 import logging
 import random
+from dateutil import parser as date_parser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 import pika
@@ -251,20 +252,30 @@ def process_request(ch, method, properties, body):
             elif search_type == 'attributeSearch':
                 attribute_query = build_attribute_query(json_object.get('attr-query'))
                 id = json_object.get('id')
+
+                # Read time reference from config
+                start_time = config['time_reference']['start_time']
+                end_time = config['time_reference']['end_time']
+
                 # Add time range query
-                time_range_query = build_temporal_query({"time":"2020-10-12T00:00:00Z","endtime":"2020-10-22T00:00:00Z","timerel":"during"})
+                time_range_query = build_temporal_query({"time": start_time, "endtime": end_time, "timerel": "during"})
                 combined_query = build_combined_query(time_range_query, attribute_query, None, id)
-                pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
+                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
             elif search_type == 'geoSearch':
                 logging.info(json_object.get('geo-query'))
                 geo_query = build_geo_query(json_object)
                 logging.info("geo query is..")
                 logging.info(geo_query)
                 id = json_object.get('id')
+
+                # Read time reference from config
+                start_time = config['time_reference']['start_time']
+                end_time = config['time_reference']['end_time']
+
                 # Add time range query
-                time_range_query = build_temporal_query({"time":"2020-10-12T00:00:00Z","endtime":"2020-10-22T00:00:00Z","timerel":"during"})
+                time_range_query = build_temporal_query({"time": start_time, "endtime": end_time, "timerel": "during"})
                 combined_query = build_combined_query(time_range_query, None, geo_query, id)
-                pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
+                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
             else:
                 logging.error("Unsupported searchType: %s", search_type)
                 return
@@ -300,29 +311,28 @@ def build_during_query(temporal_query_params):
     endtime = temporal_query_params.get('endtime')
     try:
         # Parse the time data with timezone info
-        time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
-        endtime = datetime.strptime(endtime, "%Y-%m-%dT%H:%M:%SZ")
+        time = date_parser.parse(time)
+        endtime = date_parser.parse(endtime)
     except ValueError:
         logging.error("Invalid time format: %s", time)
         return None
-    return Q('range', observationDateTime={'gte': time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': endtime.strftime("%Y-%m-%dT%H:%M:%SZ")})
+    return Q('range', observationDateTime={'gte': time.isoformat(), 'lte': endtime.isoformat()})
 
 def build_before_query(temporal_query_params):
     time = temporal_query_params.get('time')
     # Convert the time string to a datetime object
-    time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+    time = date_parser.parse(time)
     # Subtract 10 days from the specified time
     new_time = time - timedelta(days=10)
-    return Q('range', observationDateTime={'gte': new_time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': time.strftime("%Y-%m-%dT%H:%M:%SZ")})
+    return Q('range', observationDateTime={'gte': new_time.isoformat(), 'lte': time.isoformat()})
 
 def build_after_query(temporal_query_params):
     time = temporal_query_params.get('time')
     # Convert the time string to a datetime object
-    time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+    time = date_parser.parse(time)
     # Add 10 days to the specified time
     new_time = time + timedelta(days=10)
-    return Q('range', observationDateTime={'gte': time.strftime("%Y-%m-%dT%H:%M:%SZ"), 'lte': new_time.strftime("%Y-%m-%dT%H:%M:%SZ")})
-
+    return Q('range', observationDateTime={'gte': time.isoformat(), 'lte': new_time.isoformat()})
 
 #Attribute Query
 def build_single_attribute_query(condition):
