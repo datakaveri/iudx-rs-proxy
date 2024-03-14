@@ -260,7 +260,7 @@ def process_request(ch, method, properties, body):
                 # Add time range query
                 time_range_query = build_temporal_query({"time": start_time, "endtime": end_time, "timerel": "during"})
                 combined_query = build_combined_query(time_range_query, attribute_query, None, id)
-                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+                pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
             elif search_type == 'geoSearch':
                 logging.info(json_object.get('geo-query'))
                 geo_query = build_geo_query(json_object)
@@ -275,7 +275,7 @@ def process_request(ch, method, properties, body):
                 # Add time range query
                 time_range_query = build_temporal_query({"time": start_time, "endtime": end_time, "timerel": "during"})
                 combined_query = build_combined_query(time_range_query, None, geo_query, id)
-                surat_itms_db_search.search_surat_itms_data(json_object, combined_query, rout_key, corr_id, method)
+                pune_flood_db_search.search_pune_flood_data(json_object, combined_query, rout_key, corr_id, method)
             else:
                 logging.error("Unsupported searchType: %s", search_type)
                 return
