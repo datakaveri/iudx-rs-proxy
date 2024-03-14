@@ -14,12 +14,11 @@ public class Constants {
   public static final String ORIGIN = "origin";
   public static final String ORIGIN_SERVER = "rs-server";
   public static final String CONSENT_LOG = "consent-log";
-  public static final String PRIMARY_KEY= "primaryKey";
+  public static final String PRIMARY_KEY = "primaryKey";
   public static final String EXCHANGE_NAME = "auditing";
   public static final String ROUTING_KEY = "#";
   public static final String TOTAL = "total";
   public static final String TABLE_NAME = "tableName";
-
 
   /* configs */
   public static final String DATABASE_IP = "meteringDatabaseIP";
@@ -29,7 +28,6 @@ public class Constants {
   public static final String DATABASE_PASSWORD = "meteringDatabasePassword";
   public static final String DATABASE_TABLE_NAME = "meteringDatabaseTableName";
   public static final String POOL_SIZE = "meteringPoolSize";
-
 
   /* Errors */
   public static final String SUCCESS = "successful operations";
@@ -71,14 +69,14 @@ public class Constants {
   public static final StringBuilder RESPONSE_SIZE_COLUMN = new StringBuilder("size)");
   public static final StringBuilder ID_COLUMN = new StringBuilder("id)");
   public static final String CONSUMERID_TIME_INTERVAL_COUNT_QUERY =
-          "SELECT count(*) FROM $0 where time between '$1' and '$2' and userid='$3'";
+      "SELECT count(*) FROM $0 where time between '$1' and '$2' and userid='$3'";
 
   public static final String PROVIDERID_TIME_INTERVAL_COUNT_QUERY =
-          "SELECT count(*) FROM $0 where time between '$1' and '$2' and providerid='$3'";
+      "SELECT count(*) FROM $0 where time between '$1' and '$2' and providerid='$3'";
 
   public static final String CONSUMERID_TIME_INTERVAL_READ_QUERY =
-          "SELECT * FROM $0 where time between '$1' and '$2' and userid='$3'";
+      "SELECT * FROM $0 where time between '$1' and '$2' and userid='$3'";
 
   public static final String PROVIDERID_TIME_INTERVAL_READ_QUERY =
-          "SELECT * FROM $0 where time between '$1' and '$2' and providerid='$3'";
+      "SELECT * FROM $0 where time between '$1' and '$2' and providerid='$3'";
 }

@@ -12,10 +12,10 @@ import iudx.rs.proxy.authenticator.model.JwtData;
 @VertxGen
 public interface ConsentLoggingService {
 
-    @GenIgnore
-    static ConsentLoggingService createProxy(Vertx vertx, String address) {
-        return new ConsentLoggingServiceVertxEBProxy(vertx, address);
-    }
+  @GenIgnore
+  static ConsentLoggingService createProxy(Vertx vertx, String address) {
+    return new ConsentLoggingServiceVertxEBProxy(vertx, address);
+  }
 
-    Future<JsonObject> log(JsonObject logJson, JwtData jwtData);
+  Future<JsonObject> log(JsonObject logJson, JwtData jwtData);
 }

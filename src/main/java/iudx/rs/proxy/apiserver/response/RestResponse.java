@@ -3,10 +3,7 @@ package iudx.rs.proxy.apiserver.response;
 import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.apiserver.util.ApiServerConstants;
 
-/**
- * create a rest response body for API.
- *
- */
+/** create a rest response body for API. */
 public class RestResponse {
 
   private String type;
@@ -22,7 +19,7 @@ public class RestResponse {
 
   /**
    * convert object to json.
-   * 
+   *
    * @return JsonObject json representation for object
    */
   public JsonObject toJson() {
@@ -42,8 +39,7 @@ public class RestResponse {
     private String title;
     private String message;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     public Builder withType(String type) {
       this.type = type;
@@ -64,5 +60,4 @@ public class RestResponse {
       return new RestResponse(this.type, this.title, this.message);
     }
   }
-
 }

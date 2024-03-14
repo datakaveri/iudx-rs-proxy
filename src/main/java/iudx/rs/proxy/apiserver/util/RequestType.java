@@ -16,7 +16,7 @@ public enum RequestType {
   }
 
 
-  private RequestType(String fileName) {
+  RequestType(String fileName) {
     this.filename = fileName;
   }
 }

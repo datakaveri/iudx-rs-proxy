@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 public class MeteringVerticle extends AbstractVerticle {
 
   private static final Logger LOGGER = LogManager.getLogger(MeteringVerticle.class);
-  private String databaseIP;
+  private String databaseIp;
   private int databasePort;
   private String databaseName;
   private String databaseUserName;
@@ -35,7 +35,7 @@ public class MeteringVerticle extends AbstractVerticle {
   @Override
   public void start() throws Exception {
 
-    databaseIP = config().getString(DATABASE_IP);
+    databaseIp = config().getString(DATABASE_IP);
     databasePort = config().getInteger(DATABASE_PORT);
     databaseName = config().getString(DATABASE_NAME);
     databaseUserName = config().getString(DATABASE_USERNAME);
@@ -44,7 +44,7 @@ public class MeteringVerticle extends AbstractVerticle {
     poolSize = config().getInteger(POOL_SIZE);
     JsonObject propObj = new JsonObject();
     propObj.put(DATABASE_TABLE_NAME, databaseTableName);
-    propObj.put(DATABASE_IP, databaseIP);
+    propObj.put(DATABASE_IP, databaseIp);
     propObj.put(DATABASE_PORT, databasePort);
     propObj.put(DATABASE_NAME, databaseName);
     propObj.put(DATABASE_USERNAME, databaseUserName);

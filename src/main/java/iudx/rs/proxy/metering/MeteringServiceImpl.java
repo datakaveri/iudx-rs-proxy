@@ -1,5 +1,11 @@
 package iudx.rs.proxy.metering;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TABLE_NAME;
+import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
+import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
+import static iudx.rs.proxy.metering.util.Constants.*;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.*;
@@ -7,8 +13,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.Response;
 import iudx.rs.proxy.database.DatabaseService;
@@ -19,15 +23,11 @@ import iudx.rs.proxy.metering.util.ResponseBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TABLE_NAME;
-import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
-import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
-import static iudx.rs.proxy.metering.util.Constants.*;
-
 public class MeteringServiceImpl implements MeteringService {
 
   private static final Logger LOGGER = LogManager.getLogger(MeteringServiceImpl.class);
+  public static DatabrokerService rmqService;
+  public static DatabaseService postgresService;
   public final String _COUNT_COLUMN;
   public final String _RESOURCE_ID_COLUMN;
   public final String _API_COLUMN;
@@ -35,31 +35,28 @@ public class MeteringServiceImpl implements MeteringService {
   public final String _TIME_COLUMN;
   public final String _RESPONSE_SIZE_COLUMN;
   public final String _ID_COLUMN;
-  private final Vertx vertx;
   private final QueryBuilder queryBuilder = new QueryBuilder();
-  private ParamsValidation validation;
-  public static DatabrokerService rmqService;
   private final ObjectMapper objectMapper = new ObjectMapper();
   PgConnectOptions connectOptions;
   PoolOptions poolOptions;
   PgPool pool;
   JsonObject validationCheck = new JsonObject();
   int total;
+  private ParamsValidation validation;
   private JsonObject query = new JsonObject();
-  private String databaseIP;
+  private String databaseIp;
   private int databasePort;
   private String databaseName;
   private String databaseUserName;
   private String databasePassword;
   private int databasePoolSize;
   private String databaseTableName;
-  public static DatabaseService postgresService;
   private ResponseBuilder responseBuilder;
 
   public MeteringServiceImpl(JsonObject propObj, Vertx vertxInstance, Api api) {
 
     if (propObj != null && !propObj.isEmpty()) {
-      databaseIP = propObj.getString(DATABASE_IP);
+      databaseIp = propObj.getString(DATABASE_IP);
       databasePort = propObj.getInteger(DATABASE_PORT);
       databaseName = propObj.getString(DATABASE_NAME);
       databaseUserName = propObj.getString(DATABASE_USERNAME);
@@ -72,7 +69,7 @@ public class MeteringServiceImpl implements MeteringService {
     this.connectOptions =
         new PgConnectOptions()
             .setPort(databasePort)
-            .setHost(databaseIP)
+            .setHost(databaseIp)
             .setDatabase(databaseName)
             .setUser(databaseUserName)
             .setPassword(databasePassword)
@@ -81,11 +78,10 @@ public class MeteringServiceImpl implements MeteringService {
 
     this.poolOptions = new PoolOptions().setMaxSize(databasePoolSize);
     this.pool = PgPool.pool(vertxInstance, connectOptions, poolOptions);
-    this.vertx = vertxInstance;
     this.rmqService = DatabrokerService.createProxy(vertxInstance, DATABROKER_SERVICE_ADDRESS);
-    if (postgresService==null)
-    postgresService = DatabaseService.createProxy(vertxInstance, DB_SERVICE_ADDRESS);
-
+    if (postgresService == null) {
+      postgresService = DatabaseService.createProxy(vertxInstance, DB_SERVICE_ADDRESS);
+    }
     _COUNT_COLUMN =
         COUNT_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
     _RESOURCE_ID_COLUMN =
@@ -106,10 +102,6 @@ public class MeteringServiceImpl implements MeteringService {
   @Override
   public MeteringService executeReadQuery(
       JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
-
-    Promise<JsonObject> promise = Promise.promise();
-    JsonObject response = new JsonObject();
-
     LOGGER.trace("Info: Read Query" + request.toString());
 
     validationCheck = validation.paramsCheck(request);
@@ -135,7 +127,7 @@ public class MeteringServiceImpl implements MeteringService {
   }
 
   private void countQuery(JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
-    query = queryBuilder.buildCountReadQueryFromPG(request);
+    query = queryBuilder.buildCountReadQueryFromPg(request);
     Future<JsonObject> resultCountPg = executeQueryDatabaseOperation(query);
     resultCountPg.onComplete(
         countHandler -> {
@@ -159,7 +151,7 @@ public class MeteringServiceImpl implements MeteringService {
   }
 
   private void countQueryForRead(JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
-    query = queryBuilder.buildCountReadQueryFromPG(request);
+    query = queryBuilder.buildCountReadQueryFromPg(request);
     Future<JsonObject> resultCountPg = executeQueryDatabaseOperation(query);
     resultCountPg.onComplete(
         countHandler -> {
@@ -182,7 +174,8 @@ public class MeteringServiceImpl implements MeteringService {
   }
 
   private void readMethod(JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
-    String limit, offset;
+    String limit;
+    String offset;
     if (request.getString(LIMITPARAM) == null) {
       limit = "2000";
       request.put(LIMITPARAM, limit);
@@ -195,7 +188,7 @@ public class MeteringServiceImpl implements MeteringService {
     } else {
       offset = request.getString(OFFSETPARAM);
     }
-    query = queryBuilder.buildReadQueryFromPG(request);
+    query = queryBuilder.buildReadQueryFromPg(request);
     LOGGER.debug("read query = " + query);
     Future<JsonObject> resultsPg = executeQueryDatabaseOperation(query);
     resultsPg.onComplete(
@@ -218,7 +211,7 @@ public class MeteringServiceImpl implements MeteringService {
   public MeteringService insertMeteringValuesInRMQ(
       JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
 
-    JsonObject writeMessage = queryBuilder.buildMessageForRMQ(request);
+    JsonObject writeMessage = queryBuilder.buildMessageForRmq(request);
 
     rmqService.publishMessage(
         writeMessage,

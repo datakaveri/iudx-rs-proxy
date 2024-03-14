@@ -1,15 +1,7 @@
 package iudx.rs.proxy.database.example.postgres;
 
 import static iudx.rs.proxy.database.example.postgres.Constants.*;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -25,19 +17,26 @@ import io.vertx.sqlclient.SqlResult;
 import iudx.rs.proxy.common.Response;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PostgresServiceImpl implements DatabaseService {
 
+  private static final Logger LOGGER = LogManager.getLogger(PostgresServiceImpl.class);
   private final PgPool pgClient;
-  private boolean exists;
   private Map<String, String> resourceGroup2TableMapping;
   private Map<String, String> iudxQueryOperator2PgMapping;
 
-  private static final Logger LOGGER = LogManager.getLogger(PostgresServiceImpl.class);
-
   public PostgresServiceImpl(Vertx vertx, JsonObject config) {
 
-    String databaseIP = config.getString(DATABASE_IP);
+    String databaseIp = config.getString(DATABASE_IP);
     int databasePort = config.getInteger(DATABASE_PORT);
     String databaseName = config.getString(DATABASE_NAME);
     String databaseUserName = config.getString(DATABASE_USERNAME);
@@ -47,7 +46,7 @@ public class PostgresServiceImpl implements DatabaseService {
     PgConnectOptions connectOptions =
         new PgConnectOptions()
             .setPort(databasePort)
-            .setHost(databaseIP)
+            .setHost(databaseIp)
             .setDatabase(databaseName)
             .setUser(databaseUserName)
             .setPassword(databasePassword);
@@ -163,7 +162,7 @@ public class PostgresServiceImpl implements DatabaseService {
     String searchType = request.getString(SEARCH_TYPE);
     String id = request.getJsonArray(ID).getString(0);
     String resourceGroup = getResourceGroup(id);
-    String tableID = resourceGroup2TableMapping.get(resourceGroup);
+    String tableId = resourceGroup2TableMapping.get(resourceGroup);
 
     String[] attrs = null;
 
@@ -171,7 +170,7 @@ public class PostgresServiceImpl implements DatabaseService {
       attrs = request.getJsonArray(ATTRS).stream().toArray(String[]::new);
     }
 
-    String selection = PSQL_SELECT_QUERY.replace("$$", tableID).replace("$2", id);
+    String selection = PSQL_SELECT_QUERY.replace("$$", tableId).replace("$2", id);
 
     if (attrs == null || attrs.length == 0) {
       if (isCount) {
@@ -199,7 +198,8 @@ public class PostgresServiceImpl implements DatabaseService {
 
   private StringBuilder temporalQueryBuilder(JsonObject request, StringBuilder query) {
     String timerel = request.getString(TIME_REL);
-    ZonedDateTime time, endTime;
+    ZonedDateTime time;
+    ZonedDateTime endTime;
     time = ZonedDateTime.parse(request.getString(TIME));
 
     if (timerel.equalsIgnoreCase(BEFORE)) {
@@ -287,6 +287,6 @@ public class PostgresServiceImpl implements DatabaseService {
 
   private String getResourceGroup(String id) {
     /*return id.substring(0, id.lastIndexOf('/'));*/
-    return  id;
+    return id;
   }
 }

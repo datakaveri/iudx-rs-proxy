@@ -1,5 +1,9 @@
 package iudx.rs.proxy.apiserver.validation;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
+import static iudx.rs.proxy.common.ResponseUrn.SCHEMA_READ_ERROR_URN;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import io.vertx.core.MultiMap;
@@ -12,7 +16,7 @@ import io.vertx.json.schema.SchemaRouterOptions;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.apiserver.validation.types.*;
-
+import iudx.rs.proxy.common.HttpStatusCode;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,25 +24,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import iudx.rs.proxy.common.HttpStatusCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
-import static iudx.rs.proxy.common.ResponseUrn.SCHEMA_READ_ERROR_URN;
 
 public class ValidatorsHandlersFactory {
 
   private static final Logger LOGGER = LogManager.getLogger(ValidatorsHandlersFactory.class);
+  private static Map<String, String> jsonSchemaMap = new HashMap<>();
 
   public List<Validator> build(
-          final Vertx vertx,
-          final RequestType requestType,
-          final MultiMap parameters,
-          final MultiMap headers,
-          final JsonObject body) {
+      final Vertx vertx,
+      final RequestType requestType,
+      final MultiMap parameters,
+      final MultiMap headers,
+      final JsonObject body) {
     LOGGER.debug("getValidation4Context() started for :" + requestType);
     LOGGER.debug("type :" + requestType);
     List<Validator> validator = null;
@@ -60,7 +59,7 @@ public class ValidatorsHandlersFactory {
         validator = getAsyncRequestValidations(parameters);
         break;
       case ASYNC_STATUS:
-       validator = getAsyncStatusRequestValidator(parameters);
+        validator = getAsyncStatusRequestValidator(parameters);
         break;
       default:
         break;
@@ -68,7 +67,6 @@ public class ValidatorsHandlersFactory {
 
     return validator;
   }
-
 
   private List<Validator> getEntityRequestValidations(final MultiMap parameters) {
     List<Validator> validators = new ArrayList<>();
@@ -88,15 +86,13 @@ public class ValidatorsHandlersFactory {
     validators.add(new PaginationLimitTypeValidator(parameters.get(NGSILDQUERY_SIZE), false));
     validators.add(new PaginationOffsetTypeValidator(parameters.get(NGSILDQUERY_FROM), false));
 
-    //optional header public key
-    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY),false));
+    // optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
 
     return validators;
-
   }
 
-  private List<Validator> getTemporalRequestValidations(
-      final MultiMap parameters) {
+  private List<Validator> getTemporalRequestValidations(final MultiMap parameters) {
 
     List<Validator> validators = new ArrayList<>();
 
@@ -114,15 +110,14 @@ public class ValidatorsHandlersFactory {
     validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_TIME), true));
     validators.add(new DateTypeValidator(parameters.get(NGSILDQUERY_ENDTIME), false));
 
-    //optional header public key
-    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY),false));
+    // optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
 
     return validators;
   }
 
-  private static Map<String, String> jsonSchemaMap = new HashMap<>();
-  private List<Validator> getRequestSchemaValidator(Vertx vertx, JsonObject body,
-                                                    RequestType requestType) {
+  private List<Validator> getRequestSchemaValidator(
+      Vertx vertx, JsonObject body, RequestType requestType) {
     List<Validator> validators = new ArrayList<>();
     SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
@@ -139,13 +134,13 @@ public class ValidatorsHandlersFactory {
 
     return validators;
   }
+
   private String loadJson(String filename) {
     String jsonStr = null;
     if (jsonSchemaMap.containsKey(filename)) {
       jsonStr = jsonSchemaMap.get(filename);
     } else {
-      try (InputStream inputStream =
-                   getClass().getClassLoader().getResourceAsStream(filename)) {
+      try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filename)) {
         jsonStr = CharStreams.toString(new InputStreamReader(inputStream, Charsets.UTF_8));
         jsonSchemaMap.put(filename, jsonStr);
       } catch (IOException e) {
@@ -156,8 +151,12 @@ public class ValidatorsHandlersFactory {
     return jsonStr;
   }
 
-  private List<Validator> getPostTemporalValidations(Vertx vertx, final MultiMap parameters,
-                                                     final MultiMap headers, final JsonObject body, final RequestType requestType) {
+  private List<Validator> getPostTemporalValidations(
+      Vertx vertx,
+      final MultiMap parameters,
+      final MultiMap headers,
+      final JsonObject body,
+      final RequestType requestType) {
 
     List<Validator> validators = new ArrayList<>();
     // pagination optional fields
@@ -168,8 +167,13 @@ public class ValidatorsHandlersFactory {
 
     return validators;
   }
-  private List<Validator> getPostEntitiesValidations(Vertx vertx, final MultiMap parameters,
-                                                     final MultiMap headers, final JsonObject body, final RequestType requestType) {
+
+  private List<Validator> getPostEntitiesValidations(
+      Vertx vertx,
+      final MultiMap parameters,
+      final MultiMap headers,
+      final JsonObject body,
+      final RequestType requestType) {
 
     List<Validator> validators = new ArrayList<>();
     // pagination optional fields
@@ -180,6 +184,7 @@ public class ValidatorsHandlersFactory {
 
     return validators;
   }
+
   private List<Validator> getAsyncRequestValidations(final MultiMap parameters) {
 
     List<Validator> validators = new ArrayList<>();
@@ -202,19 +207,20 @@ public class ValidatorsHandlersFactory {
     // optional header public key
     validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
     validators.add(
-            new ElasticSearchFileResponseTypeValidator(
-                    parameters.get(HEADER_RESPONSE_FILE_FORMAT), false));
+        new ElasticSearchFileResponseTypeValidator(
+            parameters.get(HEADER_RESPONSE_FILE_FORMAT), false));
 
     return validators;
   }
+
   private List<Validator> getAsyncStatusRequestValidator(final MultiMap parameters) {
     List<Validator> validators = new ArrayList<>();
-    validators.add(new StringTypeValidator(parameters.get("searchId"), true, VALIDATION_ID_PATTERN));
+    validators.add(
+        new StringTypeValidator(parameters.get("searchId"), true, VALIDATION_ID_PATTERN));
 
     // optional header public key
     validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
 
     return validators;
   }
-
 }
