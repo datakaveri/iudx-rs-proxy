@@ -504,7 +504,7 @@ public class AsyncRestApi {
                 request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
                 request.put(PROVIDER_ID, providerId);
 
-                meteringService.insertMeteringValuesInRMQ(
+                meteringService.publishMeteringData(
                     request,
                     handler -> {
                       if (handler.succeeded()) {

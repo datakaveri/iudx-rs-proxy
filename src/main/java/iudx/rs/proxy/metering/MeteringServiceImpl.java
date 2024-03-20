@@ -208,7 +208,7 @@ public class MeteringServiceImpl implements MeteringService {
   }
 
   @Override
-  public MeteringService insertMeteringValuesInRMQ(
+  public MeteringService publishMeteringData(
       JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
 
     JsonObject writeMessage = queryBuilder.buildMessageForRmq(request);

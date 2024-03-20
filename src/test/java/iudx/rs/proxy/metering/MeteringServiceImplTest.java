@@ -16,21 +16,16 @@ import static iudx.rs.proxy.metering.util.Constants.ENDPOINT;
 import static iudx.rs.proxy.metering.util.Constants.END_TIME;
 import static iudx.rs.proxy.metering.util.Constants.ID;
 import static iudx.rs.proxy.metering.util.Constants.IID;
-import static iudx.rs.proxy.metering.util.Constants.INVALID_DATE_DIFFERENCE;
 import static iudx.rs.proxy.metering.util.Constants.INVALID_DATE_TIME;
-import static iudx.rs.proxy.metering.util.Constants.INVALID_PROVIDER_ID;
-import static iudx.rs.proxy.metering.util.Constants.INVALID_PROVIDER_REQUIRED;
 import static iudx.rs.proxy.metering.util.Constants.POOL_SIZE;
 import static iudx.rs.proxy.metering.util.Constants.PROVIDER_ID;
 import static iudx.rs.proxy.metering.util.Constants.RESOURCE_ID;
-import static iudx.rs.proxy.metering.util.Constants.RESPONSE_LIMIT_EXCEED;
 import static iudx.rs.proxy.metering.util.Constants.RESPONSE_SIZE;
 import static iudx.rs.proxy.metering.util.Constants.START_TIME;
 import static iudx.rs.proxy.metering.util.Constants.SUCCESS;
 import static iudx.rs.proxy.metering.util.Constants.TIME_NOT_FOUND;
 import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION;
 import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION_NOT_FOUND;
-import static iudx.rs.proxy.metering.util.Constants.TITLE;
 import static iudx.rs.proxy.metering.util.Constants.USERID_NOT_FOUND;
 import static iudx.rs.proxy.metering.util.Constants.USER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +53,6 @@ import iudx.rs.proxy.databroker.DatabrokerService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,8 +60,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-
-import javax.xml.crypto.Data;
 
 @ExtendWith({VertxExtension.class, MockitoExtension.class})
 class MeteringServiceImplTest {
@@ -471,7 +463,7 @@ class MeteringServiceImplTest {
             }
         }).when(MeteringServiceImpl.rmqService).publishMessage(any(),anyString(),anyString(),any());
 
-        meteringService.insertMeteringValuesInRMQ(
+        meteringService.publishMeteringData(
                 request,handler->{
                     if (handler.succeeded()){
                         vertxTestContext.completeNow();
@@ -498,7 +490,7 @@ class MeteringServiceImplTest {
         RabbitMQClient rabbitMQClient = mock(RabbitMQClient.class);
         AsyncResult<JsonObject> asyncResult =mock(AsyncResult.class);
 
-        meteringService.insertMeteringValuesInRMQ(
+        meteringService.publishMeteringData(
                 request,handler->{
                     if (handler.failed()){
                         vertxTestContext.completeNow();

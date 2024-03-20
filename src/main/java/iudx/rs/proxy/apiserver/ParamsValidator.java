@@ -1,8 +1,10 @@
 package iudx.rs.proxy.apiserver;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.Util.toList;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_GEO_VALUE_URN;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
@@ -18,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -168,36 +171,33 @@ public class ParamsValidator {
 
   private Future<Boolean> isValidQueryWithFilters(MultiMap paramsMap) {
     Promise<Boolean> promise = Promise.promise();
-    CacheType cacheType = CacheType.CATALOGUE_CACHE;
-    JsonObject cacheRequest =
-        new JsonObject().put("type", cacheType).put("key", paramsMap.get("id"));
-    Future<JsonObject> filtersFuture = cacheService.get(cacheRequest);
-    filtersFuture.onComplete(
-        handler -> {
-          if (handler.succeeded()) {
-            JsonObject catItemJson = filtersFuture.result();
-            LOGGER.debug("for filters:: " + catItemJson);
-            List<String> filters =
-                new ArrayList<>(
-                    catItemJson.getJsonArray("iudxResourceAPIs", new JsonArray()).getList());
-            if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
-              promise.fail("Temporal parameters are not supported by RS group/Item.");
-              return;
-            }
-            if (isAttributeQuery(paramsMap) && !filters.contains("ATTR")) {
-              promise.fail("Attribute parameters are not supported by RS group/Item.");
-              return;
-            }
-            if (isSpatialQuery(paramsMap) && !filters.contains("SPATIAL")) {
-              promise.fail("Spatial parameters are not supported by RS group/Item.");
-              return;
-            }
+    Future<List<String>> filtersFuture = getApplicableFilters(paramsMap.get("id"));
 
-            promise.complete(true);
-          } else {
-            promise.fail("fail to get filters for validation");
-          }
-        });
+    filtersFuture
+        .onSuccess(
+            filters -> {
+              LOGGER.debug("Filters: " + filters);
+
+              if (isTemporalQuery(paramsMap) && !filters.contains("TEMPORAL")) {
+                promise.fail("Temporal parameters are not supported by RS group/Item.");
+                return;
+              }
+              if (isAttributeQuery(paramsMap) && !filters.contains("ATTR")) {
+                promise.fail("Attribute parameters are not supported by RS group/Item.");
+                return;
+              }
+              if (isSpatialQuery(paramsMap) && !filters.contains("SPATIAL")) {
+                promise.fail("Spatial parameters are not supported by RS group/Item.");
+                return;
+              }
+
+              promise.complete(true);
+            })
+        .onFailure(
+            error -> {
+              promise.fail("Failed to get filters for validation: " + error.getMessage());
+            });
+
     return promise.future();
   }
 
@@ -243,5 +243,61 @@ public class ParamsValidator {
           INVALID_GEO_VALUE_URN,
           INVALID_GEO_VALUE_URN.getMessage());
     }
+  }
+
+  public Future<List<String>> getApplicableFilters(String id) {
+    Promise<List<String>> promise = Promise.promise();
+    JsonObject cacheRequests = new JsonObject();
+    cacheRequests.put("type", CacheType.CATALOGUE_CACHE);
+    cacheRequests.put("key", id);
+    Future<JsonObject> groupIdFuture = cacheService.get(cacheRequests);
+    groupIdFuture.onComplete(
+        grpId -> {
+          if (grpId.succeeded()) {
+            Set<String> type = new HashSet<String>(grpId.result().getJsonArray("type").getList());
+            Set<String> itemTypeSet =
+                type.stream().map(e -> e.split(":")[1]).collect(Collectors.toSet());
+            itemTypeSet.retainAll(ITEM_TYPES);
+
+            String groupId;
+            if (!itemTypeSet.contains("Resource")) {
+              groupId = id;
+            } else {
+              groupId = grpId.result().getString("resourceGroup");
+            }
+
+            LOGGER.debug("groupId = " + groupId);
+            JsonObject cacheRequest = new JsonObject();
+            cacheRequest.put("type", CacheType.CATALOGUE_CACHE);
+            cacheRequest.put("key", groupId);
+            Future<JsonObject> groupFilter = cacheService.get(cacheRequest);
+            JsonObject itemCacheRequest = cacheRequest.copy();
+            itemCacheRequest.put("key", id);
+            Future<JsonObject> itemFilters = cacheService.get(itemCacheRequest);
+            List<String> filters = new ArrayList<String>();
+            CompositeFuture.all(List.of(groupFilter, itemFilters))
+                .onComplete(
+                    ar -> {
+                      if (ar.failed()) {
+                        promise.fail("no filters available for : " + id);
+                        return;
+                      }
+                      if (groupFilter.result().containsKey("iudxResourceAPIs")) {
+                        filters.addAll(
+                            toList(groupFilter.result().getJsonArray("iudxResourceAPIs")));
+                        promise.complete(filters);
+                      }
+
+                      if (itemFilters.result().containsKey("iudxResourceAPIs")) {
+                        filters.addAll(
+                            toList(itemFilters.result().getJsonArray("iudxResourceAPIs")));
+                        promise.complete(filters);
+                      }
+                    });
+          } else {
+            LOGGER.debug("Failed : " + grpId.cause().getMessage());
+          }
+        });
+    return promise.future();
   }
 }
