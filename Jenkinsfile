@@ -38,7 +38,7 @@ pipeline {
       post{
       always {
         xunit (
-          thresholds: [ skipped(failureThreshold: '1'), failed(failureThreshold: '0') ],
+          thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
           tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
         )
         jacoco classPattern: 'target/classes', exclusionPattern: 'iudx/rs/proxy/apiserver/ApiServerVerticle.class,iudx/rs/proxy/database/example/postgres/PostgresServiceImpl.class,**/*VertxEBProxy.class,**/Constants.class,**/*Verticle.class,iudx/rs/proxy/apiserver/*.class,iudx/rs/proxy/deploy/*.class,**/*AuthenticationService.class,**/*MeteringService.class,**/*CacheService.class,**/*Method.class,**/*DatabaseService.class,**/*ApiServerConstants.class,**/*CacheServiceVertxProxyHandler.class,**/*MeteringServiceVertxProxyHandler.class,**/*AuthenticationServiceVertxProxyHandler.class,**/ConsentLoggingServiceVertxProxyHandler.class,**/database/**,**/databroker/**,**/JwtDataConverter.class,**/PayloadSigningManager.class', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java'
@@ -101,10 +101,10 @@ pipeline {
       post{
         always{
           node('built-in') {
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: '/var/lib/jenkins/iudx/rs-proxy/Newman/report/', reportFiles: 'report.html', reportTitles: '', reportName: 'Integration Test Report'])
             script{
               archiveZap failHighAlerts: 1, failMediumAlerts: 1, failLowAlerts: 1
-            }  
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: '/var/lib/jenkins/iudx/rs-proxy/Newman/report/', reportFiles: 'report.html', reportTitles: '', reportName: 'Integration Test Report'])
+            } 
           }
         }
         failure{
