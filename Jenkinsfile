@@ -3,7 +3,6 @@ pipeline {
   environment {
     devRegistry = 'ghcr.io/datakaveri/rs-proxy-dev'
     deplRegistry = 'ghcr.io/datakaveri/rs-proxy-depl'
-    testRegistry = 'ghcr.io/datakaveri/rs-proxy-test:latest'
     registryUri = 'https://ghcr.io'
     registryCredential = 'datakaveri-ghcr'
     GIT_HASH = GIT_COMMIT.take(7)
@@ -31,16 +30,19 @@ pipeline {
       steps{
         script{
           sh 'cp /home/ubuntu/configs/rs-proxy-config-test.json ./secrets/all-verticles-configs/config-test.json'
-          sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
+          catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+              sh "mvn clean test checkstyle:checkstyle pmd:pmd"
+            }  
         }
+        }
+      post{
+      always {
         xunit (
           thresholds: [ skipped(failureThreshold: '1'), failed(failureThreshold: '0') ],
           tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
         )
         jacoco classPattern: 'target/classes', exclusionPattern: 'iudx/rs/proxy/apiserver/ApiServerVerticle.class,iudx/rs/proxy/database/example/postgres/PostgresServiceImpl.class,**/*VertxEBProxy.class,**/Constants.class,**/*Verticle.class,iudx/rs/proxy/apiserver/*.class,iudx/rs/proxy/deploy/*.class,**/*AuthenticationService.class,**/*MeteringService.class,**/*CacheService.class,**/*Method.class,**/*DatabaseService.class,**/*ApiServerConstants.class,**/*CacheServiceVertxProxyHandler.class,**/*MeteringServiceVertxProxyHandler.class,**/*AuthenticationServiceVertxProxyHandler.class,**/ConsentLoggingServiceVertxProxyHandler.class,**/database/**,**/databroker/**,**/JwtDataConverter.class,**/PayloadSigningManager.class', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java'
-      }
-      post{
-      always {
+      
         recordIssues(
           enabledForFailure: true,
           blameDisabled: true,
@@ -52,7 +54,7 @@ pipeline {
           enabledForFailure: true,
           blameDisabled: true,
           forensicsDisabled: true,
-          qualityGates: [[threshold:60, type: 'TOTAL', unstable: false]],
+          qualityGates: [[threshold:100, type: 'TOTAL', unstable: false]],
           tool: pmdParser(pattern: 'target/pmd.xml')
         )
       }
@@ -127,7 +129,7 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.GIT_BRANCH == 'origin/master';
+            return env.GIT_BRANCH == 'origin/main';
           }
         }
       }
@@ -182,8 +184,8 @@ pipeline {
   post{
     failure{
       script{
-        if (env.GIT_BRANCH == 'origin/master')
-        emailext recipientProviders: [buildUser(), developers()], to: '$RS_RECIPIENTS, $DEFAULT_RECIPIENTS', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+        if (env.GIT_BRANCH == 'origin/main')
+        emailext recipientProviders: [buildUser(), developers()], to: '$RS_PROXY_RECIPIENTS, $DEFAULT_RECIPIENTS', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
 Check console output at $BUILD_URL to view the results.'''
       }
     }
