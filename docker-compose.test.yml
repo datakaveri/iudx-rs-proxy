@@ -1,0 +1,40 @@
+version: '3.7'
+
+networks:
+  rs-proxy-net:
+    driver: bridge
+
+services:
+  integTest:
+    image: ghcr.io/datakaveri/rs-proxy-depl:latest
+    env_file:
+      - /home/ubuntu/configs/.rs-proxy.env
+    volumes:
+      - /home/ubuntu/configs/rs-proxy-config-dev.json:/usr/share/app/configs/config.json
+      - /home/ubuntu/configs/keystore-rs-proxy.jks:/usr/share/app/configs/keystore.jks
+      - type: volume
+        source: rs-proxy-volume
+        target: /usr/share/app/storage/temp-dir
+    depends_on:
+      - "zookeeper"
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    networks:
+      - rs-proxy-net
+    logging:
+         driver: "json-file"
+         options:
+             max-file: "5"
+             max-size: "100m"
+    command: bash -c "exec java $$RS_JAVA_OPTS  -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.Log4j2LogDelegateFactory -jar ./fatjar.jar  --host $$(hostname) -c configs/config.json"
+
+  zookeeper:
+    image: zookeeper:latest
+    expose: 
+      - "2181"
+    networks:
+      - rs-proxy-net
+
+volumes:
+  rs-proxy-volume:
