@@ -1,3 +1,7 @@
+![Jenkins Build](https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins.iudx.io%2Fview%2Fiudx-master%2Fjob%2FIUDX%2520RS-Proxy%2520(master)%2520pipeline%2F&label=Build)
+![Jenkins Tests](https://img.shields.io/jenkins/tests?jobUrl=https%3A%2F%2Fjenkins.iudx.io%2Fview%2Fiudx-master%2Fjob%2FIUDX%2520RS-Proxy%2520(master)%2520pipeline%2F&label=Unit%20Test)
+![Jenkins Coverage](https://img.shields.io/jenkins/coverage/jacoco?jobUrl=https%3A%2F%2Fjenkins.iudx.io%2Fview%2Fiudx-master%2Fjob%2FIUDX%2520RS-Proxy%2520(master)%2520pipeline%2F&label=Coverage)
+![Jenkins Build](https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins.iudx.io%2Fview%2Fiudx-master%2Fjob%2FIUDX%2520RS-Proxy%2520(master)%2520pipeline%2F&label=Integration%20Tests&link=https%3A%2F%2Fjenkins.iudx.io%2Fview%2Fiudx-master%2Fjob%2FIUDX%2520RS-Proxy%2520(master)%2520pipeline%2F1%2FIntegration_20Test_20Report%2F)
 
 
 ![IUDX](./docs/iudx.png)
