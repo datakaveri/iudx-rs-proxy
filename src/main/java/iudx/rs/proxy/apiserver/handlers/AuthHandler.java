@@ -289,7 +289,7 @@ public class AuthHandler implements Handler<RoutingContext> {
           .onSuccess(auditLogHandler -> promise.complete())
           .onFailure(
               auditLogFailure -> {
-                LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                LOGGER.warn("failed info: {}", auditLogFailure.getMessage());
                 promise.fail(auditLogFailure);
               });
     }
