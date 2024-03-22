@@ -33,6 +33,7 @@ public class TokenDecodeHandler implements Handler<RoutingContext> {
     LOGGER.trace("tokenDecoderHandler started");
     request = context.request();
     String token = request.headers().get(HEADER_TOKEN);
+    LOGGER.error("token: "+token);
     authenticationServiceDecoder.decodeJwt(
         token,
         decodeHandler -> {
