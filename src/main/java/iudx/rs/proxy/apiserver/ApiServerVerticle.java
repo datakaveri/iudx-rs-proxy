@@ -9,6 +9,7 @@ import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
+import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -320,6 +321,9 @@ public class ApiServerVerticle extends AbstractVerticle {
             }
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildQuery, false);
+            if(json.containsKey(ERROR)){
+              return;
+            }
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject requestJson =
                 new JsonObject()
@@ -378,6 +382,10 @@ public class ApiServerVerticle extends AbstractVerticle {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true);
+            if(json.containsKey(ERROR)){
+              LOGGER.error(json);
+              return;
+            }
 
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject requestJson =
@@ -694,6 +702,9 @@ public class ApiServerVerticle extends AbstractVerticle {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
+            if(json.containsKey(ERROR)){
+              return;
+            }
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject cacheRequest =
                 new JsonObject()

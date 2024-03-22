@@ -9,6 +9,7 @@ import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
+import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -178,6 +179,9 @@ public class AsyncRestApi {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true, true);
+            if(json.containsKey(ERROR)){
+              return;
+            }
             json.put(JSON_INSTANCEID, instanceId);
             LOGGER.debug("Info: IUDX json query;" + json);
             JsonObject requestBody = new JsonObject();

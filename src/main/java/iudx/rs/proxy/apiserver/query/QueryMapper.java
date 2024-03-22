@@ -3,6 +3,7 @@ package iudx.rs.proxy.apiserver.query;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.*;
+import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -91,6 +92,7 @@ public class QueryMapper {
         }
         LOGGER.debug("Info : json " + geoJson);
       } else {
+        json.put(ERROR,INVALID_GEO_PARAM_URN);
         DxRuntimeException ex =
             new DxRuntimeException(
                 BAD_REQUEST.getValue(),
@@ -112,11 +114,14 @@ public class QueryMapper {
         temporal.put(JSON_ENDTIME, params.getTemporalRelation().getEndTime());
         temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
 
-        isValidTimeInterval(
+        if (!isValidTimeInterval(
             JSON_DURING,
             temporal.getString(JSON_TIME),
             temporal.getString(JSON_ENDTIME),
-            isAsyncQuery);
+            isAsyncQuery)) {
+          json.put(ERROR, "BAD_REQUEST");
+        }
+
       } else {
         LOGGER.debug("Info : outside during ");
         temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
@@ -159,11 +164,13 @@ public class QueryMapper {
    * check for a valid days interval for temporal queries
    */
   // TODO : decide how to enforce for before and after queries.
-  private void isValidTimeInterval(
+  private boolean isValidTimeInterval(
       String timeRel, String time, String endTime, boolean isAsyncQuery) {
+    boolean isValid = true;
     long totalDaysAllowed = 0;
     if (timeRel.equalsIgnoreCase(JSON_DURING)) {
       if (isNullOrEmpty(time) || isNullOrEmpty(endTime)) {
+        isValid = false;
         DxRuntimeException ex =
             new DxRuntimeException(
                 BAD_REQUEST.getValue(),
@@ -178,6 +185,7 @@ public class QueryMapper {
         Duration duration = Duration.between(start, end);
         totalDaysAllowed = duration.toDays();
       } catch (Exception e) {
+        isValid = false;
         DxRuntimeException ex =
             new DxRuntimeException(
                 BAD_REQUEST.getValue(),
@@ -191,6 +199,7 @@ public class QueryMapper {
 
     }
     if (!isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+      isValid = false;
       DxRuntimeException ex =
           new DxRuntimeException(
               BAD_REQUEST.getValue(),
@@ -199,13 +208,16 @@ public class QueryMapper {
       this.context.fail(400, ex);
     }
     if (isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC) {
+      isValid = false;
       DxRuntimeException ex =
           new DxRuntimeException(
               BAD_REQUEST.getValue(),
               INVALID_TEMPORAL_PARAM_URN,
               "time interval greater than 365 days is not allowed");
       context.fail(400, ex);
+
     }
+    return isValid;
   }
 
   public boolean isNullOrEmpty(String value) {
