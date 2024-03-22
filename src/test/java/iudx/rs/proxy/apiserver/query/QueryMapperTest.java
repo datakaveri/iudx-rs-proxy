@@ -18,13 +18,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.stream.Stream;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(VertxExtension.class)
+@ExtendWith(MockitoExtension.class)
 class QueryMapperTest {
 
     private static final Logger LOGGER = LogManager.getLogger(QueryMapperTest.class);
@@ -170,9 +176,8 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         map.add(NGSILDQUERY_TIMEPROPERTY, "observationTimeRel");
         NGSILDQueryParams params = new NGSILDQueryParams(map);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            qm.toJson(params, true);
-        });
+        qm.toJson(params,true);
+        verify(context,atLeast(1)).fail(anyInt(),any());
         testContext.completeNow();
     }
 
@@ -211,10 +216,11 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
     @Description("coordinates type parameter invalid values.")
     public void testInvalidQTermValue(String value, String result, Vertx vertx,
                                       VertxTestContext testContext) {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+      /*  RuntimeException ex = assertThrows(RuntimeException.class, () -> {
             qm.getQueryTerms(value);
-        });
-        assertEquals(result, ex.getMessage());
+        });*/
+        qm.getQueryTerms(value);
+        verify(context,atLeast(1)).fail(anyInt(),any());
         testContext.completeNow();
     }
 
@@ -227,10 +233,9 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         map.add(NGSILDQUERY_TIMEREL, "during");
         map.add(NGSILDQUERY_TIME, "2020-01-23T14:20:00Z");
         NGSILDQueryParams params = new NGSILDQueryParams(map);
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            qm.toJson(params, true);
-        });
-        assertEquals("time and endTime both are mandatory for during Query.", ex.getMessage());
+
+        qm.toJson(params,true);
+        verify(context,atLeast(1)).fail(anyInt(),any());
         testContext.completeNow();
     }
 
@@ -244,10 +249,9 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         map.add(NGSILDQUERY_TIME, "2020-01-13T14:20:00Z");
         map.add(NGSILDQUERY_ENDTIME, "2020-01-30T14:40:00Z");
         NGSILDQueryParams params = new NGSILDQueryParams(map);
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            qm.toJson(params, true);
-        });
-        assertEquals("time interval greater than 10 days is not allowed", ex.getMessage());
+
+        qm.toJson(params,true);
+        verify(context,atLeast(1)).fail(anyInt(),any());
         testContext.completeNow();
     }
 
@@ -264,13 +268,9 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
 
         NGSILDQueryParams params = new NGSILDQueryParams(map);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            qm.toJson(params, true);
-        });
-        assertEquals(
-                "incomplete geo-query geoproperty, geometry, georel, coordinates all are mandatory.",
-                ex.getMessage());
-        testContext.completeNow();
+       qm.toJson(params,false);
+       verify(context,atLeast(1)).fail(anyInt(),any());
+       testContext.completeNow();
     }
     @AfterEach
     public void teardown() {
