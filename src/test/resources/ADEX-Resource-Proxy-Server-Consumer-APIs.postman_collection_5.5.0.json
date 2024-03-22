@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "a4127943-5452-4aea-a843-701ffd05d29b",
-		"name": "TEST-SERVER-ADEXX-RS-PROXY-APIs",
+		"name": "TEST-SERVER-ADEXX-RS-PROXY-APIs Final NEW",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -9,7 +9,7 @@
 			"name": "Get Tokens",
 			"item": [
 				{
-					"name": "Get Open Resource Token",
+					"name": "Get Personal Resource Token",
 					"event": [
 						{
 							"listen": "test",
@@ -60,7 +60,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Secure Resource Token",
+					"name": "Get Personal Resource Token(surat)",
 					"event": [
 						{
 							"listen": "test",
@@ -105,88 +105,6 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"itemId\": \"83c2e5c2-3574-4e11-9530-2b1fbdfce832\", \n  \"itemType\": \"resource\",\n  \"role\": \"consumer\",\n  \"context\": {\n        \"ppbNumber\": \"{{ppbNumber}}\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{auth-url}}/{{dxAuthBasePath}}/token",
-							"protocol": "https",
-							"host": [
-								"{{auth-url}}"
-							],
-							"path": [
-								"{{dxAuthBasePath}}",
-								"token"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Delegate Token Resource Level",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"//const responseJson=pm.response.json();",
-									"//postman.setEnvironmentVariable(\"delegateToken\", responseJson.results.accessToken);",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "oauth2",
-							"oauth2": [
-								{
-									"key": "grant_type",
-									"value": "authorization_code_with_pkce",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "queryParams",
-									"type": "string"
-								},
-								{
-									"key": "challengeAlgorithm",
-									"value": "S256",
-									"type": "string"
-								},
-								{
-									"key": "client_authentication",
-									"value": "header",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "clientId",
-								"value": "{{clientID}}",
-								"type": "default"
-							},
-							{
-								"key": "clientSecret",
-								"value": "{{clientSecret}}",
-								"type": "default"
-							},
-							{
-								"key": "delegationId",
-								"value": "{{delegationId}}",
-								"type": "default"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"itemId\": \"83c2e5c2-3574-4e11-9530-2b1fbdfce832\",\n  \"itemType\": \"resource\",\n  \"role\": \"delegate\",\n   \"context\": {\n        \"ppbNumber\": \"{{ppbNumber}}\"\n    }\n\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -328,7 +246,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							},
 							{
@@ -407,7 +325,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -481,7 +399,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -627,7 +545,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -699,7 +617,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -772,7 +690,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -847,7 +765,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -993,7 +911,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1064,7 +982,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -1137,7 +1055,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1212,7 +1130,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1358,7 +1276,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1430,7 +1348,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1504,7 +1422,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1579,7 +1497,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1725,7 +1643,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -1908,7 +1826,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							},
 							{
@@ -1991,7 +1909,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -2069,7 +1987,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -2223,7 +2141,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -2299,7 +2217,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -2368,7 +2286,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -2447,7 +2365,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -2597,7 +2515,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -2668,7 +2586,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -2816,7 +2734,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -2966,7 +2884,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -3038,7 +2956,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -3185,7 +3103,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -3335,7 +3253,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"url": {
@@ -4646,7 +4564,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code\r",
 									"pm.test(\"response is 404 (Not Found)\", function () {\r",
@@ -4663,7 +4580,8 @@
 									"    const body = pm.response.json();\r",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");\r",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -4672,7 +4590,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
@@ -6102,7 +6020,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
@@ -7246,7 +7164,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -7263,7 +7180,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -7272,12 +7190,12 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6101c&q=referenceLevel>=15.9&options=count",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6101d&q=referenceLevel>=15.9;Ppbno=={{ppbNumber}}&options=count",
 							"host": [
 								"{{base_url}}"
 							],
@@ -7288,15 +7206,20 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "b58da193-23d9-43eb-b98a-a103d4b6101c"
+									"value": "b58da193-23d9-43eb-b98a-a103d4b6101d"
 								},
 								{
 									"key": "q",
-									"value": "referenceLevel>=15.9"
+									"value": "referenceLevel>=15.9;Ppbno=={{ppbNumber}}"
 								},
 								{
 									"key": "options",
 									"value": "count"
+								},
+								{
+									"key": "q",
+									"value": "",
+									"disabled": true
 								}
 							]
 						}
@@ -7614,7 +7537,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -7631,7 +7553,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -7640,7 +7563,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
@@ -8600,7 +8523,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6101c&q=referenceLevel<1.0",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6101c&q=referenceLevel<1.0;Ppbno=={{ppbNumber}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8615,7 +8538,7 @@
 								},
 								{
 									"key": "q",
-									"value": "referenceLevel<1.0"
+									"value": "referenceLevel<1.0;Ppbno=={{ppbNumber}}"
 								},
 								{
 									"key": "options",
@@ -8969,12 +8892,12 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6101c&q=referenceLevel>=15.9",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6101c&q=referenceLevel>=15.9;Ppbno=={{ppbNumber}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8989,7 +8912,7 @@
 								},
 								{
 									"key": "q",
-									"value": "referenceLevel>=15.9"
+									"value": "referenceLevel>=15.9;Ppbno=={{ppbNumber}}"
 								},
 								{
 									"key": "options",
@@ -9351,7 +9274,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
@@ -10313,7 +10236,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code\r",
 									"pm.test(\"response is 404 (Not Found)\", function () {\r",
@@ -10330,7 +10252,8 @@
 									"    const body = pm.response.json();\r",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");\r",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -10339,7 +10262,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
@@ -14337,7 +14260,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -14354,7 +14276,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -14363,7 +14286,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -14926,7 +14849,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -14943,7 +14865,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -14952,7 +14875,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -15276,7 +15199,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -15293,7 +15215,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -15303,7 +15226,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -15423,7 +15346,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -15590,7 +15513,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -15875,7 +15798,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -16160,7 +16083,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -16509,7 +16432,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -16526,7 +16448,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -16535,7 +16458,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -17098,7 +17021,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -17115,7 +17037,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -17124,7 +17047,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -17448,7 +17371,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -17465,7 +17387,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -17475,7 +17398,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -17595,7 +17518,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{secureResourceToken}}",
+								"value": "{{personalResourceToken_surat}}",
 								"type": "text"
 							}
 						],
@@ -17735,7 +17658,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -17752,7 +17674,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -17762,7 +17685,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -18047,7 +17970,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -18305,7 +18228,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// Test the response code",
 									"pm.test(\"response is 404 (Not Found)\", function () {",
@@ -18322,7 +18244,8 @@
 									"    const body = pm.response.json();",
 									"    pm.expect(body).to.have.property(\"title\", \"Not Found\");",
 									"});"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -18332,7 +18255,7 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{secureResourceToken}}"
+								"value": "{{personalResourceToken_surat}}"
 							}
 						],
 						"body": {
@@ -18854,7 +18777,7 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
@@ -18931,12 +18854,12 @@
 						"header": [
 							{
 								"key": "token",
-								"value": "{{openResourceToken}}",
+								"value": "{{personalResourceToken_pune}}",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/async/status?searchID=55cdd163-3e02-4960-9505-3a4d1288d214",
+							"raw": "{{base_url}}/{{basePath}}/async/status?searchID={{searchID}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -18948,7 +18871,7 @@
 							"query": [
 								{
 									"key": "searchID",
-									"value": "55cdd163-3e02-4960-9505-3a4d1288d214"
+									"value": "{{searchID}}"
 								}
 							]
 						}
