@@ -176,7 +176,7 @@ public class AsyncRestApi {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true, true);
             json.put(JSON_INSTANCEID, instanceId);
             LOGGER.debug("Info: IUDX json query;" + json);

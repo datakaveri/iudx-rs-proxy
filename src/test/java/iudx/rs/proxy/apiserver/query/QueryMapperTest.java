@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.cli.annotations.Description;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 
 import java.util.stream.Stream;
 
@@ -27,10 +29,12 @@ class QueryMapperTest {
 
     private static final Logger LOGGER = LogManager.getLogger(QueryMapperTest.class);
     private QueryMapper qm;
+    @Mock
+    RoutingContext context;
 
     @BeforeEach
     public void setup(Vertx vertx, VertxTestContext testContext) {
-        qm = new QueryMapper();
+        qm = new QueryMapper(context);
         testContext.completeNow();
     }
 

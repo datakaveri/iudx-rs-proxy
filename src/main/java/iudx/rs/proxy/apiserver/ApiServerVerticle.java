@@ -318,7 +318,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                       "Temporal parameters are not allowed in entities query.");
               routingContext.fail(ex);
             }
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildQuery, false);
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject requestJson =
@@ -376,7 +376,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true);
 
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
@@ -692,7 +692,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject cacheRequest =
