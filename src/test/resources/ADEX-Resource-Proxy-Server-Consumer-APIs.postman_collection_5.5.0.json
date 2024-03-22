@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "a4127943-5452-4aea-a843-701ffd05d29b",
-		"name": "TEST-SERVER-ADEXX-RS-PROXY-APIs Final NEW",
+		"name": "TEST-SERVER-ADEXX-RS-PROXY-APIs",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -393,7 +393,7 @@
 							"script": {
 								"exec": [
 									"pm.test(\"response is 204 (no Content)\", function () {\r",
-									"    // pm.response.to.have.status(204);\r",
+									"     pm.response.to.have.status(204);\r",
 									"});\r",
 									""
 								],
@@ -704,7 +704,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=83c2e5c2-3574-4e11-9530-2b1fbdfce832&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]&q=Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=83c2e5c2-3574-4e11-9530-2b1fbdfce832&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]&q=Ppbno=={{ppbNumber}}&offset=0&limit=5",
 							"host": [
 								"{{base_url}}"
 							],
@@ -736,6 +736,14 @@
 								{
 									"key": "q",
 									"value": "Ppbno=={{ppbNumber}}"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "5"
 								}
 							]
 						}
@@ -1061,7 +1069,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=83c2e5c2-3574-4e11-9530-2b1fbdfce832&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]&q=Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=83c2e5c2-3574-4e11-9530-2b1fbdfce832&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]&q=Ppbno=={{ppbNumber}}&offset=0&limit=15",
 							"host": [
 								"{{base_url}}"
 							],
@@ -1093,6 +1101,14 @@
 								{
 									"key": "q",
 									"value": "Ppbno=={{ppbNumber}}"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "15"
 								}
 							]
 						}
@@ -1107,7 +1123,7 @@
 							"script": {
 								"exec": [
 									"pm.test(\"response is 204 (no Content)\", function () {\r",
-									"    // pm.response.to.have.status(204);\r",
+									"     pm.response.to.have.status(204);\r",
 									"});\r",
 									""
 								],
@@ -1450,6 +1466,16 @@
 								{
 									"key": "q",
 									"value": "Ppbno=={{ppbNumber}}"
+								},
+								{
+									"key": "offset",
+									"value": "5",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"disabled": true
 								}
 							]
 						}
@@ -1464,7 +1490,7 @@
 							"script": {
 								"exec": [
 									"pm.test(\"response is 204 (no Content)\", function () {\r",
-									"    // pm.response.to.have.status(204);\r",
+									"    pm.response.to.have.status(204);\r",
 									"});\r",
 									""
 								],
@@ -3406,11 +3432,17 @@
 							{
 								"key": "token",
 								"type": "text",
-								"value": "{{personalResourceToken_pune}}"
+								"value": "eyJpc3MiOiJjb3MuaXVkeC5pbyIsInR5cCI6IkpXVCIsImFsZyI6IkVTMjU2In0.eyJzdWIiOiJmZDQ3NDg2Yi0zNDk3LTQyNDgtYWMxZS0wODJlNGQzN2E2NmMiLCJpc3MiOiJjb3MuaXVkeC5pbyIsImF1ZCI6InJzLml1ZHguaW8iLCJleHAiOjE3MTExNjAxMDQsImlhdCI6MTcxMTExNjkwNCwiaWlkIjoicmk6YjU4ZGExOTMtMjNkOS00M2ViLWI5OGEtYTEwM2Q0YjYxMDNjIiwicm9sZSI6ImNvbnN1bWVyIiwiY29ucyI6eyJhY2Nlc3MiOlsiYXBpIiwic3ViIiwiZmlsZSIsImFzeW5jIl19LCJyZyI6IjViNzU1NmI1LTA3NzktNGM0Ny05Y2YyLTNmMjA5Nzc5YWEyMiJ9.uFVU71b7l51iueZLIVJBnU0r2JdsgfJVkevTWIHx56NQWR-dvyCHYYMBj7pblGx91PVpr07lo-M4AF-5UiPaTw",
+								"disabled": true
+							},
+							{
+								"key": "token",
+								"value": "{{personalResourceToken_pune}}",
+								"type": "default"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&options=count&q=Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-20T14:20:00Z&options=count&q=Ppbno=={{ppbNumber}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -3434,7 +3466,7 @@
 								},
 								{
 									"key": "endtime",
-									"value": "2020-10-19T14:20:00Z"
+									"value": "2020-10-20T14:20:00Z"
 								},
 								{
 									"key": "options",
@@ -5344,7 +5376,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=before&time=2020-10-19T12:00:00Z&q=Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=before&time=2020-10-19T12:00:00Z&q=Ppbno=={{ppbNumber}}&offset=0&limit=5",
 							"host": [
 								"{{base_url}}"
 							],
@@ -5379,6 +5411,14 @@
 								{
 									"key": "q",
 									"value": "Ppbno=={{ppbNumber}}"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "5"
 								}
 							]
 						}
@@ -5778,7 +5818,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=after&time=2020-10-18T14:20:01Z&q=Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=after&time=2020-10-18T14:20:01Z&q=Ppbno=={{ppbNumber}}&offset=10&limit=30",
 							"host": [
 								"{{base_url}}"
 							],
@@ -5808,6 +5848,14 @@
 								{
 									"key": "q",
 									"value": "Ppbno=={{ppbNumber}}"
+								},
+								{
+									"key": "offset",
+									"value": "10"
+								},
+								{
+									"key": "limit",
+									"value": "30"
 								}
 							]
 						}
@@ -7882,7 +7930,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>15.0;Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>15.0;Ppbno=={{ppbNumber}}&offset=10&limit=20",
 							"host": [
 								"{{base_url}}"
 							],
@@ -7905,9 +7953,12 @@
 									"disabled": true
 								},
 								{
-									"key": "",
-									"value": "",
-									"disabled": true
+									"key": "offset",
+									"value": "10"
+								},
+								{
+									"key": "limit",
+									"value": "20"
 								}
 							]
 						}
@@ -7958,7 +8009,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>15.0;Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>15.0;Ppbno=={{ppbNumber}}&offset=0&limit=10",
 							"host": [
 								"{{base_url}}"
 							],
@@ -7981,9 +8032,12 @@
 									"disabled": true
 								},
 								{
-									"key": "",
-									"value": "",
-									"disabled": true
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
 								}
 							]
 						}
@@ -8357,7 +8411,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel<16.0;Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel<16.0;Ppbno=={{ppbNumber}}&offset=0&limit=10",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8378,6 +8432,14 @@
 									"key": "options",
 									"value": "count",
 									"disabled": true
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
 								}
 							]
 						}
@@ -8731,7 +8793,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>=15.9;Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>=15.9;Ppbno=={{ppbNumber}}&offset=0&limit=10",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8752,6 +8814,14 @@
 									"key": "options",
 									"value": "count",
 									"disabled": true
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
 								}
 							]
 						}
@@ -9097,7 +9167,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel<=15.9;Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel<=15.9;Ppbno=={{ppbNumber}}&offset=0&limit=10",
 							"host": [
 								"{{base_url}}"
 							],
@@ -9118,6 +9188,14 @@
 									"key": "options",
 									"value": "count",
 									"disabled": true
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
 								}
 							]
 						}
@@ -9472,7 +9550,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>15.0;currentLevel==1.01;measuredDistance>=14.89;Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&q=referenceLevel>15.0;currentLevel==1.01;measuredDistance>=14.89;Ppbno=={{ppbNumber}}&offset=0&limit=10",
 							"host": [
 								"{{base_url}}"
 							],
@@ -9495,9 +9573,12 @@
 									"disabled": true
 								},
 								{
-									"key": "",
-									"value": "",
-									"disabled": true
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
 								}
 							]
 						}
@@ -10861,7 +10942,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=83c2e5c2-3574-4e11-9530-2b1fbdfce83c&geoproperty=location&georel=near;maxDistance=100&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-09-19T14:00:00Z&attrs=id,location,speed&q=Ppbno=={{ppbNumber}}",
+							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=83c2e5c2-3574-4e11-9530-2b1fbdfce83d&geoproperty=location&georel=near;maxDistance=100&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-09-19T14:00:00Z&attrs=id,location,speed&q=Ppbno=={{ppbNumber}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -10873,7 +10954,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "83c2e5c2-3574-4e11-9530-2b1fbdfce83c"
+									"value": "83c2e5c2-3574-4e11-9530-2b1fbdfce83d"
 								},
 								{
 									"key": "geoproperty",
@@ -18855,7 +18936,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/{{basePath}}/async/status?searchID={{searchID}}",
+							"raw": "{{base_url}}/{{basePath}}/async/status?searchID=55cdd163-3e02-4960-9505-3a4d1288d214",
 							"host": [
 								"{{base_url}}"
 							],
@@ -18867,7 +18948,7 @@
 							"query": [
 								{
 									"key": "searchID",
-									"value": "{{searchID}}"
+									"value": "55cdd163-3e02-4960-9505-3a4d1288d214"
 								}
 							]
 						}

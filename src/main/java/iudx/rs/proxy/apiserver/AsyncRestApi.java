@@ -183,7 +183,7 @@ public class AsyncRestApi {
               return;
             }
             json.put(JSON_INSTANCEID, instanceId);
-            LOGGER.debug("Info: IUDX json query;" + json);
+           // LOGGER.debug("Info: IUDX json query;" + json);
             JsonObject requestBody = new JsonObject();
             requestBody.put("ids", json.getJsonArray("id"));
 
@@ -201,14 +201,15 @@ public class AsyncRestApi {
                   if (filtersHandler.succeeded()) {
                     JsonObject catItemJson = filtersFuture.result();
                     json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
-                    LOGGER.debug("Async Json :" + json);
+                   // LOGGER.debug("Async Json :" + json);
                     adapterResponseForSearchQuery(routingContext, json, response, true);
                   } else {
                     LOGGER.error("catalogue item/group doesn't have filters.");
+                    handleResponse(
+                            response, BAD_REQUEST, INVALID_PARAM_URN, filtersHandler.cause().getMessage());
                   }
                 });
           } else if (validationHandler.failed()) {
-            LOGGER.error("Fail: Bad request;");
             handleResponse(
                 response, BAD_REQUEST, INVALID_PARAM_URN, validationHandler.cause().getMessage());
           }
@@ -322,7 +323,6 @@ public class AsyncRestApi {
       json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
     }
 
-    LOGGER.debug("publishing async query into rmq :" + json);
     databrokerService.executeAdapterQueryRPC(
         json,
         handler -> {
