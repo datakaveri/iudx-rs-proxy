@@ -51,7 +51,7 @@ Find the installations of the above along with the configurations to modify the 
 
 
 ### Maven based
-1. Install java 13 and maven
+1. Install java 11 and maven
 2. Use the maven exec plugin based starter to start the server 
    `mvn clean compile exec:java@proxy-server`
    
