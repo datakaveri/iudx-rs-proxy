@@ -161,7 +161,7 @@ pipeline {
           steps {
             node('built-in') {
               script{
-                sh 'newman run /var/lib/jenkins/iudx/fs/Newman/ADEX-Resource-Proxy-Server-Consumer-APIs.postman_collection_5.5.0.json -e /home/ubuntu/configs/cd/rs-proxy-postman-env.json --insecure -r htmlextra --reporter-htmlextra-export /var/lib/jenkins/iudx/rs-proxy/Newman/report/cd-report.html --reporter-htmlextra-skipSensitiveData'
+                sh 'newman run /var/lib/jenkins/iudx/rs-proxy/Newman/ADEX-Resource-Proxy-Server-Consumer-APIs.postman_collection_5.5.0.json -e /home/ubuntu/configs/cd/rs-proxy-postman-env.json --insecure -r htmlextra --reporter-htmlextra-export /var/lib/jenkins/iudx/rs-proxy/Newman/report/cd-report.html --reporter-htmlextra-skipSensitiveData'
               }
             }
           }
