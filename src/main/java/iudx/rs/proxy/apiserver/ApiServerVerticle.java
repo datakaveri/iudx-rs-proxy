@@ -383,7 +383,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true);
             if(json.containsKey(ERROR)){
-              LOGGER.error(json);
+              LOGGER.error(json.getString(ERROR));
               return;
             }
 

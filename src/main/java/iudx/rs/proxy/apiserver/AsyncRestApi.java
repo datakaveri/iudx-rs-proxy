@@ -179,11 +179,11 @@ public class AsyncRestApi {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true, true);
-            if(json.containsKey(ERROR)){
+            if (json.containsKey(ERROR)) {
+              LOGGER.error(json.getString(ERROR));
               return;
             }
             json.put(JSON_INSTANCEID, instanceId);
-           // LOGGER.debug("Info: IUDX json query;" + json);
             JsonObject requestBody = new JsonObject();
             requestBody.put("ids", json.getJsonArray("id"));
 
@@ -201,12 +201,14 @@ public class AsyncRestApi {
                   if (filtersHandler.succeeded()) {
                     JsonObject catItemJson = filtersFuture.result();
                     json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
-                   // LOGGER.debug("Async Json :" + json);
                     adapterResponseForSearchQuery(routingContext, json, response, true);
                   } else {
                     LOGGER.error("catalogue item/group doesn't have filters.");
                     handleResponse(
-                            response, BAD_REQUEST, INVALID_PARAM_URN, filtersHandler.cause().getMessage());
+                        response,
+                        BAD_REQUEST,
+                        INVALID_PARAM_URN,
+                        filtersHandler.cause().getMessage());
                   }
                 });
           } else if (validationHandler.failed()) {
@@ -322,7 +324,7 @@ public class AsyncRestApi {
     if (isAdexInstance) {
       json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
     }
-
+    LOGGER.debug("publishing into rmq : " + json);
     databrokerService.executeAdapterQueryRPC(
         json,
         handler -> {
