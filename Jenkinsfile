@@ -147,7 +147,7 @@ pipeline {
         stage('Docker Swarm deployment') {
           steps {
             script {
-              sh "ssh azureuser@docker-swarm 'docker service update rs-proxy_rs-proxy --image ghcr.io/datakaveri/rs-proxy-depl:5.5.0-alpha-${env.GIT_HASH}'"
+              sh "ssh azureuser@docker-swarm 'docker service update rs-proxy_rs-proxy-adex --image ghcr.io/datakaveri/rs-proxy-depl:5.5.0-alpha-${env.GIT_HASH}'"
               sh 'sleep 10'
             }
           }
