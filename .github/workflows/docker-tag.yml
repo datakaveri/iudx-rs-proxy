@@ -1,4 +1,4 @@
-# This github workflow will automatically update docker image tags of rs-depl in the datakaveri/iudx-deployment repository files, whenever docker image is pushed to ghcr.io/datakaveri/rs-depl .Based on tag it will update  5.5.0 stable branch (if its 5.5.0-)
+# This github workflow will automatically update docker image tags of rs-proxy-depl in the datakaveri/iudx-deployment repository files, whenever docker image is pushed to ghcr.io/datakaveri/rs-proxy-depl .Based on tag it will update  5.5.0 stable branch (if its 5.5.0-)
 
 name: Update RS Proxy docker image tags
 
