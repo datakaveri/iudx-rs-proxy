@@ -4,14 +4,14 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.AUTH_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.CONSEENTLOG_SERVICE_ADDRESS;
-import static iudx.rs.proxy.common.ResponseUrn.INVALID_TOKEN_URN;
-import static iudx.rs.proxy.common.ResponseUrn.RESOURCE_NOT_FOUND_URN;
+import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
+import static iudx.rs.proxy.common.ResponseUrn.*;
 
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.netty.handler.codec.http.HttpConstants;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestBody;
@@ -22,6 +22,9 @@ import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.HttpStatusCode;
 import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.optional.consentlogs.ConsentLoggingService;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,6 +39,7 @@ public class AuthHandler implements Handler<RoutingContext> {
   static ConsentLoggingService consentLoggingService;
   private final String AUTHINFO = "authInfo";
   private HttpServerRequest request;
+  private RoutingContext context;
 
   public static AuthHandler create(Vertx vertx, Api apiEndpoints, boolean isAdex) {
     authenticator = AuthenticationService.createProxy(vertx, AUTH_SERVICE_ADDRESS);
@@ -49,6 +53,7 @@ public class AuthHandler implements Handler<RoutingContext> {
   public void handle(RoutingContext context) {
     LOGGER.debug("info handle() started");
     request = context.request();
+    this.context = context;
 
     RequestBody requestBody = context.body();
     JsonObject requestJson = null;
@@ -164,7 +169,9 @@ public class AuthHandler implements Handler<RoutingContext> {
     if (option.equalsIgnoreCase(NGSLILDQUERY_Q)) {
       String ppbnoValue = "";
       try {
-        ppbnoValue = extractPpbno(request.getParam(option));
+        MultiMap params = getQueryParams(context, context.response()).get();
+        String q = params.get(NGSLILDQUERY_Q);
+        ppbnoValue = extractPpbno(q);
 
       } catch (IllegalArgumentException e) {
         LOGGER.error("Error: " + e.getMessage());
@@ -179,6 +186,7 @@ public class AuthHandler implements Handler<RoutingContext> {
     if (option.equalsIgnoreCase(NGSLILDQUERY_Q) && body != null) {
       String ppbnoValue = "";
       try {
+        LOGGER.debug(body.getString(NGSLILDQUERY_Q));
         ppbnoValue = extractPpbno(body.getString(NGSLILDQUERY_Q));
 
       } catch (IllegalArgumentException e) {
@@ -206,12 +214,33 @@ public class AuthHandler implements Handler<RoutingContext> {
       int firstSemiIndex = q.indexOf(';', PpbIndex);
       firstSemiIndex = firstSemiIndex == -1 ? q.length() : firstSemiIndex;
       String ppbno = q.substring(PpbIndex + 7, firstSemiIndex);
-      LOGGER.debug("ppbno:: " + ppbno);
       return ppbno;
     } catch (Exception e) {
-      e.printStackTrace();
       return null;
     }
+  }
+
+  private Optional<MultiMap> getQueryParams(
+      RoutingContext routingContext, HttpServerResponse response) {
+    MultiMap queryParams = null;
+    try {
+      queryParams = MultiMap.caseInsensitiveMultiMap();
+      // Internally + sign is dropped and treated as space, replacing + with %2B do the trick
+      String uri = routingContext.request().uri().replaceAll("\\+", "%2B");
+      Map<String, List<String>> decodedParams =
+          new QueryStringDecoder(uri, HttpConstants.DEFAULT_CHARSET, true, 1024, true).parameters();
+      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
+        // LOGGER.debug("Info: param :" + entry.getKey() + " value : " + entry.getValue());
+        queryParams.add(entry.getKey(), entry.getValue());
+      }
+    } catch (IllegalArgumentException ex) {
+      HttpStatusCode statusCode = HttpStatusCode.getByValue(BAD_REQUEST.getValue());
+      response
+          .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+          .setStatusCode(BAD_REQUEST.getValue())
+          .end(generateResponse(INVALID_PARAM_URN, statusCode).toString());
+    }
+    return Optional.of(queryParams);
   }
 
   /**
@@ -260,7 +289,7 @@ public class AuthHandler implements Handler<RoutingContext> {
           .onSuccess(auditLogHandler -> promise.complete())
           .onFailure(
               auditLogFailure -> {
-                LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                LOGGER.warn("failed info: {}", auditLogFailure.getMessage());
                 promise.fail(auditLogFailure);
               });
     }

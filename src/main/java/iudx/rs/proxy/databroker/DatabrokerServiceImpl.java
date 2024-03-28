@@ -217,7 +217,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
 
             rmqConsumer.handler(
                 msg -> {
-                  LOGGER.debug("Got message: " + msg);
+                  LOGGER.debug("Got message: ");
                   BasicProperties properties = msg.properties();
                   String reply_correlationId = properties.getCorrelationId();
                   String replyQueue = properties.getReplyTo();
@@ -231,7 +231,7 @@ public class DatabrokerServiceImpl implements DatabrokerService {
                   Buffer body = msg.body();
                   if (body != null) {
                     JsonObject json = new JsonObject(msg.body());
-                    LOGGER.debug("Got message: " + json);
+                    LOGGER.debug("Got message: ");
                     if (reply_correlationId.equals(corelationId)) {
                       client.basicAck(
                           deliveryTag,

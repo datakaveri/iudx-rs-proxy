@@ -49,12 +49,12 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
   @Override
   public Future<JsonObject> log(JsonObject request, JwtData jwtData) {
     LOGGER.trace("log started");
-    LOGGER.debug("consent loag::: " + request);
+    LOGGER.debug("consent loag: {} ", request);
     Promise<JsonObject> promise = Promise.promise();
-    String LogType = request.getString("logType");
+    String logType = request.getString("logType");
     ConsentLogType consentLogType;
     try {
-      consentLogType = getLogType(LogType);
+      consentLogType = getLogType(logType);
     } catch (IllegalArgumentException e) {
       return Future.failedFuture("No Consent defined for given type");
     }
@@ -94,10 +94,10 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
     return promise.future();
   }
 
-  private ConsentLogType getLogType(String Type) {
+  private ConsentLogType getLogType(String type) {
     ConsentLogType logType = null;
     try {
-      logType = ConsentLogType.valueOf(Type);
+      logType = ConsentLogType.valueOf(type);
 
     } catch (IllegalArgumentException ex) {
       LOGGER.error("No consent type defined for given argument.");
@@ -108,7 +108,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
   private JsonObject generateConsentAuditLog(String consentLogType, JwtData jwtData) {
     LOGGER.trace("generateAuditLog started");
     JsonObject cons = jwtData.getCons();
-    String item_id = jwtData.getIid().split(":")[1];
+    String itemId = jwtData.getIid().split(":")[1];
     String type = "RESOURCE"; // make sure item should be RESOURCE only
     SignLogBuider signLog =
         new SignLogBuider.Builder()
@@ -116,7 +116,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
             .forAiu_id(jwtData.getSub())
             .forEvent(consentLogType)
             .forItemType(type)
-            .forItem_id(item_id)
+            .forItem_id(itemId)
             .witAipId(jwtData.getProvider())
             .withDpId(cons.getString("ppbNumber"))
             .withArtifactId(cons.getString("artifact"))
@@ -133,7 +133,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
   private Future<Void> auditingConsentLog(JsonObject consentAuditLog) {
     LOGGER.trace("auditingConsentLog started");
     Promise<Void> promise = Promise.promise();
-    meteringService.insertMeteringValuesInRMQ(
+    meteringService.publishMeteringData(
         consentAuditLog,
         handler -> {
           if (handler.succeeded()) {

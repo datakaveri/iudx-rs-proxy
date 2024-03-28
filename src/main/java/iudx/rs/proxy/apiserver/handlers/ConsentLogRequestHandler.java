@@ -48,7 +48,7 @@ public class ConsentLogRequestHandler implements Handler<RoutingContext> {
         .onSuccess(logHandler -> promise.complete())
         .onFailure(
             failure -> {
-              LOGGER.error("failed info :{}", failure.getMessage());
+              LOGGER.warn("failed info :{}", failure.getMessage());
               promise.fail(failure.getMessage());
             });
     return promise.future();

@@ -9,6 +9,7 @@ import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
+import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -292,7 +293,7 @@ public class ApiServerVerticle extends AbstractVerticle {
           .onSuccess(auditLogHandler -> promise.complete())
           .onFailure(
               auditLogFailure -> {
-                LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                LOGGER.warn("failed info: {}", auditLogFailure.getMessage());
                 promise.fail(auditLogFailure);
               });
     }
@@ -318,8 +319,11 @@ public class ApiServerVerticle extends AbstractVerticle {
                       "Temporal parameters are not allowed in entities query.");
               routingContext.fail(ex);
             }
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildQuery, false);
+            if(json.containsKey(ERROR)){
+              return;
+            }
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject requestJson =
                 new JsonObject()
@@ -376,8 +380,12 @@ public class ApiServerVerticle extends AbstractVerticle {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true);
+            if(json.containsKey(ERROR)){
+              LOGGER.error(json.getString(ERROR));
+              return;
+            }
 
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject requestJson =
@@ -490,8 +498,6 @@ public class ApiServerVerticle extends AbstractVerticle {
             response.setStatusCode(status);
             if (status == 200) {
               LOGGER.info("Success: adapter call Success with {}", status);
-              LOGGER.debug("adapter response" + adapterResponse);
-              LOGGER.debug("limit value.." + adapterResponse.getValue("limit"));
               JsonObject userResponse = new JsonObject();
               userResponse.put("type", ResponseUrn.SUCCESS_URN.getUrn());
               userResponse.put("title", ResponseUrn.SUCCESS_URN.getMessage());
@@ -692,8 +698,11 @@ public class ApiServerVerticle extends AbstractVerticle {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
+            if(json.containsKey(ERROR)){
+              return;
+            }
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
             JsonObject cacheRequest =
                 new JsonObject()
@@ -769,7 +778,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
                 request.put(PROVIDER_ID, providerId);
 
-                meteringService.insertMeteringValuesInRMQ(
+                meteringService.publishMeteringData(
                     request,
                     handler -> {
                       if (handler.succeeded()) {

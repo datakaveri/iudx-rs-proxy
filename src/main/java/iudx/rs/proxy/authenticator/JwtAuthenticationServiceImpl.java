@@ -173,8 +173,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
               }
             })
         .onFailure(
-            failureHandler ->
-                promise.fail("catalogue_cache call result : [fail] " + failureHandler));
+            failureHandler -> {
+              LOGGER.error("catalogue_cache call result : [fail] " + failureHandler);
+              promise.fail("Not Found");
+            });
     return promise.future();
   }
 

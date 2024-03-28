@@ -1,67 +1,149 @@
 package iudx.rs.proxy.apiserver.handlers;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.junit5.VertxExtension;
-import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
+import io.vertx.junit5.VertxTestContext;
 import iudx.rs.proxy.apiserver.util.RequestType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 class ValidationHandlerTest {
-   @Mock
-    Vertx vertx;
-    @Mock
-    RoutingContext event;
-    @Mock
-    HttpServerRequest request;
-    @Mock
-    HttpServerResponse response;
-    @Mock
-    MultiMap headers;
-    MultiMap parameters;
+  RequestType requestType;
+  @Mock RoutingContext routingContext;
+  @Mock HttpServerRequest httpServerRequest;
+  ValidationHandler validationHandler;
 
-    @BeforeEach
-    public void setup() {
-        Mockito.doReturn(request).when(event).request();
-        lenient().doReturn(response).when(event).response();
+  public static Stream<Arguments> data() {
+    return Stream.of(
+        Arguments.of(RequestType.ENTITY),
+        Arguments.of(RequestType.TEMPORAL),
+        Arguments.of(RequestType.POST_TEMPORAL),
+        Arguments.of(RequestType.POST_ENTITIES),
+        Arguments.of(RequestType.ASYNC_SEARCH),
+        Arguments.of(RequestType.ASYNC_STATUS));
+  }
+
+  @DisplayName("Test handle method")
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testHandle(RequestType value, VertxTestContext vertxTestContext) {
+    requestType = value;
+
+    // path params
+    Map<String, String> stringMap = new HashMap<>();
+    stringMap.put("id", "b58da193-23d9-43eb-b98a-a103d4b6103c");
+
+    // parameters
+    MultiMap parameters = MultiMap.caseInsensitiveMultiMap();
+    parameters.add("timerel", "during");
+    parameters.add("time", "2020-10-18T14:20:00Z");
+    parameters.add("endtime", "2021-09-18T14:20:00Z");
+    parameters.add("searchId", UUID.randomUUID().toString());
+
+    // for latest
+    parameters.add("*", "b58da193-23d9-43eb-b98a-a103d4b6103c");
+
+    // headers
+    MultiMap header = MultiMap.caseInsensitiveMultiMap();
+    header.add("options", "streaming");
+
+    // body
+    JsonObject body = null;
+    if (requestType.equals(RequestType.POST_ENTITIES)) {
+      body = getPostEntitiesJsonRequestBody();
+    } else if (requestType.equals(RequestType.POST_TEMPORAL)) {
+      body = getPostTemporalJsonRequestBody();
     }
 
-    @Test
-    public void validationHandlerSuccess() {
-        parameters = MultiMap.caseInsensitiveMultiMap();
-        parameters.set("id", "83c2e5c2-3574-4e11-9530-2b1fbdfce832");
+    RequestBody requestBody = mock(RequestBody.class);
 
-        lenient().doReturn(parameters).when(request).params();
-        lenient().doReturn(headers).when(request).headers();
+    when(routingContext.body()).thenReturn(requestBody);
+    when(requestBody.asJsonObject()).thenReturn(body);
 
-        new ValidationHandler(vertx,RequestType.ENTITY).handle(event);
-        Mockito.verify(event, times(1)).next();
-    }
-    @Test
-    public void validationHandlerFailed() {
-        parameters = MultiMap.caseInsensitiveMultiMap();
-        parameters.set("id", "aaaa/aaaa");
+    when(routingContext.request()).thenReturn(httpServerRequest);
+    when(httpServerRequest.params()).thenReturn(parameters);
+    when(httpServerRequest.headers()).thenReturn(header);
+    when(routingContext.pathParams()).thenReturn(stringMap);
 
-        Mockito.doReturn(parameters).when(request).params();
-       lenient().doReturn(headers).when(request).headers();
+    validationHandler = new ValidationHandler(Vertx.vertx(), requestType);
+    validationHandler.handle(routingContext);
+    verify(routingContext, times(3)).request();
+    verify(httpServerRequest).params();
+    verify(routingContext).body();
+    verify(routingContext).pathParams();
+    vertxTestContext.completeNow();
+  }
 
-        ValidationHandler validationsHandler = new ValidationHandler(vertx,RequestType.ENTITY);
-        assertThrows(DxRuntimeException.class, () -> validationsHandler.handle(event));
-    }
+  private JsonObject getPostTemporalJsonRequestBody() {
+    return new JsonObject(
+        "{\n"
+            + "    \"type\": \"Query\",\n"
+            + "    \"entities\": [\n"
+            + "        {\n"
+            + "            \"id\": \"b58da193-23d9-43eb-b98a-a103d4b6103c\"\n"
+            + "        }\n"
+            + "    ],\n"
+            + "    \"geoQ\": {\n"
+            + "        \"geometry\": \"Point\",\n"
+            + "        \"coordinates\": [21.178,72.834],\n"
+            + "        \"georel\": \"near;maxDistance=1000\",\n"
+            + "        \"geoproperty\": \"location\"\n"
+            + "    },\n"
+            + "    \"temporalQ\": {\n"
+            + "        \"timerel\": \"between\",\n"
+            + "        \"time\": \"2020-10-18T14:20:00Z\",\n"
+            + "        \"endtime\": \"2020-10-19T14:20:00Z\",\n"
+            + "        \"timeProperty\": \"observationDateTime\"\n"
+            + "    },\n"
+            + "    \"q\":\"speed>30.0\",\n"
+            + "    \"attrs\":\"id,speed\"\n"
+            + "}");
+  }
 
+  private JsonObject getPostEntitiesJsonRequestBody() {
+    return new JsonObject(
+        "{\n"
+            + "    \"type\": \"Query\",\n"
+            + "    \"entities\": [\n"
+            + "        {\n"
+            + "            \"id\": \"b58da193-23d9-43eb-b98a-a103d4b6103c\"\n"
+            + "        }\n"
+            + "    ],\n"
+            + "    \"geoQ\": {\n"
+            + "        \"geometry\": \"Point\",\n"
+            + "        \"coordinates\": [21.178,72.834],\n"
+            + "        \"georel\": \"near;maxDistance=10\",\n"
+            + "        \"geoproperty\": \"location\"\n"
+            + "    }\n"
+            + "}");
+  }
 
+  private JsonObject getSubscriptionBody() {
+    return new JsonObject(
+        "{\n"
+            + "    \"name\": \"integration-test-alias-RL\",\n"
+            + "    \"type\": \"subscription\",\n"
+            + "    \"entities\": [\"b58da193-23d9-43eb-b98a-a103d4b6103c\"]\n"
+            + "}");
+  }
 }

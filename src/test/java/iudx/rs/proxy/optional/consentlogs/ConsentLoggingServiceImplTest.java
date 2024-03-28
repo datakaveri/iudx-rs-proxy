@@ -73,7 +73,7 @@ class ConsentLoggingServiceImplTest {
                 ((Handler<AsyncResult<JsonObject>>) arg1.getArgument(1)).handle(asyncResult);
                 return null;
             }
-        }).when(meteringService).insertMeteringValuesInRMQ(any(), any());
+        }).when(meteringService).publishMeteringData(any(), any());
 
         consentLoggingService.log(request, jwtData).onComplete(logHandler -> {
             if (logHandler.succeeded()) {

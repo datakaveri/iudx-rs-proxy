@@ -9,6 +9,7 @@ import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
+import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -144,7 +145,7 @@ public class AsyncRestApi {
           .onSuccess(auditLogHandler -> promise.complete())
           .onFailure(
               auditLogFailure -> {
-                LOGGER.error("failed info: {}", auditLogFailure.getMessage());
+                LOGGER.warn("failed info: {}", auditLogFailure.getMessage());
                 promise.fail(auditLogFailure);
               });
     }
@@ -176,10 +177,13 @@ public class AsyncRestApi {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            QueryMapper queryMapper = new QueryMapper();
+            QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true, true);
+            if (json.containsKey(ERROR)) {
+              LOGGER.error(json.getString(ERROR));
+              return;
+            }
             json.put(JSON_INSTANCEID, instanceId);
-            LOGGER.debug("Info: IUDX json query;" + json);
             JsonObject requestBody = new JsonObject();
             requestBody.put("ids", json.getJsonArray("id"));
 
@@ -197,14 +201,17 @@ public class AsyncRestApi {
                   if (filtersHandler.succeeded()) {
                     JsonObject catItemJson = filtersFuture.result();
                     json.put("applicableFilters", catItemJson.getJsonArray("iudxResourceAPIs"));
-                    LOGGER.debug("Async Json :" + json);
                     adapterResponseForSearchQuery(routingContext, json, response, true);
                   } else {
                     LOGGER.error("catalogue item/group doesn't have filters.");
+                    handleResponse(
+                        response,
+                        BAD_REQUEST,
+                        INVALID_PARAM_URN,
+                        filtersHandler.cause().getMessage());
                   }
                 });
           } else if (validationHandler.failed()) {
-            LOGGER.error("Fail: Bad request;");
             handleResponse(
                 response, BAD_REQUEST, INVALID_PARAM_URN, validationHandler.cause().getMessage());
           }
@@ -317,8 +324,7 @@ public class AsyncRestApi {
     if (isAdexInstance) {
       json.put("ppbNumber", extractPPBNo(authInfo)); // this is exclusive for ADeX deployment.
     }
-
-    LOGGER.debug("publishing async query into rmq :" + json);
+    LOGGER.debug("publishing into rmq : " + json);
     databrokerService.executeAdapterQueryRPC(
         json,
         handler -> {
@@ -504,7 +510,7 @@ public class AsyncRestApi {
                 request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
                 request.put(PROVIDER_ID, providerId);
 
-                meteringService.insertMeteringValuesInRMQ(
+                meteringService.publishMeteringData(
                     request,
                     handler -> {
                       if (handler.succeeded()) {

@@ -62,7 +62,7 @@ public class NGSILDQueryParams {
     this.create(json);
   }
 
-  public static void main(String[] args) {
+ /* public static void main(String[] args) {
     JsonObject json = new JsonObject();
     json.put("type", "query")
         .put(
@@ -82,8 +82,8 @@ public class NGSILDQueryParams {
                             "rs.varanasi.iudx.org.in/varanasi-swm-vehicles/varanasi-swm-vehicles-live")));
 
     new NGSILDQueryParams(json);
-    new QueryMapper();
-  }
+    //new QueryMapper();
+  }*/
 
   private void create(MultiMap paramsMap) {
     List<Entry<String, String>> entries = paramsMap.entries();
