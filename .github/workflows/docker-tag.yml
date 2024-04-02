@@ -34,9 +34,9 @@ jobs:
         export newtag5_5_1=$(head -n1 <(curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/orgs/datakaveri/packages/container/rs-proxy-depl/versions | jq ' .[].metadata.container.tags[0]'  | grep 5.5.1-alpha | sed -e 's/^"//' -e 's/"$//'))
 
         # Get the old tags from the YAML files
-        export oldtag5_5_1=$(yq -r .services.rs.image Docker-Swarm-deployment/single-node/rs-proxy/rs-proxy-stack.yaml | cut -d : -f 2)
+        export oldtag5_5_1=$(yq -r .services.rs-proxy.image Docker-Swarm-deployment/single-node/rs-proxy/rs-proxy-stack.yaml | cut -d : -f 2)
         git checkout 5.5.0
-        export oldtag5_5_0=$(yq -r .services.rs.image Docker-Swarm-deployment/single-node/rs-proxy/rs-proxy-stack.yaml | cut -d : -f 2)
+        export oldtag5_5_0=$(yq -r .services.rs-proxy.image Docker-Swarm-deployment/single-node/rs-proxy/rs-proxy-stack.yaml | cut -d : -f 2)
         
         # Set Git user
         git config --global user.name 'jenkins-datakaveri'
