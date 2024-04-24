@@ -175,10 +175,10 @@ public class QueryMapper {
     } else if (timeRel.equalsIgnoreCase("before")) {
 
     }
-    if (totalDaysAllowed >VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+    /*if (totalDaysAllowed >VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
       throw new DxRuntimeException(BAD_REQUEST.getValue(),INVALID_TEMPORAL_PARAM_URN,
           "time interval greater than 10 days is not allowed");
-    }
+    }*/
   }
 
   public boolean isNullOrEmpty(String value) {
