@@ -49,7 +49,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
   @Override
   public Future<JsonObject> log(JsonObject request, JwtData jwtData) {
     LOGGER.trace("log started");
-    LOGGER.debug("consent loag: {} ", request);
+    LOGGER.debug("consent log: {} ", request);
     Promise<JsonObject> promise = Promise.promise();
     String logType = request.getString("logType");
     ConsentLogType consentLogType;
@@ -126,7 +126,7 @@ public class ConsentLoggingServiceImpl implements ConsentLoggingService {
     String signedLog = payloadSigningManager.signDocWithPKCS12(signLog.toJson());
     JsonObject consentAuditLog = signLog.toJson();
     consentAuditLog.put("log", signedLog);
-    consentAuditLog.put(ORIGIN, "consent_log");
+    consentAuditLog.put(ORIGIN, "consent-log");
     return consentAuditLog;
   }
 
