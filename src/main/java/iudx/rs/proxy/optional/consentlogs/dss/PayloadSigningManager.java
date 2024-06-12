@@ -78,7 +78,7 @@ public class PayloadSigningManager {
       signedDocument.writeTo(out);
 
       return Base64.getEncoder().encodeToString(out.toByteArray());
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOGGER.error("error : {}", e);
       e.printStackTrace();
       throw new RuntimeException("Issue occurred while signing log");

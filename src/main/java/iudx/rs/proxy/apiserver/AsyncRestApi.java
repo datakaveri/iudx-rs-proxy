@@ -501,7 +501,7 @@ public class AsyncRestApi {
                 String resourceGroup = cacheJson.getString(RESOURCE_GROUP);
 
                 request.put(RESOURCE_GROUP, resourceGroup);
-                request.put(TYPE_KEY, type);
+                request.put(TYPE_KEY, type.toUpperCase());
                 request.put(EPOCH_TIME, time);
                 request.put(ISO_TIME, isoTime);
                 request.put(USER_ID, authInfo.getValue(USER_ID));
