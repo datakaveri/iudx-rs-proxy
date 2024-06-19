@@ -85,6 +85,7 @@ public class AsyncRestApi {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, api, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::handleAsyncSearchRequest)
         .failureHandler(validationsFailureHandler);
 
@@ -95,20 +96,16 @@ public class AsyncRestApi {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, api, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::handleAsyncStatusRequest)
         .failureHandler(validationsFailureHandler);
 
-    router
-        .route()
-        .handler(
-            context -> {
-              context.addBodyEndHandler(
-                  endHandler -> {
-                    Future.future(future -> logConsentResponse(context));
-                  });
-            });
-
     return this.router;
+  }
+
+  public void contextBodyCall(RoutingContext context) {
+    context.addBodyEndHandler(v -> logConsentResponse(context));
+    context.next();
   }
 
   private Future<Void> logConsentResponse(RoutingContext routingContext) {
@@ -413,7 +410,6 @@ public class AsyncRestApi {
                 .end(handler.cause().getMessage());
           }
         });
-    context.next();
   }
 
   public String extractPPBNo(JsonObject authInfo) {

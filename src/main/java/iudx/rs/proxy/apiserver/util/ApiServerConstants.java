@@ -193,6 +193,7 @@ public class ApiServerConstants {
   public static final String ITEM_TYPE_RESOURCE_GROUP = "ResourceGroup";
   public static final String ITEM_TYPE_RESOURCE_SERVER = "ResourceServer";
   public static final String ITEM_TYPE_PROVIDER = "Provider";
+  public static final String MIME_APPLICATION_JSON = "application/json";
   public static final ArrayList<String> ITEM_TYPES =
       new ArrayList<String>(
           Arrays.asList(
