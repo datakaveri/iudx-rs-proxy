@@ -6,9 +6,8 @@ import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
-import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
-import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
+import static iudx.rs.proxy.common.HttpStatusCode.NOT_FOUND;
+import static iudx.rs.proxy.common.ResponseUrn.*;
 import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.netty.handler.codec.http.HttpConstants;
@@ -104,6 +103,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::handleEntitiesQuery)
         .failureHandler(validationsFailureHandler);
 
@@ -115,6 +115,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::handleTemporalQuery)
         .failureHandler(validationsFailureHandler);
 
@@ -123,6 +124,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::getConsumerAuditDetail);
 
     router
@@ -130,6 +132,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::getProviderAuditDetail);
 
     // Post Queries
@@ -142,6 +145,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::handlePostEntitiesQuery)
         .failureHandler(validationsFailureHandler);
 
@@ -154,6 +158,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(TokenDecodeHandler.create(vertx))
         .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
         .handler(this::handlePostEntitiesQuery)
         .failureHandler(validationsFailureHandler);
 
@@ -180,13 +185,18 @@ public class ApiServerVerticle extends AbstractVerticle {
     router
         .route(apis.getAsyncPath() + "/*")
         .subRouter(new AsyncRestApi(vertx, router, apis, config()).init());
-    // todo need to identify the the way to handle "addBodyEndHandler" currently it is handling from
-    // AsyncRestApi class.
-    /*  router.route().handler(context -> {
-        context.addBodyEndHandler(endHandler -> {
-            Future.future(future -> logConsentResponse(context));
-        });
-    });*/
+
+    router
+        .route()
+        .last()
+        .handler(
+            requestHandler -> {
+              HttpServerResponse response = requestHandler.response();
+              response
+                  .putHeader(HEADER_CONTENT_TYPE, MIME_APPLICATION_JSON)
+                  .setStatusCode(404)
+                  .end(generateResponse(NOT_FOUND, YET_NOT_IMPLEMENTED_URN).toString());
+            });
 
     HttpServerOptions serverOptions = new HttpServerOptions();
     setServerOptions(serverOptions);
@@ -196,6 +206,11 @@ public class ApiServerVerticle extends AbstractVerticle {
     server.requestHandler(router).listen(port);
     LOGGER.debug("port deployed : " + server.actualPort());
     printDeployedEndpoints(router);
+  }
+
+  public void contextBodyCall(RoutingContext context) {
+    context.addBodyEndHandler(v -> logConsentResponse(context));
+    context.next();
   }
 
   private void setServerOptions(HttpServerOptions serverOptions) {
@@ -276,6 +291,8 @@ public class ApiServerVerticle extends AbstractVerticle {
         case 404:
           consentLog = "DATA_DENIED";
           break;
+        default:
+          consentLog = "DATA_DENIED";
       }
       LOGGER.info("response ended : {}", routingContext.response());
       LOGGER.info("consent log : {}", consentLog);
@@ -297,6 +314,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 promise.fail(auditLogFailure);
               });
     }
+
     return promise.future();
   }
 
@@ -321,7 +339,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             }
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildQuery, false);
-            if(json.containsKey(ERROR)){
+            if (json.containsKey(ERROR)) {
               return;
             }
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
@@ -382,7 +400,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, true);
-            if(json.containsKey(ERROR)){
+            if (json.containsKey(ERROR)) {
               LOGGER.error(json.getString(ERROR));
               return;
             }
@@ -465,7 +483,6 @@ public class ApiServerVerticle extends AbstractVerticle {
                 .end(handler.cause().getMessage());
           }
         });
-    context.next();
   }
 
   /**
@@ -528,7 +545,6 @@ public class ApiServerVerticle extends AbstractVerticle {
                 .end(handler.cause().getMessage());
           }
         });
-    context.next();
   }
 
   private Optional<MultiMap> getQueryParams(
@@ -700,7 +716,7 @@ public class ApiServerVerticle extends AbstractVerticle {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
             QueryMapper queryMapper = new QueryMapper(routingContext);
             JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
-            if(json.containsKey(ERROR)){
+            if (json.containsKey(ERROR)) {
               return;
             }
             CacheType cacheType = CacheType.CATALOGUE_CACHE;
