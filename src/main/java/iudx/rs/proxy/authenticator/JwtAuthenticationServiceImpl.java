@@ -126,6 +126,7 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
       JwtData jwtData = new JwtData(user.principal());
       jwtData.setExp(user.get("exp"));
       jwtData.setIat(user.get("iat"));
+      jwtData.setsub(user.get("sub"));
       promise.complete(jwtData);
     }).onFailure(err -> {
       LOGGER.error("failed to decode/validate jwt token : " + err.getMessage());
