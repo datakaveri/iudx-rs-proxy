@@ -177,7 +177,7 @@ public class QueryMapper {
     }
     if (totalDaysAllowed >VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
       throw new DxRuntimeException(BAD_REQUEST.getValue(),INVALID_TEMPORAL_PARAM_URN,
-          "time interval greater than 10 days is not allowed");
+          "time interval greater than 31 days is not allowed");
     }
   }
 

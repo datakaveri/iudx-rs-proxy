@@ -88,6 +88,7 @@ class JwtAuthenticationServiceImplTest {
         authConfig.put("host", "rs.iudx.io");
         authConfig.put("catServerPort", 8080);
         authConfig.put("dxApiBasePath","/ngsi-ld/v1");
+        authConfig.put("audience","rs.iudx.io");
 
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
         jwtAuthOptions.addPubSecKey(
