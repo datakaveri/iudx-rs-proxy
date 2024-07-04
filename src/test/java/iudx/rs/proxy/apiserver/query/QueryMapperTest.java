@@ -246,7 +246,6 @@ public void testToJson(Vertx vertx, VertxTestContext testContext) {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
             qm.toJson(params, true);
         });
-    System.out.println(ex.getMessage());
         assertEquals("time interval greater than 31 days is not allowed", ex.getMessage());
         testContext.completeNow();
     }
