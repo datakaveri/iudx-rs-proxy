@@ -52,7 +52,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     ResultContainer result = new ResultContainer();
     result.jwtData = jwtData;
     String endPoint = authenticationInfo.getString("apiEndpoint");
-    boolean skipResourceIdCheck = endPoint.equalsIgnoreCase(apis.getAsyncStatusEndpoint());
+    boolean skipResourceIdCheck =
+        endPoint.equalsIgnoreCase(apis.getAsyncStatusEndpoint())
+            || endPoint.equalsIgnoreCase(apis.getConsumerAuditEndpoint())
+            || endPoint.equalsIgnoreCase(apis.getProviderAuditEndpoint());
 
     Future<Boolean> audienceFuture = isValidAudienceValue(jwtData);
     audienceFuture
