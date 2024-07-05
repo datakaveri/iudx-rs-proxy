@@ -3,30 +3,15 @@ package iudx.rs.proxy.apiserver;
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
-import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
-
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
+import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.HttpStatusCode.NO_CONTENT;
 import static iudx.rs.proxy.common.ResponseUrn.BACKING_SERVICE_FORMAT_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_PARAM_URN;
 import static iudx.rs.proxy.common.ResponseUrn.INVALID_TEMPORAL_PARAM_URN;
 
-import static iudx.rs.proxy.metering.util.Constants.RESULTS;
-import static iudx.rs.proxy.metering.util.Constants.TOTAL_HITS;
-import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
-
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 import io.netty.handler.codec.http.HttpConstants;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
@@ -45,7 +30,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.serviceproxy.ServiceException;
 import iudx.rs.proxy.apiserver.exceptions.DxRuntimeException;
 import iudx.rs.proxy.apiserver.handlers.AuthHandler;
 import iudx.rs.proxy.apiserver.handlers.FailureHandler;
@@ -62,16 +46,15 @@ import iudx.rs.proxy.common.ResponseUrn;
 import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
 import iudx.rs.proxy.metering.MeteringService;
-
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ApiServerVerticle extends AbstractVerticle {
 
@@ -341,7 +324,8 @@ public class ApiServerVerticle extends AbstractVerticle {
    */
   private void adapterResponseForCountQuery(RoutingContext context, JsonObject json,
                                             HttpServerResponse response) {
-//    json.put("publicKey", "Some_value");
+    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
+    json.put(USER_ID, authInfo.getValue(USER_ID));
 
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
@@ -369,6 +353,8 @@ public class ApiServerVerticle extends AbstractVerticle {
    */
   private void adapterResponseForSearchQuery(RoutingContext context, JsonObject json,
                                              HttpServerResponse response) {
+    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
+    json.put(USER_ID, authInfo.getValue(USER_ID));
     String publicKey = context.request().getHeader(HEADER_PUBLIC_KEY);
     json.put(HEADER_PUBLIC_KEY, publicKey);
     brokerService.executeAdapterQueryRPC(json, handler -> {
