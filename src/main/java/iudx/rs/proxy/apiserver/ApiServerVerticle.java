@@ -793,7 +793,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 request.put(API, authInfo.getValue(API_ENDPOINT));
                 request.put(RESPONSE_SIZE, context.data().get(RESPONSE_SIZE));
                 request.put(PROVIDER_ID, providerId);
-                request.put(RESOURCE_SERVER_REG_URL, cacheJson.getString(RESOURCE_SERVER_REG_URL));
+
                 meteringService.publishMeteringData(
                     request,
                     handler -> {
@@ -858,8 +858,6 @@ public class ApiServerVerticle extends AbstractVerticle {
               }
               cacheServiceResult.put("type", itemTypeSet.iterator().next());
               cacheServiceResult.put("resourceGroup", resourceGroup);
-              cacheServiceResult.put(
-                  RESOURCE_SERVER_REG_URL, cacheServiceResult.getString(RESOURCE_SERVER_REG_URL));
               promise.complete(cacheServiceResult);
             })
         .onFailure(
