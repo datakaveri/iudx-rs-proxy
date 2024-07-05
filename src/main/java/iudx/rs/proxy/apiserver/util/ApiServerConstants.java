@@ -145,6 +145,7 @@ public class ApiServerConstants {
 
   public static final String RESPONSE_SIZE = "response_size";
   public static final String PROVIDER_ID = "providerID";
+  public static final String RESOURCE_SERVER_REG_URL = "resourceServerRegURL";
 
   public static final double VALIDATION_ALLOWED_DIST = 1000.0;
   public static final double VALIDATION_ALLOWED_DIST_FOR_ASYNC = 10000.0;

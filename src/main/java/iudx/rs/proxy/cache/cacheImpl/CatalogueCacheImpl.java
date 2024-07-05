@@ -1,5 +1,7 @@
 package iudx.rs.proxy.cache.cacheImpl;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESOURCE_SERVER_REG_URL;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.vertx.core.Future;
@@ -103,8 +105,14 @@ public class CatalogueCacheImpl implements IudxCache {
                     json -> {
                       JsonObject res = (JsonObject) json;
                       String id = res.getString("id");
-                      CacheValue<JsonObject> cacheValue = createCacheValue(id, res.toString());
-                      cache.put(id, cacheValue);
+                      resourceServerUrl(id)
+                          .onSuccess(
+                              handlerS -> {
+                                res.put(RESOURCE_SERVER_REG_URL, handlerS);
+                                CacheValue<JsonObject> cacheValue =
+                                    createCacheValue(id, res.toString());
+                                cache.put(id, cacheValue);
+                              });
                     });
                 LOGGER.debug("refresh() cache completed");
                 promise.complete();
@@ -125,5 +133,32 @@ public class CatalogueCacheImpl implements IudxCache {
         return new JsonObject(value);
       }
     };
+  }
+
+  public Future<String> resourceServerUrl(String id) {
+    LOGGER.debug("get item for id: {} ", id);
+    Promise<String> promise = Promise.promise();
+    String url = catBasePath + "/relationship";
+    catWebClient
+        .get(catPort, catHost, url)
+        .addQueryParam("id", id)
+        .addQueryParam("rel", "resourceServer")
+        .expect(ResponsePredicate.JSON)
+        .send(
+            relHandler -> {
+              if (relHandler.succeeded()
+                  && relHandler.result().bodyAsJsonObject().getInteger("totalHits") > 0) {
+                JsonArray resultArray =
+                    relHandler.result().bodyAsJsonObject().getJsonArray("results");
+                JsonObject response = resultArray.getJsonObject(0);
+                String resourceServerURL = response.getString(RESOURCE_SERVER_REG_URL);
+                promise.complete(resourceServerURL);
+              } else {
+                LOGGER.error("catalogue call search api failed: " + relHandler.cause());
+                promise.fail("catalogue call search api failed");
+              }
+            });
+
+    return promise.future();
   }
 }
