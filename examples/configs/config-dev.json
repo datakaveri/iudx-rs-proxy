@@ -7,7 +7,8 @@
   "commonConfig": {
     "dxApiBasePath": "/ngsi-ld/v1",
     "dxCatalogueBasePath": "/iudx/cat/v1",
-    "dxAuthBasePath": "/auth/v1"
+    "dxAuthBasePath": "/auth/v1",
+    "isTimeLimitEnabled": false
   },
   "modules": [
     {
@@ -27,7 +28,8 @@
       "keystorePassword": "",
       "audience": "",
       "authServerHost": "",
-      "jwtIgnoreExpiry": true
+      "jwtIgnoreExpiry": true,
+      "jwtLeeWay": 90
     },
     {
       "id": "iudx.rs.proxy.cache.CacheVerticle",

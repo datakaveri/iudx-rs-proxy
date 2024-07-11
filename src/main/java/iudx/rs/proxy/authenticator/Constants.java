@@ -12,7 +12,7 @@ public class Constants {
           "/entityOperations/query",
           "/async/search",
           "/async/status");
-  public static final long CACHE_TIMEOUT_AMOUNT = 30;
+  public static final String LEE_WAY = "jwtLeeWay";
   public static final String CAT_SEARCH_PATH = "/search";
   public static final String AUTH_CERTIFICATE_PATH = "/cert";
   public static final String CAT_ITEM_PATH = "/item";

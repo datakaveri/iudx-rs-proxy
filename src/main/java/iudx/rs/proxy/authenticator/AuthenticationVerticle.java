@@ -1,6 +1,7 @@
 package iudx.rs.proxy.authenticator;
 
 import static iudx.rs.proxy.authenticator.Constants.AUTH_CERTIFICATE_PATH;
+import static iudx.rs.proxy.authenticator.Constants.LEE_WAY;
 import static iudx.rs.proxy.common.Constants.*;
 
 import io.vertx.core.AbstractVerticle;
@@ -72,7 +73,10 @@ public class AuthenticationVerticle extends AbstractVerticle {
               binder = new ServiceBinder(vertx);
 
               JWTAuthOptions jwtAuthOptions = new JWTAuthOptions();
-              jwtAuthOptions.getJWTOptions().addAudience(config().getString("audience"));
+              jwtAuthOptions
+                  .getJWTOptions()
+                  .addAudience(config().getString("audience"))
+                  .setLeeway(config().getInteger(LEE_WAY));
               jwtAuthOptions.addPubSecKey(
                   new PubSecKeyOptions().setAlgorithm("ES256").setBuffer(cert));
               /*
@@ -82,7 +86,10 @@ public class AuthenticationVerticle extends AbstractVerticle {
                   config().getBoolean("jwtIgnoreExpiry") != null
                       && config().getBoolean("jwtIgnoreExpiry");
               if (jwtIgnoreExpiry) {
-                jwtAuthOptions.getJWTOptions().setIgnoreExpiration(true);
+                jwtAuthOptions
+                    .getJWTOptions()
+                    .setIgnoreExpiration(true)
+                    .setLeeway(config().getInteger(LEE_WAY));
                 LOGGER.warn(
                     "JWT ignore expiration set to true, do not set IgnoreExpiration in production!!");
               }

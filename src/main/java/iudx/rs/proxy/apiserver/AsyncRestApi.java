@@ -57,6 +57,7 @@ public class AsyncRestApi {
   private final MeteringService meteringService;
   private final ConsentLoggingService consentLoggingService;
   private final ParamsValidator validator;
+  boolean isTimeLimitEnabled;
   private CacheService cacheService;
   private boolean isAdexInstance;
   private Api api;
@@ -73,6 +74,7 @@ public class AsyncRestApi {
     this.validator = new ParamsValidator(cacheService);
     this.api = api;
     isAdexInstance = config.getBoolean("isAdexInstance");
+    this.isTimeLimitEnabled = config.getBoolean("isTimeLimitEnabled");
   }
 
   Router init() {
@@ -174,7 +176,7 @@ public class AsyncRestApi {
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            QueryMapper queryMapper = new QueryMapper(routingContext);
+            QueryMapper queryMapper = new QueryMapper(routingContext, isTimeLimitEnabled);
             JsonObject json = queryMapper.toJson(ngsildquery, true, true);
             if (json.containsKey(ERROR)) {
               LOGGER.error(json.getString(ERROR));

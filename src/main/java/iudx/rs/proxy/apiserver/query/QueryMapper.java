@@ -23,13 +23,15 @@ import org.apache.logging.log4j.Logger;
 public class QueryMapper {
 
   private static final Logger LOGGER = LogManager.getLogger(QueryMapper.class);
+  private final boolean isTimeLimitEnabled;
   private boolean isTemporal = false;
   private boolean isAttributeSearch = false;
   private boolean isGeoSearch = false;
   private RoutingContext context;
 
-  public QueryMapper(RoutingContext context) {
+  public QueryMapper(RoutingContext context, boolean isTimeLimitEnabled) {
     this.context = context;
+    this.isTimeLimitEnabled = isTimeLimitEnabled;
   }
 
   public JsonObject toJson(NGSILDQueryParams params, boolean isTemporal) {
@@ -92,7 +94,7 @@ public class QueryMapper {
         }
         LOGGER.debug("Info : json " + geoJson);
       } else {
-        json.put(ERROR,INVALID_GEO_PARAM_URN);
+        json.put(ERROR, INVALID_GEO_PARAM_URN);
         DxRuntimeException ex =
             new DxRuntimeException(
                 BAD_REQUEST.getValue(),
@@ -198,15 +200,19 @@ public class QueryMapper {
     } else if (timeRel.equalsIgnoreCase("before")) {
 
     }
-    if (!isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
-      isValid = false;
-      DxRuntimeException ex =
-          new DxRuntimeException(
-              BAD_REQUEST.getValue(),
-              INVALID_TEMPORAL_PARAM_URN,
-              "time interval greater than 10 days is not allowed");
-      this.context.fail(400, ex);
+    LOGGER.debug("isTimeLimitEnabled : {}", isTimeLimitEnabled);
+    if (isTimeLimitEnabled) {
+      if (!isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+        isValid = false;
+        DxRuntimeException ex =
+            new DxRuntimeException(
+                BAD_REQUEST.getValue(),
+                INVALID_TEMPORAL_PARAM_URN,
+                "time interval greater than 10 days is not allowed");
+        this.context.fail(400, ex);
+      }
     }
+
     if (isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC) {
       isValid = false;
       DxRuntimeException ex =
@@ -215,7 +221,6 @@ public class QueryMapper {
               INVALID_TEMPORAL_PARAM_URN,
               "time interval greater than 365 days is not allowed");
       context.fail(400, ex);
-
     }
     return isValid;
   }
