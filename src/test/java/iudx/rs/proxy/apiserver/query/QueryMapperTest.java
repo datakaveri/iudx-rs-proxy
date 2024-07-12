@@ -37,10 +37,11 @@ class QueryMapperTest {
     private QueryMapper qm;
     @Mock
     RoutingContext context;
+    boolean isTimeLimitEnabled = true;
 
     @BeforeEach
     public void setup(Vertx vertx, VertxTestContext testContext) {
-        qm = new QueryMapper(context);
+        qm = new QueryMapper(context, isTimeLimitEnabled);
         testContext.completeNow();
     }
 

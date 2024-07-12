@@ -324,6 +324,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     HttpServerResponse response = routingContext.response();
     MultiMap params = getQueryParams(routingContext, response).get();
     MultiMap headerParams = request.headers();
+    boolean isTimeLimitEnabled = config().getBoolean(IS_TIME_LIMIT_ENABLED);
     Future<Boolean> validationResult = validator.validate(params);
     validationResult.onComplete(
         validationHandler -> {
@@ -337,7 +338,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                       "Temporal parameters are not allowed in entities query.");
               routingContext.fail(ex);
             }
-            QueryMapper queryMapper = new QueryMapper(routingContext);
+            QueryMapper queryMapper = new QueryMapper(routingContext,isTimeLimitEnabled);
             JsonObject json = queryMapper.toJson(ngsildQuery, false);
             if (json.containsKey(ERROR)) {
               return;
@@ -394,11 +395,12 @@ public class ApiServerVerticle extends AbstractVerticle {
     String instanceId = request.getHeader(HEADER_HOST);
     MultiMap params = getQueryParams(routingContext, response).get();
     Future<Boolean> validationResult = validator.validate(params);
+    boolean isTimeLimitEnabled = config().getBoolean(IS_TIME_LIMIT_ENABLED);
     validationResult.onComplete(
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(params);
-            QueryMapper queryMapper = new QueryMapper(routingContext);
+            QueryMapper queryMapper = new QueryMapper(routingContext, isTimeLimitEnabled);
             JsonObject json = queryMapper.toJson(ngsildquery, true);
             if (json.containsKey(ERROR)) {
               LOGGER.error(json.getString(ERROR));
@@ -710,11 +712,12 @@ public class ApiServerVerticle extends AbstractVerticle {
     MultiMap headerParams = request.headers();
     MultiMap params = getQueryParams(routingContext, response).get();
     Future<Boolean> validationResult = validator.validate(requestJson);
+    boolean isTimeLimitEnabled = config().getBoolean(IS_TIME_LIMIT_ENABLED);
     validationResult.onComplete(
         validationHandler -> {
           if (validationHandler.succeeded()) {
             NGSILDQueryParams ngsildquery = new NGSILDQueryParams(requestJson);
-            QueryMapper queryMapper = new QueryMapper(routingContext);
+            QueryMapper queryMapper = new QueryMapper(routingContext, isTimeLimitEnabled);
             JsonObject json = queryMapper.toJson(ngsildquery, requestJson.containsKey("temporalQ"));
             if (json.containsKey(ERROR)) {
               return;

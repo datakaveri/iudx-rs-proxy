@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "a4127943-5452-4aea-a843-701ffd05d29b",
+		"_postman_id": "cb5954ea-4364-45be-89c2-851354c0d5b7",
 		"name": "TEST-SERVER-ADEXX-RS-PROXY-APIs Final NEW",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20457128"
 	},
 	"item": [
 		{
@@ -13062,78 +13063,6 @@
 									"key": "endtime",
 									"value": "2020-09-19T14:20:00Z",
 									"disabled": true
-								},
-								{
-									"key": "q",
-									"value": "Ppbno=={{ppbNumber}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "400 (Bad request) invalid interval",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code\r",
-									"pm.test(\"response is 400 (Bad request)\", function () {\r",
-									"    pm.response.to.have.status(400);\r",
-									"});\r",
-									"\r",
-									"// Test the response header\r",
-									"pm.test(\"Check response header\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
-									"});\r",
-									"\r",
-									"// Test the response\r",
-									"pm.test(\"Check response body\", function () {    \r",
-									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Bad Request\");\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "token",
-								"value": "{{personalResourceToken_pune}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/{{basePath}}/temporal/entities?id=b58da193-23d9-43eb-b98a-a103d4b6103c&timerel=during&time=2020-09-01T14:20:00Z&endtime=2020-09-19T14:20:00Z&q=Ppbno=={{ppbNumber}}",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"{{basePath}}",
-								"temporal",
-								"entities"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "b58da193-23d9-43eb-b98a-a103d4b6103c"
-								},
-								{
-									"key": "timerel",
-									"value": "during"
-								},
-								{
-									"key": "time",
-									"value": "2020-09-01T14:20:00Z"
-								},
-								{
-									"key": "endtime",
-									"value": "2020-09-19T14:20:00Z"
 								},
 								{
 									"key": "q",
