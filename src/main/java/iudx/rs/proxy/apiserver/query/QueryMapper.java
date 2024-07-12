@@ -201,19 +201,22 @@ public class QueryMapper {
 
     }
     LOGGER.debug("isTimeLimitEnabled : {}", isTimeLimitEnabled);
-    if (isTimeLimitEnabled) {
-      if (!isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
-        isValid = false;
-        DxRuntimeException ex =
-            new DxRuntimeException(
-                BAD_REQUEST.getValue(),
-                INVALID_TEMPORAL_PARAM_URN,
-                "time interval greater than 10 days is not allowed");
-        this.context.fail(400, ex);
-      }
+
+    if (isTimeLimitEnabled
+        && !isAsyncQuery
+        && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED) {
+      isValid = false;
+      DxRuntimeException ex =
+          new DxRuntimeException(
+              BAD_REQUEST.getValue(),
+              INVALID_TEMPORAL_PARAM_URN,
+              "time interval greater than 10 days is not allowed");
+      this.context.fail(400, ex);
     }
 
-    if (isAsyncQuery && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC) {
+    if (isTimeLimitEnabled
+        && isAsyncQuery
+        && totalDaysAllowed > VALIDATION_MAX_DAYS_INTERVAL_ALLOWED_FOR_ASYNC) {
       isValid = false;
       DxRuntimeException ex =
           new DxRuntimeException(

@@ -74,7 +74,7 @@ public class AsyncRestApi {
     this.validator = new ParamsValidator(cacheService);
     this.api = api;
     isAdexInstance = config.getBoolean("isAdexInstance");
-    this.isTimeLimitEnabled = config.getBoolean("isTimeLimitEnabled");
+    this.isTimeLimitEnabled = config.getBoolean(IS_TIME_LIMIT_ENABLED);
   }
 
   Router init() {

@@ -324,7 +324,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     HttpServerResponse response = routingContext.response();
     MultiMap params = getQueryParams(routingContext, response).get();
     MultiMap headerParams = request.headers();
-    boolean isTimeLimitEnabled = config().getBoolean("isTimeLimitEnabled");
+    boolean isTimeLimitEnabled = config().getBoolean(IS_TIME_LIMIT_ENABLED);
     Future<Boolean> validationResult = validator.validate(params);
     validationResult.onComplete(
         validationHandler -> {
@@ -395,7 +395,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     String instanceId = request.getHeader(HEADER_HOST);
     MultiMap params = getQueryParams(routingContext, response).get();
     Future<Boolean> validationResult = validator.validate(params);
-    boolean isTimeLimitEnabled = config().getBoolean("isTimeLimitEnabled");
+    boolean isTimeLimitEnabled = config().getBoolean(IS_TIME_LIMIT_ENABLED);
     validationResult.onComplete(
         validationHandler -> {
           if (validationHandler.succeeded()) {
@@ -712,7 +712,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     MultiMap headerParams = request.headers();
     MultiMap params = getQueryParams(routingContext, response).get();
     Future<Boolean> validationResult = validator.validate(requestJson);
-    boolean isTimeLimitEnabled = config().getBoolean("isTimeLimitEnabled");
+    boolean isTimeLimitEnabled = config().getBoolean(IS_TIME_LIMIT_ENABLED);
     validationResult.onComplete(
         validationHandler -> {
           if (validationHandler.succeeded()) {
