@@ -15,6 +15,8 @@ public class Api {
   private StringBuilder asyncPath;
   private StringBuilder asyncSearchEndPoint;
   private StringBuilder asyncStatusEndPoint;
+  private StringBuilder summaryEndPoint;
+  private StringBuilder overviewEndPoint;
 
   private Api(String dxApiBasePath) {
     this.dxApiBasePath = dxApiBasePath;
@@ -42,6 +44,8 @@ public class Api {
     asyncPath = new StringBuilder(dxApiBasePath).append(ASYNC);
     asyncSearchEndPoint = new StringBuilder(dxApiBasePath).append(ASYNC + SEARCH);
     asyncStatusEndPoint = new StringBuilder(dxApiBasePath).append(ASYNC + STATUS);
+    overviewEndPoint = new StringBuilder(dxApiBasePath).append(MONTHLY_OVERVIEW);
+    summaryEndPoint = new StringBuilder(dxApiBasePath).append(SUMMARY_ENDPOINT);
   }
 
   public String getEntitiesEndpoint() {
@@ -78,5 +82,13 @@ public class Api {
 
   public String getAsyncStatusEndpoint() {
     return asyncStatusEndPoint.toString();
+  }
+
+  public String getSummaryEndPoint() {
+    return summaryEndPoint.toString();
+  }
+
+  public String getOverviewEndPoint() {
+    return overviewEndPoint.toString();
   }
 }

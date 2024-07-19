@@ -1,5 +1,6 @@
 package iudx.rs.proxy.metering;
 
+import static iudx.rs.proxy.common.Constants.CACHE_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.METERING_SERVICE_ADDRESS;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_IP;
 import static iudx.rs.proxy.metering.util.Constants.DATABASE_NAME;
@@ -13,6 +14,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
+import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.common.Api;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +33,7 @@ public class MeteringVerticle extends AbstractVerticle {
   private MessageConsumer<JsonObject> consumer;
   private MeteringService metering;
   private Api api;
+  private CacheService cacheService;
 
   @Override
   public void start() throws Exception {
@@ -51,9 +54,9 @@ public class MeteringVerticle extends AbstractVerticle {
     propObj.put(DATABASE_PASSWORD, databasePassword);
     propObj.put(POOL_SIZE, poolSize);
     api = Api.getInstance(config().getString("dxApiBasePath"));
-
+    this.cacheService = CacheService.createProxy(vertx, CACHE_SERVICE_ADDRESS);
     binder = new ServiceBinder(vertx);
-    metering = new MeteringServiceImpl(propObj, vertx, api);
+    metering = new MeteringServiceImpl(propObj, vertx, api,cacheService);
     consumer =
         binder.setAddress(METERING_SERVICE_ADDRESS).register(MeteringService.class, metering);
     LOGGER.info("Metering Verticle Started");

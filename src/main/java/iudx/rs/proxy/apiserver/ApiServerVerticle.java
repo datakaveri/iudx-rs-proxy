@@ -5,8 +5,7 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.*;
-import static iudx.rs.proxy.common.HttpStatusCode.BAD_REQUEST;
-import static iudx.rs.proxy.common.HttpStatusCode.NOT_FOUND;
+import static iudx.rs.proxy.common.HttpStatusCode.*;
 import static iudx.rs.proxy.common.ResponseUrn.*;
 import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
@@ -160,6 +159,25 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
         .handler(this::contextBodyCall)
         .handler(this::handlePostEntitiesQuery)
+        .failureHandler(validationsFailureHandler);
+
+    router
+        .get(apis.getOverviewEndPoint())
+        .handler(TokenDecodeHandler.create(vertx))
+        .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+        .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
+        .handler(this::getMonthlyOverview)
+        .failureHandler(validationsFailureHandler);
+
+    // Metering Summary
+    router
+        .get(apis.getSummaryEndPoint())
+        .handler(TokenDecodeHandler.create(vertx))
+        .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
+        .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::contextBodyCall)
+        .handler(this::getAllSummaryHandler)
         .failureHandler(validationsFailureHandler);
 
     /* Static Resource Handler */
@@ -338,7 +356,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                       "Temporal parameters are not allowed in entities query.");
               routingContext.fail(ex);
             }
-            QueryMapper queryMapper = new QueryMapper(routingContext,isTimeLimitEnabled);
+            QueryMapper queryMapper = new QueryMapper(routingContext, isTimeLimitEnabled);
             JsonObject json = queryMapper.toJson(ngsildQuery, false);
             if (json.containsKey(ERROR)) {
               return;
@@ -752,6 +770,85 @@ public class ApiServerVerticle extends AbstractVerticle {
             LOGGER.error("Fail: Bad request");
             handleResponse(
                 response, BAD_REQUEST, INVALID_PARAM_URN, validationHandler.cause().getMessage());
+          }
+        });
+  }
+
+  private void getMonthlyOverview(RoutingContext routingContext) {
+    HttpServerRequest request = routingContext.request();
+    LOGGER.trace("Info: getMonthlyOverview Started.");
+    JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
+    authInfo.put(STARTT, request.getParam(STARTT));
+    authInfo.put(ENDT, request.getParam(ENDT));
+    HttpServerResponse response = routingContext.response();
+
+    String iid = authInfo.getString("iid");
+    String role = authInfo.getString("role");
+
+    if (!VALIDATION_ID_PATTERN.matcher(iid).matches()
+        && (role.equalsIgnoreCase("provider") || role.equalsIgnoreCase("delegate"))) {
+      JsonObject jsonResponse =
+          generateResponse(UNAUTHORIZED, UNAUTHORIZED_RESOURCE_URN, "Not Authorized");
+      response
+          .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+          .setStatusCode(401)
+          .end(jsonResponse.toString());
+      return;
+    }
+
+    meteringService.monthlyOverview(
+        authInfo,
+        handler -> {
+          if (handler.succeeded()) {
+            LOGGER.debug("Successful");
+            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+          } else {
+            LOGGER.error("Fail: Bad request");
+            processBackendResponse(response, handler.cause().getMessage());
+          }
+        });
+  }
+
+  private void getAllSummaryHandler(RoutingContext routingContext) {
+    LOGGER.trace("Info: getAllSummary Started.");
+    HttpServerRequest request = routingContext.request();
+    JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
+    authInfo.put(STARTT, request.getParam(STARTT));
+    authInfo.put(ENDT, request.getParam(ENDT));
+    LOGGER.debug("auth info = " + authInfo);
+    HttpServerResponse response = routingContext.response();
+
+    String iid = authInfo.getString("iid");
+    String role = authInfo.getString("role");
+
+    if (!VALIDATION_ID_PATTERN.matcher(iid).matches()
+        && (role.equalsIgnoreCase("provider") || role.equalsIgnoreCase("delegate"))) {
+      JsonObject jsonResponse =
+          generateResponse(UNAUTHORIZED, UNAUTHORIZED_RESOURCE_URN, "Not Authorized");
+      response
+          .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+          .setStatusCode(401)
+          .end(jsonResponse.toString());
+      return;
+    }
+
+    meteringService.summaryOverview(
+        authInfo,
+        handler -> {
+          if (handler.succeeded()) {
+            JsonObject jsonObject = handler.result();
+            String checkType = jsonObject.getString("type");
+            if (checkType.equalsIgnoreCase("204")) {
+              handleSuccessResponse(
+                  response, ResponseType.NoContent.getCode(), handler.result().toString());
+            } else {
+              LOGGER.debug("Successful");
+              handleSuccessResponse(
+                  response, ResponseType.Ok.getCode(), handler.result().toString());
+            }
+          } else {
+            LOGGER.error("Fail: Bad request");
+            processBackendResponse(response, handler.cause().getMessage());
           }
         });
   }

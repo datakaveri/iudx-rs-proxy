@@ -43,6 +43,8 @@ info:
           -  /async/status
           -  /consumer/audit
           -  /provider/audit
+          -  /overview
+          -  /summary
           <br>
     - **Request Samples**:
       - The `<tokeValue>` in the header of request sample could be replaced with respective token value [Also refer Tokens section [here](#section/Tokens)]
@@ -107,7 +109,7 @@ tags:
   - name: Metering
     x-display: "Metering/Audit"
     description: |
-      Metering APIs provide the ability to the user (Consumer/Provider) to query the audit data using temporal & resource-id query
+      Metering APIs provide the ability to the user (Consumer/Provider) to query the audit data using temporal & resource-id query. Access Summary API is an extension of Metering API to provide summary and overview details.
 
 servers:
   - url: 'https://example-proxy.com/ngsi-ld/v1'
@@ -1317,6 +1319,130 @@ paths:
           description: 'Resource not found'
       description: Provider API can be used by a user having provider token to get audit details of API's.
 
+  /summary:
+    get:
+      tags:
+        - Metering
+      summary: summary details
+      operationId: summary details
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: starttime
+          in: query
+          description: 'This parameter specifies the <b>start time</b> for the summary-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          schema:
+            type: string
+        - name: endtime
+          in: query
+          description: 'This parameter specifies the <b>end time</b> for the summary-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'get query'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/summary?starttime=2022-11-20T14:20:00Z&endtime=2023-01-24T14:20:00Z' \
+            --header 'token: <tokenValue>'
+
+      responses:
+        200:
+          description: 'Summary details fetched successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/summaryApiResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/summaryBadRequestErrorResponse"
+          description: 'Bad request'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/summaryInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        204:
+          description: 'Empty Response'
+      description:  Summary API is used to get summary details and count for a given resource within the given time frame. The consumer could provide `starttime` and `endtime` and get the frequency usage of the resources.
+
+  /overview:
+    get:
+      tags:
+        - Metering
+      summary: overview
+      operationId: overview
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: starttime
+          in: query
+          description: 'This parameter specifies the <b>start time</b> for the overview-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          schema:
+            type: string
+        - name: endtime
+          in: query
+          description: 'This parameter specifies the <b>end time</b> for the overview-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          schema:
+            type: string
+
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'get query'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/overview?starttime=2022-11-20T14:20:00Z&endtime=2022-12-24T14:20:00Z' \
+            --header 'token: <tokenValue>'
+
+      responses:
+        200:
+          description: 'Overview details fetched successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/overviewApiResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/summaryBadRequestErrorResponse"
+          description: 'Bad request'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/summaryInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+      description: Overview API is used to get count based on month. Without parameter it will return last 12 months count data. This responds the number of times the API requests are made from DX Resource Server within the given time frame when the user specifies `starttime` and `endtime`.
+
+
 
 components:
 
@@ -2008,3 +2134,87 @@ components:
             "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
           }
         ]
+
+    summaryApiResponse:
+      title: summaryresponse
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "resourceid": "UUID",
+            "resource_label": "description",
+            "publisher": "pune-env-flood",
+            "publisher_id": "UUID",
+            "city": "pune",
+            "count": 19
+          }
+        ]
+
+    overviewApiResponse:
+      title: overview response
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "month": "november",
+            "year": "2022",
+            "counts": 19
+          },
+          {
+            "month": "december",
+            "year": "2022",
+            "counts": 156
+          }
+        ]
+
+    summaryBadRequestErrorResponse:
+      title: adapterBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:backend
+        title: bad request
+        detail: bad request
+
+    summaryInvalidTokenErrorResponse:
+      title: standardInvalidTokenErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidAuthorizationToken
+        title: Not Authorized
+        detail: Not Authorized
