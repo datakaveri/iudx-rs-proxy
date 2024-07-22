@@ -41,7 +41,7 @@ public class DateValidation {
         zonedDateTimeDayDifference,
         zonedDateTimeMinuteDifference);
 
-    if (zonedDateTimeDayDifference < 0 || zonedDateTimeMinuteDifference <= 0) {
+    if (zonedDateTimeDayDifference < 0 || zonedDateTimeMinuteDifference < 0) {
       LOGGER.error(INVALID_DATE_DIFFERENCE);
       return new JsonObject().put(ERROR, INVALID_DATE_DIFFERENCE);
     }
