@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "cb5954ea-4364-45be-89c2-851354c0d5b7",
+    "_postman_id": "a48a4267-2c45-403c-a596-30fa7068c840",
     "name": "TEST-SERVER-ADEXX-RS-PROXY-APIs Final NEW",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "20457128"
@@ -741,7 +741,7 @@
               "script": {
                 "exec": [
                   "pm.test(\"response is 204 (no Content)\", function () {\r",
-                  "    // pm.response.to.have.status(204);\r",
+                  "     pm.response.to.have.status(204);\r",
                   "});\r",
                   ""
                 ],
@@ -19107,7 +19107,7 @@
             "header": [
               {
                 "key": "token",
-                "value": "{{delegateToken}}",
+                "value": "{{personalResourceToken_surat}}",
                 "type": "text"
               }
             ],
@@ -19327,7 +19327,7 @@
             "header": [
               {
                 "key": "token",
-                "value": "{{openResourceToken}}",
+                "value": "{{personalResourceToken_surat}}",
                 "type": "text"
               }
             ],
@@ -19375,7 +19375,7 @@
             "header": [
               {
                 "key": "token",
-                "value": "{{openResourceToken}}",
+                "value": "{{personalResourceToken_surat}}",
                 "type": "text"
               }
             ],
