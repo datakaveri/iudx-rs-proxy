@@ -51,23 +51,10 @@ public class Constants {
   public static final String TIME_NOT_FOUND = "Time interval not found.";
   public static final String USERID_NOT_FOUND = "User Id not found.";
   public static final String INVALID_DATE_TIME = "invalid date-time";
-  public static final String INVALID_PROVIDER_ID = "invalid provider id.";
-  public static final String INVALID_PROVIDER_REQUIRED = "provider id required.";
-  public static final String INVALID_DATE_DIFFERENCE =
-      "Difference between dates cannot be greater than 14 days or less than zero day.";
 
   public static final String API = "api";
   public static final String USER_ID = "userid";
-
-  public static final String RESPONSE_LIMIT_EXCEED = "Requested time range exceeds response limit";
   public static final String TOTAL_HITS = "totalHits";
-  public static final StringBuilder COUNT_COLUMN = new StringBuilder("col0)");
-  public static final StringBuilder RESOURCE_ID_COLUMN = new StringBuilder("resourceid)");
-  public static final StringBuilder API_COLUMN = new StringBuilder("api)");
-  public static final StringBuilder USERID_COLUMN = new StringBuilder("userid)");
-  public static final StringBuilder TIME_COLUMN = new StringBuilder("isotime)");
-  public static final StringBuilder RESPONSE_SIZE_COLUMN = new StringBuilder("size)");
-  public static final StringBuilder ID_COLUMN = new StringBuilder("id)");
   public static final String CONSUMERID_TIME_INTERVAL_COUNT_QUERY =
       "SELECT count(*) FROM $0 where time between '$1' and '$2' and userid='$3'";
 
@@ -79,4 +66,34 @@ public class Constants {
 
   public static final String PROVIDERID_TIME_INTERVAL_READ_QUERY =
       "SELECT * FROM $0 where time between '$1' and '$2' and providerid='$3'";
+
+  public static final String INVALID_DATE_DIFFERENCE =
+      "Difference between dates cannot be less than 1 Minute.";
+  public static final String ROLE = "role";
+
+  public static final String OVERVIEW_QUERY =
+      "SELECT month,year,COALESCE(counts, 0) as counts\n"
+          + "FROM  (\n"
+          + "   SELECT day::date ,to_char(date_trunc('month', day),'FMmonth') as month"
+          + ",extract('year' from day) as year\n"
+          + "   FROM   generate_series(timestamp '$0'\n"
+          + "                        , timestamp '$1'\n"
+          + "                        , interval  '1 month') day\n"
+          + "   ) d\n"
+          + "LEFT  JOIN (\n"
+          + "   SELECT date_trunc('month', time)::date AS day\n"
+          + "        , count(api) as counts \n"
+          + "   FROM   auditing_rs\n"
+          + "   WHERE  time between '$2'\n"
+          + "   AND '$3'\n";
+
+  public static final String GROUPBY =
+      "\n" + "   GROUP  BY 1\n" + "   ) t USING (day)\n" + "ORDER  BY day";
+  public static final String SUMMARY_QUERY_FOR_METERING =
+      "select resourceid,count(*) from auditing_rs ";
+  public static final String GROUPBY_RESOURCEID = " group by resourceid";
+  public static final String USERID_SUMMARY = " and userid = '$9' ";
+  public static final String USERID_SUMMARY_WITHOUT_TIME = " userid = '$9' ";
+  public static final String PROVIDERID_SUMMARY = " and providerid = '$8' ";
+  public static final String PROVIDERID_SUMMARY_WITHOUT_TIME = " providerid = '$8' ";
 }

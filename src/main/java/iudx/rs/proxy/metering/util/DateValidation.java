@@ -1,46 +1,24 @@
 package iudx.rs.proxy.metering.util;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.ENDT;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.STARTT;
 import static iudx.rs.proxy.metering.util.Constants.*;
 
 import io.vertx.core.json.JsonObject;
-import iudx.rs.proxy.common.Api;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ParamsValidation {
-  private static final Logger LOGGER = LogManager.getLogger(ParamsValidation.class);
-  private Api api;
+public class DateValidation {
+  private static final Logger LOGGER = LogManager.getLogger(DateValidation.class);
 
-  public ParamsValidation(Api api) {
-    this.api = api;
-  }
-
-  public JsonObject paramsCheck(JsonObject request) {
-
-    if (request.getString(TIME_RELATION) == null
-        || !(request.getString(TIME_RELATION).equals(DURING)
-            || request.getString(TIME_RELATION).equals(BETWEEN))) {
-      LOGGER.debug("Info: " + TIME_RELATION_NOT_FOUND);
-      return new JsonObject().put(ERROR, TIME_RELATION_NOT_FOUND);
-    }
-
-    if (request.getString(START_TIME) == null || request.getString(END_TIME) == null) {
-      LOGGER.debug("Info: " + TIME_NOT_FOUND);
-      return new JsonObject().put(ERROR, TIME_NOT_FOUND);
-    }
-
-    if (request.getString(USER_ID) == null || request.getString(USER_ID).isEmpty()) {
-      LOGGER.debug("Info: " + USERID_NOT_FOUND);
-      request.put(ERROR, USERID_NOT_FOUND);
-      return request;
-    }
+  public JsonObject dateParamCheck(JsonObject request) {
 
     // since + is treated as space in uri
-    String startTime = request.getString(START_TIME).trim().replaceAll("\\s", "+");
-    String endTime = request.getString(END_TIME).trim().replaceAll("\\s", "+");
+    String startTime = request.getString(STARTT).trim().replaceAll("\\s", "+");
+    String endTime = request.getString(ENDT).trim().replaceAll("\\s", "+");
 
     ZonedDateTime zdt;
     try {
@@ -67,8 +45,8 @@ public class ParamsValidation {
       LOGGER.error(INVALID_DATE_DIFFERENCE);
       return new JsonObject().put(ERROR, INVALID_DATE_DIFFERENCE);
     }
-    request.put(START_TIME, startTime);
-    request.put(END_TIME, endTime);
+    request.put(STARTT, startTime);
+    request.put(ENDT, endTime);
     return request;
   }
 

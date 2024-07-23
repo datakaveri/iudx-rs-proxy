@@ -268,6 +268,10 @@ public class AuthHandler implements Handler<RoutingContext> {
       path = api.getAsyncSearchEndPoint();
     } else if (url.matches(api.getAsyncStatusEndpoint())) {
       path = api.getAsyncStatusEndpoint();
+    } else if (url.matches(api.getSummaryEndPoint())) {
+      path = api.getSummaryEndPoint();
+    } else if (url.matches(api.getOverviewEndPoint())) {
+      path = api.getOverviewEndPoint();
     }
     return path;
   }

@@ -11,11 +11,11 @@ public class Constants {
           "/consumer/audit",
           "/entityOperations/query",
           "/async/search",
-          "/async/status");
+          "/async/status",
+          "/overview",
+          "/summary");
   public static final String LEE_WAY = "jwtLeeWay";
-  public static final String CAT_SEARCH_PATH = "/search";
   public static final String AUTH_CERTIFICATE_PATH = "/cert";
-  public static final String CAT_ITEM_PATH = "/item";
   public static final String JSON_USERID = "userid";
   public static final String JSON_IID = "iid";
   public static final String JSON_EXPIRY = "expiry";

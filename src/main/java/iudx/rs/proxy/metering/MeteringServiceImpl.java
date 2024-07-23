@@ -5,21 +5,31 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.TABLE_NAME;
 import static iudx.rs.proxy.common.Constants.DATABROKER_SERVICE_ADDRESS;
 import static iudx.rs.proxy.common.Constants.DB_SERVICE_ADDRESS;
 import static iudx.rs.proxy.metering.util.Constants.*;
+import static iudx.rs.proxy.metering.util.Constants.IID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.*;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
+import iudx.rs.proxy.cache.CacheService;
+import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.Api;
 import iudx.rs.proxy.common.Response;
 import iudx.rs.proxy.database.DatabaseService;
 import iudx.rs.proxy.databroker.DatabrokerService;
+import iudx.rs.proxy.metering.util.DateValidation;
 import iudx.rs.proxy.metering.util.ParamsValidation;
 import iudx.rs.proxy.metering.util.QueryBuilder;
 import iudx.rs.proxy.metering.util.ResponseBuilder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,20 +38,20 @@ public class MeteringServiceImpl implements MeteringService {
   private static final Logger LOGGER = LogManager.getLogger(MeteringServiceImpl.class);
   public static DatabrokerService rmqService;
   public static DatabaseService postgresService;
-  public final String _COUNT_COLUMN;
-  public final String _RESOURCE_ID_COLUMN;
-  public final String _API_COLUMN;
-  public final String _USERID_COLUMN;
-  public final String _TIME_COLUMN;
-  public final String _RESPONSE_SIZE_COLUMN;
-  public final String _ID_COLUMN;
   private final QueryBuilder queryBuilder = new QueryBuilder();
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final DateValidation dateValidation = new DateValidation();
+  private final CacheService cacheService;
   PgConnectOptions connectOptions;
   PoolOptions poolOptions;
   PgPool pool;
   JsonObject validationCheck = new JsonObject();
   int total;
+  String queryOverview;
+  String summaryOverview;
+  JsonArray jsonArray;
+  JsonArray resultJsonArray;
+  int loopi;
   private ParamsValidation validation;
   private JsonObject query = new JsonObject();
   private String databaseIp;
@@ -53,7 +63,8 @@ public class MeteringServiceImpl implements MeteringService {
   private String databaseTableName;
   private ResponseBuilder responseBuilder;
 
-  public MeteringServiceImpl(JsonObject propObj, Vertx vertxInstance, Api api) {
+  public MeteringServiceImpl(
+      JsonObject propObj, Vertx vertxInstance, Api api, CacheService cacheService) {
 
     if (propObj != null && !propObj.isEmpty()) {
       databaseIp = propObj.getString(DATABASE_IP);
@@ -82,21 +93,8 @@ public class MeteringServiceImpl implements MeteringService {
     if (postgresService == null) {
       postgresService = DatabaseService.createProxy(vertxInstance, DB_SERVICE_ADDRESS);
     }
-    _COUNT_COLUMN =
-        COUNT_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
-    _RESOURCE_ID_COLUMN =
-        RESOURCE_ID_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
-    _API_COLUMN =
-        API_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
-    _USERID_COLUMN =
-        USERID_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
-    _TIME_COLUMN =
-        TIME_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
-    _RESPONSE_SIZE_COLUMN =
-        RESPONSE_SIZE_COLUMN
-            .insert(0, "(" + databaseName + "." + databaseTableName + ".")
-            .toString();
-    _ID_COLUMN = ID_COLUMN.insert(0, "(" + databaseName + "." + databaseTableName + ".").toString();
+    this.cacheService = cacheService;
+    LOGGER.info("cache service created" + cacheService);
   }
 
   @Override
@@ -248,6 +246,219 @@ public class MeteringServiceImpl implements MeteringService {
             promise.fail(dbHandler.cause().getMessage());
           }
         });
+
+    return promise.future();
+  }
+
+  @Override
+  public MeteringService monthlyOverview(
+      JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
+    String startTime = request.getString(STARTT);
+    String endTime = request.getString(ENDT);
+    if (startTime != null && endTime == null || startTime == null && endTime != null) {
+      handler.handle(Future.failedFuture("Bad Request"));
+    }
+    if (startTime != null && endTime != null) {
+      validationCheck = dateValidation.dateParamCheck(request);
+
+      if (validationCheck != null && validationCheck.containsKey(ERROR)) {
+        responseBuilder =
+            new ResponseBuilder("failed")
+                .setTypeAndTitle(400)
+                .setMessage(validationCheck.getString(ERROR));
+        handler.handle(Future.failedFuture(responseBuilder.getResponse().toString()));
+        return this;
+      }
+    }
+
+    String role = request.getString(ROLE);
+    if (role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("consumer")) {
+      queryOverview = queryBuilder.buildMonthlyOverview(request);
+      LOGGER.debug("query Overview =" + queryOverview);
+      JsonObject query = new JsonObject().put(QUERY_KEY, queryOverview);
+      Future<JsonObject> result = executeQueryDatabaseOperation(query);
+      result.onComplete(
+          handlers -> {
+            if (handlers.succeeded()) {
+              LOGGER.debug("Count return Successfully");
+              handler.handle(Future.succeededFuture(handlers.result()));
+            } else {
+              LOGGER.debug("Could not read from DB : " + handlers.cause());
+              handler.handle(Future.failedFuture(handlers.cause().getMessage()));
+            }
+          });
+    } else if (role.equalsIgnoreCase("provider") || role.equalsIgnoreCase("delegate")) {
+      String resourceId = request.getString(IID);
+      JsonObject jsonObject =
+          new JsonObject().put("type", CacheType.CATALOGUE_CACHE).put("key", resourceId);
+
+      cacheService
+          .get(jsonObject)
+          .onSuccess(
+              providerHandler -> {
+                String providerId = providerHandler.getString("provider");
+                request.put("providerid", providerId);
+
+                queryOverview = queryBuilder.buildMonthlyOverview(request);
+                LOGGER.debug("query Overview =" + queryOverview);
+                JsonObject query = new JsonObject().put(QUERY_KEY, queryOverview);
+                Future<JsonObject> result = executeQueryDatabaseOperation(query);
+                result.onComplete(
+                    handlers -> {
+                      if (handlers.succeeded()) {
+                        LOGGER.debug("Count return Successfully");
+                        handler.handle(Future.succeededFuture(handlers.result()));
+                      } else {
+                        LOGGER.debug("Could not read from DB : " + handlers.cause());
+                        handler.handle(Future.failedFuture(handlers.cause().getMessage()));
+                      }
+                    });
+              })
+          .onFailure(fail -> LOGGER.debug(fail.getMessage()));
+    }
+    return this;
+  }
+
+  @Override
+  public MeteringService summaryOverview(
+      JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
+    String startTime = request.getString(STARTT);
+    String endTime = request.getString(ENDT);
+    if (startTime != null && endTime == null || startTime == null && endTime != null) {
+      handler.handle(Future.failedFuture("Bad Request"));
+    }
+    if (startTime != null && endTime != null) {
+      validationCheck = dateValidation.dateParamCheck(request);
+
+      if (validationCheck != null && validationCheck.containsKey(ERROR)) {
+        responseBuilder =
+            new ResponseBuilder("failed")
+                .setTypeAndTitle(400)
+                .setMessage(validationCheck.getString(ERROR));
+        handler.handle(Future.failedFuture(responseBuilder.getResponse().toString()));
+        return this;
+      }
+    }
+
+    String role = request.getString(ROLE);
+    if (role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("consumer")) {
+      summaryOverview = queryBuilder.buildSummaryOverview(request);
+      LOGGER.debug("summary query =" + summaryOverview);
+      JsonObject query = new JsonObject().put(QUERY_KEY, summaryOverview);
+      Future<JsonObject> result = executeQueryDatabaseOperation(query);
+      result.onComplete(
+          handlers -> {
+            if (handlers.succeeded()) {
+              jsonArray = handlers.result().getJsonArray("result");
+              if (jsonArray.size() == 0) {
+                responseBuilder =
+                    new ResponseBuilder("not found")
+                        .setTypeAndTitle(204)
+                        .setMessage("NO ID Present");
+                handler.handle(Future.succeededFuture(responseBuilder.getResponse()));
+              }
+              cacheCall(jsonArray)
+                  .onSuccess(
+                      resultHandler -> {
+                        JsonObject resultJson =
+                            new JsonObject()
+                                .put("type", "urn:dx:dm:Success")
+                                .put("title", "Success")
+                                .put("results", resultHandler);
+                        handler.handle(Future.succeededFuture(resultJson));
+                      });
+            } else {
+              LOGGER.debug("Could not read from DB : " + handlers.cause());
+              handler.handle(Future.failedFuture(handlers.cause().getMessage()));
+            }
+          });
+    } else if (role.equalsIgnoreCase("provider") || role.equalsIgnoreCase("delegate")) {
+      String resourceId = request.getString(IID);
+      JsonObject jsonObject =
+          new JsonObject().put("type", CacheType.CATALOGUE_CACHE).put("key", resourceId);
+      cacheService
+          .get(jsonObject)
+          .onSuccess(
+              providerHandler -> {
+                String providerId = providerHandler.getString("provider");
+                request.put("providerid", providerId);
+                summaryOverview = queryBuilder.buildSummaryOverview(request);
+                LOGGER.debug("summary query =" + summaryOverview);
+                JsonObject query = new JsonObject().put(QUERY_KEY, queryOverview);
+                Future<JsonObject> result = executeQueryDatabaseOperation(query);
+                result.onComplete(
+                    handlers -> {
+                      if (handlers.succeeded()) {
+                        jsonArray = handlers.result().getJsonArray("result");
+                        if (jsonArray.size() == 0) {
+                          responseBuilder =
+                              new ResponseBuilder("not found")
+                                  .setTypeAndTitle(204)
+                                  .setMessage("NO ID Present");
+                          handler.handle(Future.succeededFuture(responseBuilder.getResponse()));
+                        }
+                        cacheCall(jsonArray)
+                            .onSuccess(
+                                resultHandler -> {
+                                  JsonObject resultJson =
+                                      new JsonObject()
+                                          .put("type", "urn:dx:dm:Success")
+                                          .put("title", "Success")
+                                          .put("results", resultHandler);
+                                  handler.handle(Future.succeededFuture(resultJson));
+                                });
+                      } else {
+                        LOGGER.debug("Could not read from DB : " + handlers.cause());
+                        handler.handle(Future.failedFuture(handlers.cause().getMessage()));
+                      }
+                    });
+              })
+          .onFailure(
+              fail -> {
+                LOGGER.debug(fail.getMessage());
+                handler.handle(Future.failedFuture(fail.getMessage()));
+              });
+    }
+    return this;
+  }
+
+  public Future<JsonArray> cacheCall(JsonArray jsonArray) {
+    Promise<JsonArray> promise = Promise.promise();
+    HashMap<String, Integer> resourceCount = new HashMap<>();
+    resultJsonArray = new JsonArray();
+    List<Future> list = new ArrayList<>();
+
+    for (loopi = 0; loopi < jsonArray.size(); loopi++) {
+      JsonObject jsonObject =
+          new JsonObject()
+              .put("type", CacheType.CATALOGUE_CACHE)
+              .put("key", jsonArray.getJsonObject(loopi).getString("resourceid"));
+      resourceCount.put(
+          jsonArray.getJsonObject(loopi).getString("resourceid"),
+          Integer.valueOf(jsonArray.getJsonObject(loopi).getString("count")));
+
+      list.add(cacheService.get(jsonObject).recover(f -> Future.succeededFuture(null)));
+    }
+
+    CompositeFuture.join(list)
+        .map(CompositeFuture::list)
+        .map(result -> result.stream().filter(Objects::nonNull).collect(Collectors.toList()))
+        .onSuccess(
+            l -> {
+              for (int i = 0; i < l.size(); i++) {
+                JsonObject result = (JsonObject) l.get(i);
+                JsonObject outputFormat =
+                    new JsonObject()
+                        .put("resourceid", result.getString("id"))
+                        .put("resource_label", result.getString("description"))
+                        .put("publisher", result.getString("name"))
+                        .put("publisher_id", result.getString("provider"))
+                        .put("city", result.getString("instance"))
+                        .put("count", resourceCount.get(result.getString("id")));
+                resultJsonArray.add(outputFormat);
+              }
+              promise.complete(resultJsonArray);
+            });
 
     return promise.future();
   }

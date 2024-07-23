@@ -61,6 +61,10 @@ public class ApiServerConstants {
   // Async endpoints
   public static final String STATUS = "/status";
   public static final String SEARCH = "/search";
+  public static final String MONTHLY_OVERVIEW = "/overview";
+  public static final String SUMMARY_ENDPOINT = "/summary";
+  public static final String STARTT = "starttime";
+  public static final String ENDT = "endtime";
 
   public static final String API_ENDPOINT = "apiEndpoint";
   public static final String API_METHOD = "method";
