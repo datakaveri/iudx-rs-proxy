@@ -121,17 +121,13 @@ public class ApiServerVerticle extends AbstractVerticle {
     router
         .get(apis.getConsumerAuditEndpoint())
         .handler(TokenDecodeHandler.create(vertx))
-        .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
-        .handler(this::contextBodyCall)
         .handler(this::getConsumerAuditDetail);
 
     router
         .get(apis.getProviderAuditEndpoint())
         .handler(TokenDecodeHandler.create(vertx))
-        .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
-        .handler(this::contextBodyCall)
         .handler(this::getProviderAuditDetail);
 
     // Post Queries
@@ -164,9 +160,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     router
         .get(apis.getOverviewEndPoint())
         .handler(TokenDecodeHandler.create(vertx))
-        .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
-        .handler(this::contextBodyCall)
         .handler(this::getMonthlyOverview)
         .failureHandler(validationsFailureHandler);
 
@@ -174,9 +168,7 @@ public class ApiServerVerticle extends AbstractVerticle {
     router
         .get(apis.getSummaryEndPoint())
         .handler(TokenDecodeHandler.create(vertx))
-        .handler(new ConsentLogRequestHandler(vertx, isAdexInstance))
         .handler(AuthHandler.create(vertx, apis, isAdexInstance))
-        .handler(this::contextBodyCall)
         .handler(this::getAllSummaryHandler)
         .failureHandler(validationsFailureHandler);
 
