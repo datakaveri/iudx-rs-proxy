@@ -46,7 +46,6 @@ public class QueryMapper {
    * @return JsonObject result.
    */
   public JsonObject toJson(NGSILDQueryParams params, boolean isTemporal, boolean isAsyncQuery) {
-    LOGGER.debug("Info : params" + params);
     this.isTemporal = isTemporal;
     JsonObject json = new JsonObject();
     JsonObject geoJson = new JsonObject();
@@ -58,8 +57,13 @@ public class QueryMapper {
       json.put(JSON_ID, jsonArray);
       LOGGER.debug("Info : json " + json);
     }
-    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
-    JsonArray accessibleList = authInfo.getJsonArray(ACCESSIBLE_ATTRS, new JsonArray());
+
+    JsonObject authInfo;
+    JsonArray accessibleList = null;
+    if (context.data().get("authInfo") != null) {
+      authInfo = (JsonObject) context.data().get("authInfo");
+      accessibleList = authInfo.getJsonArray(ACCESSIBLE_ATTRS, new JsonArray());
+    }
 
     if (params.getAttrs() != null) {
       JsonArray jsonArray = new JsonArray();
