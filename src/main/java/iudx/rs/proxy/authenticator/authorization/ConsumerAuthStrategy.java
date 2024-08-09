@@ -3,7 +3,7 @@ package iudx.rs.proxy.authenticator.authorization;
 import static iudx.rs.proxy.authenticator.authorization.Method.GET;
 import static iudx.rs.proxy.authenticator.authorization.Method.POST;
 
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import iudx.rs.proxy.authenticator.model.JwtData;
 import iudx.rs.proxy.common.Api;
 import java.util.ArrayList;
@@ -56,7 +56,8 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
 
   @Override
   public boolean isAuthorized(AuthorizationRequest authRequest, JwtData jwtData) {
-    JsonArray access = jwtData.getCons() != null ? jwtData.getCons().getJsonArray("access") : null;
+    JsonObject access =
+        jwtData.getCons() != null ? jwtData.getCons().getJsonObject("access") : null;
     boolean result = false;
     if (access == null) {
       return result;
@@ -66,7 +67,7 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     LOGGER.debug("authorization request for : " + endpoint + " with method : " + method.name());
     LOGGER.debug("allowed access : " + access);
 
-    if (!result && access.contains(IudxAccess.API.getAccess())) {
+    if (!result && access.containsKey(IudxAccess.API.getAccess())) {
       result = consumerAuthorizationRules.get(IudxAccess.API.getAccess()).contains(authRequest);
     }
     if (!result) {

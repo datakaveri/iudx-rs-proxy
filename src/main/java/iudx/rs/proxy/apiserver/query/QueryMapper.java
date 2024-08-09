@@ -58,12 +58,30 @@ public class QueryMapper {
       json.put(JSON_ID, jsonArray);
       LOGGER.debug("Info : json " + json);
     }
+    JsonObject authInfo = (JsonObject) context.data().get("authInfo");
+    JsonArray accessibleList = authInfo.getJsonArray(ACCESSIBLE_ATTRS, new JsonArray());
+
     if (params.getAttrs() != null) {
       JsonArray jsonArray = new JsonArray();
       params.getAttrs().forEach(attribute -> jsonArray.add(attribute));
-      json.put(JSON_ATTRIBUTE_FILTER, jsonArray);
+
+      if (accessibleList != null && !accessibleList.isEmpty()) {
+        JsonArray commonValues = new JsonArray();
+        for (var element : jsonArray) {
+          if (accessibleList.contains(element)) {
+            commonValues.add(element);
+          }
+        }
+        json.put(JSON_ATTRIBUTE_FILTER, commonValues);
+      } else {
+        json.put(JSON_ATTRIBUTE_FILTER, jsonArray);
+      }
       LOGGER.debug("Info : json " + json);
+    } else {
+      LOGGER.debug("Info : json " + json);
+      json.put(JSON_ATTRIBUTE_FILTER, accessibleList);
     }
+
     if (isGeoQuery(params)) {
       LOGGER.debug("getGeoRel:" + params.getGeoRel().getRelation());
       LOGGER.debug("getCoordinates:" + params.getCoordinates());
