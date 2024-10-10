@@ -123,6 +123,7 @@ public class AuthHandler implements Handler<RoutingContext> {
   }
 
   private void processAuthFailure(RoutingContext ctx, String result) {
+    LOGGER.info("Failure : {}", result);
     if (result.contains("Not Found")) {
       LOGGER.error("Error : Item Not Found");
       HttpStatusCode statusCode = HttpStatusCode.getByValue(404);
@@ -272,7 +273,12 @@ public class AuthHandler implements Handler<RoutingContext> {
       path = api.getSummaryEndPoint();
     } else if (url.matches(api.getOverviewEndPoint())) {
       path = api.getOverviewEndPoint();
+    } else if (url.matches(api.getConnectorsPath())) {
+      path = api.getConnectorsPath();
+    } else if (url.matches(getpathRegex(api.getManagementBasePath()))) {
+      path = api.getManagementBasePath();
     }
+
     return path;
   }
 

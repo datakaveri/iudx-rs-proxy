@@ -21,6 +21,7 @@ public class ApiServerConstants {
   public static final String HEADER_JSON = "json";
   public static final String HEADER_PARQUET = "parquet";
   public static final String HEADER_RESPONSE_FILE_FORMAT = "format";
+  public static final String JSON_ALIAS = "alias";
 
   public static final Set<String> ALLOWED_HEADERS =
       new HashSet<>(
@@ -63,6 +64,8 @@ public class ApiServerConstants {
   public static final String SEARCH = "/search";
   public static final String MONTHLY_OVERVIEW = "/overview";
   public static final String SUMMARY_ENDPOINT = "/summary";
+  public static final String CONNECTORS = "/connector";
+  public static final String RESET_PWD = "/user/resetPassword";
   public static final String STARTT = "starttime";
   public static final String ENDT = "endtime";
 
