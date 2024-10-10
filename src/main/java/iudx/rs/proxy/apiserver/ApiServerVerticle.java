@@ -2,11 +2,14 @@ package iudx.rs.proxy.apiserver;
 
 import static iudx.rs.proxy.apiserver.response.ResponseUtil.generateResponse;
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.RequestType.POST_CONNECTOR;
 import static iudx.rs.proxy.apiserver.util.Util.errorResponse;
 import static iudx.rs.proxy.authenticator.Constants.*;
 import static iudx.rs.proxy.common.Constants.*;
 import static iudx.rs.proxy.common.HttpStatusCode.*;
 import static iudx.rs.proxy.common.ResponseUrn.*;
+import static iudx.rs.proxy.databroker.util.Constants.CONNECTOR_ID;
+import static iudx.rs.proxy.metering.util.Constants.DETAIL;
 import static iudx.rs.proxy.metering.util.Constants.ERROR;
 
 import io.netty.handler.codec.http.HttpConstants;
@@ -33,6 +36,7 @@ import iudx.rs.proxy.apiserver.handlers.*;
 import iudx.rs.proxy.apiserver.query.NGSILDQueryParams;
 import iudx.rs.proxy.apiserver.query.QueryMapper;
 import iudx.rs.proxy.apiserver.response.ResponseType;
+import iudx.rs.proxy.apiserver.util.ApiServerConstants;
 import iudx.rs.proxy.apiserver.util.RequestType;
 import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.cache.cacheImpl.CacheType;
@@ -179,6 +183,29 @@ public class ApiServerVerticle extends AbstractVerticle {
         .handler(this::contextBodyCall)
         .handler(this::getAllSummaryHandler)
         .failureHandler(validationsFailureHandler);
+
+    ValidationHandler postConnectorValidation = new ValidationHandler(vertx, POST_CONNECTOR);
+
+    router
+        .post(apis.getConnectorsPath())
+        .handler(postConnectorValidation)
+        .handler(TokenDecodeHandler.create(vertx))
+        .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::handlePostConnectors)
+        .failureHandler(validationsFailureHandler);
+
+    router
+        .delete(apis.getConnectorsPath())
+        .handler(TokenDecodeHandler.create(vertx))
+        .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::handleDeleteConnectors)
+        .failureHandler(validationsFailureHandler);
+
+    router
+        .post(dxApiBasePath + ApiServerConstants.RESET_PWD)
+        .handler(TokenDecodeHandler.create(vertx))
+        .handler(AuthHandler.create(vertx, apis, isAdexInstance))
+        .handler(this::resetPassword);
 
     /* Static Resource Handler */
     /* Get openapiv3 spec */
@@ -334,6 +361,81 @@ public class ApiServerVerticle extends AbstractVerticle {
     }
 
     return promise.future();
+  }
+
+  public void resetPassword(RoutingContext routingContext) {
+    LOGGER.trace("Info: resetPassword method started");
+
+    HttpServerResponse response = routingContext.response();
+    JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
+    LOGGER.debug("authInfo: " + authInfo);
+    String userid = authInfo.getString(USER_ID);
+    LOGGER.debug("userid : {}", userid);
+
+    brokerService.resetPassword(
+        userid, // "dummy-user",
+        handler -> {
+          if (handler.succeeded()) {
+            handleSuccessResponse(response, ResponseType.Ok.getCode(), handler.result().toString());
+          } else {
+            handleResponse(response, UNAUTHORIZED, INVALID_TOKEN_URN);
+          }
+        });
+  }
+
+  void handlePostConnectors(RoutingContext routingContext) {
+    LOGGER.trace("handleRegisterAdapter () started");
+    JsonObject requestJson = routingContext.body().asJsonObject();
+    HttpServerRequest request = routingContext.request();
+    HttpServerResponse response = routingContext.response();
+    String instanceId = request.getHeader(HEADER_HOST);
+    requestJson.put(JSON_INSTANCEID, instanceId);
+    JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
+    requestJson.put(USER_ID, authInfo.getString(USER_ID));
+    LOGGER.debug("authInfo: {}", authInfo);
+    String resourceId = requestJson.getJsonArray("entities").getJsonObject(0).getString(ID);
+    JsonObject newRequest = new JsonObject();
+    newRequest.put("resourceId", resourceId);
+    newRequest.put("userid", authInfo.getString(USER_ID));
+    brokerService.createConnector(
+        newRequest,
+        connectorHandler -> {
+          if (connectorHandler.succeeded()) {
+            LOGGER.info("success: [registerConnector]");
+            Future.future(fu -> updateAuditTable(routingContext));
+            handleSuccessResponse(
+                response, ResponseType.Created.getCode(), connectorHandler.result().toString());
+            routingContext.data().put(RESPONSE_SIZE, response.bytesWritten());
+            Future.future(fu -> updateAuditTable(routingContext));
+          } else {
+            processBackendResponse(response, connectorHandler.cause().getMessage());
+          }
+        });
+  }
+
+  void handleDeleteConnectors(RoutingContext routingContext) {
+    LOGGER.trace("handleDeleteConnectors () started");
+    HttpServerResponse response = routingContext.response();
+    MultiMap params = getQueryParams(routingContext, response).get();
+    String connectorId = params.get(ID);
+    JsonObject authInfo = (JsonObject) routingContext.data().get("authInfo");
+    JsonObject request = new JsonObject();
+    request.put(CONNECTOR_ID, connectorId);
+    request.put(USER_ID, authInfo.getString(USER_ID));
+    brokerService.deleteConnector(
+        request,
+        deleteHandler -> {
+          if (deleteHandler.succeeded()) {
+            LOGGER.info("success: [handleDeleteConnectors] " + deleteHandler);
+            handleSuccessResponse(
+                response, ResponseType.Ok.getCode(), deleteHandler.result().toString());
+            routingContext.data().put(RESPONSE_SIZE, response.bytesWritten());
+            Future.future(fu -> updateAuditTable(routingContext));
+          } else {
+            LOGGER.error("Error: Connector/Queue deletion failed");
+            processBackendResponse(response, deleteHandler.cause().getMessage());
+          }
+        });
   }
 
   private void handleEntitiesQuery(RoutingContext routingContext) {
@@ -495,6 +597,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setStatusCode(adapterResponse.getInteger("statusCode"))
                 .end(userResponse.toString());
+            Future.future(fu -> updateAuditTable(context));
           } else {
             LOGGER.error("Fail: Count Fail");
             response
@@ -602,22 +705,32 @@ public class ApiServerVerticle extends AbstractVerticle {
   }
 
   private void handleResponse(HttpServerResponse response, HttpStatusCode code, ResponseUrn urn) {
-    handleResponse(response, code, urn, code.getDescription());
+    handleResponse(response, code, urn, urn.getMessage());
   }
 
   private void processBackendResponse(HttpServerResponse response, String failureMessage) {
-    LOGGER.debug("Info : " + failureMessage);
+    LOGGER.debug("processBackendResponse : " + failureMessage);
     try {
       JsonObject json = new JsonObject(failureMessage);
       int type = json.getInteger(JSON_TYPE);
       HttpStatusCode status = HttpStatusCode.getByValue(type);
       String urnTitle = json.getString(JSON_TITLE);
+      String detail = json.getString(DETAIL);
       ResponseUrn urn;
       if (urnTitle != null) {
         urn = ResponseUrn.fromCode(urnTitle);
+        LOGGER.error("urn with urnTitle: " + urn.toString());
       } else {
         urn = ResponseUrn.fromCode(type + "");
+        LOGGER.error("urn without urnTitle: " + urn.toString());
       }
+      if (detail != null) {
+        response
+            .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .setStatusCode(type)
+            .end(generateResponse(status, urn, detail).toString());
+      }
+
       // return urn in body
       response
           .putHeader(CONTENT_TYPE, APPLICATION_JSON)

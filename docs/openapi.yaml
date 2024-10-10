@@ -45,6 +45,7 @@ info:
           -  /provider/audit
           -  /overview
           -  /summary
+          -  /connector
           <br>
     - **Request Samples**:
       - The `<tokeValue>` in the header of request sample could be replaced with respective token value [Also refer Tokens section [here](#section/Tokens)]
@@ -85,7 +86,6 @@ info:
     # API HTTP Responses
     Apart from the response codes specified in each API, the API server may respond with certain 4xx and 5xx error codes which are related to common API Gateway behaviours.
     The application should address them accordingly.
-
   contact:
     name: For support contact IUDX Team at
     email: support@iudx.org.in
@@ -112,20 +112,26 @@ tags:
     x-display: "Metering/Audit"
     description: |
       Metering APIs provide the ability to the user (Consumer/Provider) to query the audit data using temporal & resource-id query. Access Summary API is an extension of Metering API to provide summary and overview details.
+  - name: Async
+    x-display: "Async"
+    description: |
+      Async APIs provide the ability to the user to query resources using larger temporal period and greater spatial area.
+  - name: Connector
+    x-display: "Connector"
+    description: |
+      The Connector APIs provide users, whether acting as <b>Delegate</b> or <b>Provider</b>, with the ability to manage connectors within the DX(Rs-Proxy). These APIs simplify the creation and deletion of connectors, enabling seamless integration with the DX platform.
 
 servers:
   - url: 'https://example-proxy.com/ngsi-ld/v1'
     description: 'Development Server URL'
 
 paths:
-
   /entities:
     get:
       tags:
         - Spatial Entities
       operationId: Spatial Search
       parameters:
-
         - name: token
           in: header
           description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
@@ -134,7 +140,6 @@ paths:
             type: string
             maxLength: 512
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
-
         - name: id
           in: query
           description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
@@ -143,7 +148,6 @@ paths:
             type: string
             format: uuid
             maxLength: 36
-
         - name: geoproperty
           in: query
           description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
@@ -182,21 +186,18 @@ paths:
             maximum: 1000
           in: query
           required: false
-
         - name: q
           in: query
           description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
           schema:
             type: string
             maxLength: 512
-
         - name: attrs
           in: query
           description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
           schema:
             type: string
             maxLength: 512
-
         - name: options
           in: query
           description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a query. <br/> It should be used along with the <b> valid </b> `spatial`, `attribute` or `complex` queries. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
@@ -286,7 +287,6 @@ paths:
           source: |
             curl --location -g --request GET 'https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count' \
             --header 'token: <tokenValue>'
-
       deprecated: false
       description: |
         The `/entities` end point allows a consumer to query on data published based on a <b>spatial</b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange </b> `id` of the resource. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
@@ -358,16 +358,14 @@ paths:
       summary: Temporal Search
       operationId: temporal-entities
       parameters:
-
         - name: token
           in: header
-          description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
+          description: 'A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .'
           required: true
           schema:
             type: string
             maxLength: 512
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
-
         - name: id
           in: query
           description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
@@ -376,7 +374,6 @@ paths:
             type: string
             format: uuid
             maxLength: 36
-
         - name: timerel
           in: query
           description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
@@ -395,7 +392,6 @@ paths:
           description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
           schema:
             type: string
-
         - name: geoproperty
           in: query
           description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
@@ -434,21 +430,18 @@ paths:
             maximum: 1000
           in: query
           required: false
-
         - name: q
           in: query
           description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
           schema:
             type: string
             maxLength: 512
-
         - name: attrs
           in: query
           description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
           schema:
             type: string
             maxLength: 512
-
         - name: options
           in: query
           description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a spatial query. <br/> It should be used along with the <b> valid temporal query</b> or a <b> valid complex query</b>. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
@@ -536,8 +529,6 @@ paths:
           source: |
             curl --location -g --request GET 'https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count' \
             --header 'token: <tokenValue>'
-
-
       deprecated: false
       description: |
         The `/temporal/entities` end point allows a consumer to query on data published based on a <b>spatial</b>, <b>temporal</b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange</b> `id`  of the resource and a `temporal` parameter. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
@@ -616,7 +607,6 @@ paths:
       summary: Spatial search
       operationId: complex-query
       parameters:
-
         - name: token
           in: header
           description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
@@ -625,8 +615,6 @@ paths:
             type: string
             maxLength: 512
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
-
-
       x-codeSamples:
         - lang: 'cURL'
           label: 'Spatial complex query'
@@ -644,7 +632,6 @@ paths:
             --header 'publicKey: <publicKeyValue>' \
             --header 'Content-Type: application/json' \
             --data-raw '<payload>'
-
       requestBody:
         description: ''
         content:
@@ -661,7 +648,6 @@ paths:
                 georel: near;maxDistance=10
                 geoproperty: location
         required: true
-
       responses:
         200:
           description: 'Successful query'
@@ -753,7 +739,6 @@ paths:
           - It should be used along with the <b> valid </b> `temporal`, or `complex` queries. 
           - It <b>cannot</b> be used along with a <b>attrs</b> filter. 
           - The value should be equal to `count` and it is <b>case sensitive</b>
-
       deprecated: false
 
   /temporal/entityOperations/query:
@@ -763,17 +748,14 @@ paths:
       summary: Spatial + temporal search
       operationId: spatial-complex-query
       parameters:
-
         - name: token
           in: header
-          description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
+          description: 'A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .'
           required: true
           schema:
             type: string
             maxLength: 512
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
-
-
       x-codeSamples:
         - lang: 'cURL'
           label: 'Spatial + temporal complex query'
@@ -791,8 +773,6 @@ paths:
             --header 'publicKey: <publicKeyValue>' \
             --header 'Content-Type: application/json' \
             --data-raw '<payload>'
-
-
       requestBody:
         description: ''
         content:
@@ -817,7 +797,6 @@ paths:
               attrs: id,speed
 
         required: true
-
       responses:
         200:
           description: 'Successful query'
@@ -825,30 +804,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/entityresponse'
-        204:
-          description: 'Empty Response'
-
-        400:
+        '204':
+          description: Empty Response
+        '400':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardBadRequestErrorResponse"
-          description: 'Bad query'
-
-        401:
+                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+          description: Bad query
+        '401':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
-          description: 'Unauthorized'
-
-        404:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+          description: Unauthorized
+        '404':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
-          description: 'Resource not found'
-
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+          description: Resource not found
       description: |
         The `/temporal/entityOperations/query` end point allows a consumer to query on data published based on a <b>spatial</b>,<b> temporal </b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange</b> `id` of the resource within the `entities` json object as per the schema. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
 
@@ -926,7 +901,6 @@ paths:
       summary: Search
       operationId: async search
       parameters:
-
         - name: token
           in: header
           description: 'data exchange auth token for accessing the API'
@@ -1011,7 +985,6 @@ paths:
           source: |
             curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
             --header 'token: <tokenValue>'
-
       responses:
         201:
           description: 'query submitted successfully'
@@ -1054,7 +1027,6 @@ paths:
       summary: Search status
       operationId: async search status
       parameters:
-
         - name: token
           in: header
           description: 'data exchange auth token for accessing the API'
@@ -1071,14 +1043,12 @@ paths:
           schema:
             type: string
             maxLength: 512
-
       x-codeSamples:
         - lang: 'cURL'
           label: 'async status'
           source: |
             curl --location --request GET 'https://example.com/ngsi-ld/v1/async/status?searchID=sasdasd-asdasd-aasasd-dasdasd' \
             --header 'token: <tokenValue>'
-
       responses:
         200:
           description: 'search status'
@@ -1117,7 +1087,6 @@ paths:
       summary: consumer search
       operationId: consumer search
       parameters:
-
         - name: token
           in: header
           description: 'data exchange auth token for accessing the API'
@@ -1166,7 +1135,6 @@ paths:
           required: true
           schema:
             type: string
-
       x-codeSamples:
         - lang: 'cURL'
           label: 'get data read query'
@@ -1180,7 +1148,6 @@ paths:
             curl --location --request GET 'https://example-proxy.com/ngsi-ld/v1/consumer/audit?id=UUID&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/ngsi-ld/v1/entities' \
             --header 'token: <tokenValue>' \
             --header 'options: count'
-
       responses:
         200:
           description: 'search status'
@@ -1217,7 +1184,6 @@ paths:
       summary: provider search
       operationId: provider search
       parameters:
-
         - name: token
           in: header
           description: 'data exchange auth token for accessing the API'
@@ -1274,53 +1240,49 @@ paths:
         - name: providerId
           in: query
           required: true
-          description: 'Id of the provider'
+          description: Id of the provider
           schema:
             type: string
-
       x-codeSamples:
-        - lang: 'cURL'
-          label: 'get data read query'
+        - lang: cURL
+          label: get data read query
           source: |
             curl --location --request GET 'https://example-proxy.com/ngsi-ld/v1/provider/audit?id=UUID&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/ngsi-ld/v1/entityOperations/query&providerID=UUID' \
             --header 'token: <tokenValue>'
-
-        - lang: 'cURL'
-          label: 'get data count query'
+        - lang: cURL
+          label: get data count query
           source: |
             curl --location --request GET 'https://example-proxy.com/ngsi-ld/v1/provider/audit?id=UUID&timerel=during&time=2022-11-20T14:20:00Z&endTime=2022-11-21T14:20:00Z&api=/ngsi-ld/v1/entityOperations/query&providerID=UUID' \
             --header 'token: <tokenValue>' \
             --header 'options: count'
-
       responses:
-        200:
-          description: 'search status'
+        '200':
+          description: search status
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/meteringApiResponse'
-        400:
+        '400':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/adapterBadRequestErrorResponse"
-          description: 'Bad query'
-
-        401:
+                $ref: '#/components/schemas/adapterBadRequestErrorResponse'
+          description: Bad query
+        '401':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
-          description: 'Unauthorized'
-
-        404:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+          description: Unauthorized
+        '404':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
-          description: 'Resource not found'
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+          description: Resource not found
       description: Provider API can be used by a user having provider token to get audit details of API's.
-
+      x-stoplight:
+        id: v992en26sanot
   /summary:
     get:
       tags:
@@ -1328,10 +1290,9 @@ paths:
       summary: summary details
       operationId: summary details
       parameters:
-
         - name: token
           in: header
-          description: 'data exchange auth token for accessing the API'
+          description: data exchange auth token for accessing the API
           required: true
           style: simple
           schema:
@@ -1340,49 +1301,46 @@ paths:
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
         - name: starttime
           in: query
-          description: 'This parameter specifies the <b>start time</b> for the summary-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          description: This parameter specifies the <b>start time</b> for the summary-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.
           schema:
             type: string
         - name: endtime
           in: query
-          description: 'This parameter specifies the <b>end time</b> for the summary-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          description: This parameter specifies the <b>end time</b> for the summary-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.
           schema:
             type: string
-
       x-codeSamples:
-        - lang: 'cURL'
-          label: 'get query'
+        - lang: cURL
+          label: get query
           source: |
             curl --location --request GET 'https://example.com/ngsi-ld/v1/summary?starttime=2022-11-20T14:20:00Z&endtime=2023-01-24T14:20:00Z' \
             --header 'token: <tokenValue>'
-
       responses:
-        200:
-          description: 'Summary details fetched successfully'
+        '200':
+          description: Summary details fetched successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/summaryApiResponse'
-        400:
+        '204':
+          description: Empty Response
+        '400':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/summaryBadRequestErrorResponse"
-          description: 'Bad request'
-
-        401:
+                $ref: '#/components/schemas/summaryBadRequestErrorResponse'
+          description: Bad request
+        '401':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/summaryInvalidTokenErrorResponse"
+                $ref: '#/components/schemas/summaryInvalidTokenErrorResponse'
           description: |-
             - Unauthorized - `token` invalid/expired
             - Unauthorized - `clientId` & `clientSecret` invalid/not match
-
-        204:
-          description: 'Empty Response'
-      description:  Summary API is used to get summary details and count for a given resource within the given time frame. The consumer could provide `starttime` and `endtime` and get the frequency usage of the resources.
-
+      description: Summary API is used to get summary details and count for a given resource within the given time frame. The consumer could provide `starttime` and `endtime` and get the frequency usage of the resources.
+      x-stoplight:
+        id: p9yphaor83836
   /overview:
     get:
       tags:
@@ -1390,10 +1348,9 @@ paths:
       summary: overview
       operationId: overview
       parameters:
-
         - name: token
           in: header
-          description: 'data exchange auth token for accessing the API'
+          description: data exchange auth token for accessing the API
           required: true
           style: simple
           schema:
@@ -1402,54 +1359,324 @@ paths:
             pattern: '^[a-zA-Z0-9\/\@\.]*$'
         - name: starttime
           in: query
-          description: 'This parameter specifies the <b>start time</b> for the overview-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          description: This parameter specifies the <b>start time</b> for the overview-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.
           schema:
             type: string
         - name: endtime
           in: query
-          description: 'This parameter specifies the <b>end time</b> for the overview-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.'
+          description: This parameter specifies the <b>end time</b> for the overview-query in `ISO8601` format. <br/> Data exchange currently accepts `IST` and `UTC` time zones.
           schema:
             type: string
-
-
       x-codeSamples:
-        - lang: 'cURL'
-          label: 'get query'
+        - lang: cURL
+          label: get query
           source: |
             curl --location --request GET 'https://example.com/ngsi-ld/v1/overview?starttime=2022-11-20T14:20:00Z&endtime=2022-12-24T14:20:00Z' \
             --header 'token: <tokenValue>'
-
       responses:
-        200:
-          description: 'Overview details fetched successfully'
+        '200':
+          description: Overview details fetched successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/overviewApiResponse'
-        400:
+        '400':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/summaryBadRequestErrorResponse"
-          description: 'Bad request'
-
-        401:
+                $ref: '#/components/schemas/summaryBadRequestErrorResponse'
+          description: Bad request
+        '401':
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/summaryInvalidTokenErrorResponse"
+                $ref: '#/components/schemas/summaryInvalidTokenErrorResponse'
           description: |-
             - Unauthorized - `token` invalid/expired
             - Unauthorized - `clientId` & `clientSecret` invalid/not match
-
       description: Overview API is used to get count based on month. Without parameter it will return last 12 months count data. This responds the number of times the API requests are made from DX Resource Server within the given time frame when the user specifies `starttime` and `endtime`.
 
-
-
+  /connector:
+    post:
+      tags:
+        - Connector
+      summary: create connector
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                        apiKey:
+                          type: string
+                        queueName:
+                          type: string
+                        URL:
+                          type: string
+                        port:
+                          type: integer
+                        vHost:
+                          type: string
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:success'
+                    title: success
+                    results:
+                      - username: fd47486b-3497-4248-ac1e-082e4d37a66c
+                        apiKey: 'Use existing apiKey,if lost please use /resetPassword API'
+                        queueName: 695f222b-3fae-4325-8db0-3e29d01c4fc0
+                        URL: databroker.iudx.io
+                        port: 28041
+                        vHost: ADeX-INTERNAL
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:success'
+                    title: success
+                    results:
+                      - username: fd47486b-3497-4248-ac1e-082e4d37a66c
+                        apiKey: 'Use existing apiKey,if lost please use /resetPassword API'
+                        queueName: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+                        URL: databroker.iudx.io
+                        port: 28041
+                        vHost: ADeX-INTERNAL
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  detail:
+                    type: string
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:invalidPayloadFormat'
+                    title: Bad Request
+                    detail: Bad Request
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:invalidPayloadFormat'
+                    title: Bad Request
+                    detail: Bad Request
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  detail:
+                    type: string
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:invalidAuthorizationToken'
+                    title: Not Authorized
+                    detail: Not Authorized
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:invalidAuthorizationToken'
+                    title: Not Authorized
+                    detail: Not Authorized
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:conflict'
+                    title: Conflict
+                    detail: Queue already exists
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  detail:
+                    type: string
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:conflict'
+                    title: Conflict
+                    detail: Queue already exists
+      operationId: post-connectors
+      parameters: []
+      description: 'Crete connector is used by user(Delegate or Provider for create the connector within DX(Data exchange).'
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              type: object
+              x-examples:
+                Example 1:
+                  entities:
+                    - id: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+              required:
+                - entities
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                    properties:
+                      id:
+                        type: string
+            examples:
+              Example 1:
+                value:
+                  entities:
+                    - id: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+      x-codeSamples:
+        - lang: cURL
+          label: register connector
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/connector' \
+            --header 'token: <tokenValue>'\
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+            "entities": [
+                {
+                    "id": "695e222b-3fae-4325-8db0-3e29d01c4fc"
+                }
+            ]
+            }'
+    delete:
+      tags:
+        - Connector
+      summary: delete connector
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        details:
+                          type: string
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:success'
+                    title: Success
+                    results:
+                      - details: 'Connector/queue deleted Successfully [695e222b-3fae-4325-8db0-3e29d01c4fc0]'
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:success'
+                    title: Success
+                    results:
+                      - details: 'Connector/queue deleted Successfully [695e222b-3fae-4325-8db0-3e29d01c4fc0]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  detail:
+                    type: string
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:invalidAuthorizationToken'
+                    title: Not Authorized
+                    detail: Not Authorized
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:invalidAuthorizationToken'
+                    title: Not Authorized
+                    detail: Not Authorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  detail:
+                    type: string
+                x-examples:
+                  Example 1:
+                    type: 'urn:dx:rs:queueNotFound'
+                    title: Not Found
+                    detail: Queue does not exist
+              examples:
+                Example 1:
+                  value:
+                    type: 'urn:dx:rs:queueNotFound'
+                    title: Not Found
+                    detail: Queue does not exist
+      operationId: delete connector
+      description: delete connector is used by user(<b>Delegate</b> or <b>Provider</b> for delete the connector from DX(Data exchange).
+      x-codeSamples:
+        - lang: cURL
+          label: delete connector
+          source: |
+            curl --location --request DELETE 'https://example.com/ngsi-ld/v1/connector?id=695e222b-3fae-4325-8db0-3e29d01c4fc0' \
+             --header 'token: <tokenValue>'
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: token
+          description: ' Data exchange auth token for accessing the API'
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: id
+          required: true
+          description: id is the resource item
+    parameters: []
 components:
-
   schemas:
-
     geospatial-circlerequest:
       title: geospatial-circlerequest
       required:
@@ -1886,7 +2113,7 @@ components:
         attrs:
           type: string
           maxLength: 512
-          description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the data exchange Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+          description: The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the data exchange Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.
         options:
           type: string
           enum: [count]
@@ -1947,8 +2174,8 @@ components:
         limit: 5000
         offset: 0
         totalHits: 9091
-
-
+      x-stoplight:
+        id: t6cvlt3g3r6ny
     meteringApiResponse:
       title: meteringresponse
       required:

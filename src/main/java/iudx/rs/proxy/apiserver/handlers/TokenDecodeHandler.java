@@ -49,6 +49,7 @@ public class TokenDecodeHandler implements Handler<RoutingContext> {
   }
 
   private void processAuthFailure(RoutingContext ctx, String result) {
+    LOGGER.info("Failure : {}", result);
     if (result.contains("Not Found")) {
       LOGGER.error("Error : Item Not Found");
       HttpStatusCode statusCode = HttpStatusCode.getByValue(404);

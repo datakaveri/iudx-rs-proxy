@@ -61,6 +61,8 @@ public class ValidatorsHandlersFactory {
       case ASYNC_STATUS:
         validator = getAsyncStatusRequestValidator(parameters);
         break;
+      case POST_CONNECTOR:
+        validator = getPostConnectorRequestValidator(vertx, parameters, body, requestType);
       default:
         break;
     }
@@ -220,6 +222,19 @@ public class ValidatorsHandlersFactory {
 
     // optional header public key
     validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
+
+    return validators;
+  }
+
+  private List<Validator> getPostConnectorRequestValidator(
+      Vertx vertx,
+      final MultiMap parameters,
+      final JsonObject body,
+      final RequestType requestType) {
+    List<Validator> validators = new ArrayList<>();
+    // optional header public key
+    validators.add(new HeaderKeyTypeValidation(parameters.get(HEADER_PUBLIC_KEY), false));
+    validators.addAll(getRequestSchemaValidator(vertx, body, requestType));
 
     return validators;
   }
