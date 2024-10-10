@@ -1,5 +1,6 @@
 package iudx.rs.proxy.authenticator.authorization;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESET_PWD;
 import static iudx.rs.proxy.authenticator.authorization.Method.GET;
 import static iudx.rs.proxy.authenticator.authorization.Method.POST;
 
@@ -18,6 +19,7 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
   static Map<String, List<AuthorizationRequest>> consumerAuthorizationRules = new HashMap<>();
   private static volatile ConsumerAuthStrategy instance;
   private final Api apis;
+  static double d= Double.NaN;
 
   private ConsumerAuthStrategy(Api apis) {
     this.apis = apis;
@@ -52,6 +54,10 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     asyncAccessList.add(new AuthorizationRequest(GET, api.getAsyncSearchEndPoint()));
     asyncAccessList.add(new AuthorizationRequest(GET, api.getAsyncStatusEndpoint()));
     consumerAuthorizationRules.put(IudxAccess.ASYNC.getAccess(), asyncAccessList);
+
+    List<AuthorizationRequest> mgmtAccessList = new ArrayList<>();
+    mgmtAccessList.add(new AuthorizationRequest(POST, RESET_PWD));
+    consumerAuthorizationRules.put(IudxAccess.MANAGEMENT.getAccess(), mgmtAccessList);
   }
 
   @Override
@@ -74,5 +80,10 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     }
     LOGGER.debug("result : " + result);
     return result;
+  }
+  public static void main(String[] args){
+    System.out.println("d: "+d);
+    d= 1.0;
+    System.out.println("d : "+d);
   }
 }

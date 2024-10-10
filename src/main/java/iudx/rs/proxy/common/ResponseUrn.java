@@ -23,6 +23,8 @@ public enum ResponseUrn {
   MISSING_TOKEN_URN("urn:dx:rs:missingAuthorizationToken", "Token needed and not present"),
   INVALID_TOKEN_URN("urn:dx:rs:invalidAuthorizationToken", "Token is invalid"),
   RESOURCE_NOT_FOUND_URN("urn:dx:rs:resourceNotFound", "Document of given id does not exist"),
+  QUEUE_NOT_FOUND_URN("urn:dx:rs:queueNotFound", "Queue does not exist"),
+  ALREADY_EXIST_URN("urn:dx:rs:conflict", "Already exists"),
 
   LIMIT_EXCEED_URN(
       "urn:dx:rs:requestLimitExceeded", "Operation exceeds the degault value of limit"),

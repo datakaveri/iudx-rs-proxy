@@ -17,6 +17,8 @@ public class Api {
   private StringBuilder asyncStatusEndPoint;
   private StringBuilder summaryEndPoint;
   private StringBuilder overviewEndPoint;
+  private StringBuilder connectorsPath;
+  private StringBuilder resetPassword;
 
   private Api(String dxApiBasePath) {
     this.dxApiBasePath = dxApiBasePath;
@@ -46,6 +48,8 @@ public class Api {
     asyncStatusEndPoint = new StringBuilder(dxApiBasePath).append(ASYNC + STATUS);
     overviewEndPoint = new StringBuilder(dxApiBasePath).append(MONTHLY_OVERVIEW);
     summaryEndPoint = new StringBuilder(dxApiBasePath).append(SUMMARY_ENDPOINT);
+    connectorsPath = new StringBuilder(dxApiBasePath).append(CONNECTORS);
+    resetPassword = new StringBuilder(dxApiBasePath).append(RESET_PWD);
   }
 
   public String getEntitiesEndpoint() {
@@ -90,5 +94,13 @@ public class Api {
 
   public String getOverviewEndPoint() {
     return overviewEndPoint.toString();
+  }
+
+  public String getConnectorsPath() {
+    return connectorsPath.toString();
+  }
+
+  public String getManagementBasePath() {
+    return resetPassword.toString();
   }
 }

@@ -1,23 +1,25 @@
 package iudx.rs.proxy.databroker;
 
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.FAILED;
-import static iudx.rs.proxy.apiserver.util.ApiServerConstants.HEADER_PUBLIC_KEY;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.common.ResponseUrn.SUCCESS_URN;
+import static iudx.rs.proxy.databroker.util.Constants.*;
 import static iudx.rs.proxy.metering.util.Constants.SUCCESS;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.BasicProperties;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rabbitmq.QueueOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
 import iudx.rs.proxy.common.Response;
 import iudx.rs.proxy.common.ResponseUrn;
+import iudx.rs.proxy.databroker.connector.ConnectorService;
+import iudx.rs.proxy.databroker.connector.connectorServiceImpl;
+import iudx.rs.proxy.databroker.util.Util;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,17 +32,34 @@ public class DatabrokerServiceImpl implements DatabrokerService {
 
   private final String replyQueue;
   private final String publishEx;
+  private final int databrokerPort;
+  private final String databrokerIp;
+  private final String vhost;
   private final Vertx vertx;
   private final QueueOptions queueOption =
       new QueueOptions().setMaxInternalQueueSize(2).setAutoAck(false).setKeepMostRecent(true);
   RabbitMQClient client;
+  RabbitClient rabbitClient;
+  ConnectorService connectorService;
 
   public DatabrokerServiceImpl(
-      Vertx vertx, RabbitMQClient rabbitMQClient, final String publishEx, final String replyQueue) {
+      Vertx vertx,
+      RabbitMQClient rabbitMQClient,
+      RabbitClient rabbitClient,
+      final String publishEx,
+      final String replyQueue,
+      final int amqpsPort,
+      final String databrokerIp,
+      String vhost) {
     this.vertx = vertx;
     this.client = rabbitMQClient;
     this.replyQueue = replyQueue;
     this.publishEx = publishEx;
+    this.rabbitClient = rabbitClient;
+    this.databrokerPort = amqpsPort;
+    this.databrokerIp = databrokerIp;
+    this.vhost = vhost;
+    connectorService = new connectorServiceImpl(rabbitClient, amqpsPort, databrokerIp, vhost);
 
     client.basicQos(1);
   }
@@ -296,6 +315,82 @@ public class DatabrokerServiceImpl implements DatabrokerService {
             handler.handle(Future.failedFuture(respBuilder.toString()));
           }
         });
+    return this;
+  }
+
+  @Override
+  public DatabrokerService createConnector(
+      JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
+    LOGGER.trace("Info : DatabrokerServiceImpl#createConnector() started");
+    request.put(EXCHANGE_NAME, publishEx);
+    connectorService
+        .registerConnector(request, vhost)
+        .onSuccess(
+            successRegistration -> {
+              JsonObject response = new JsonObject();
+              response.put(TYPE, SUCCESS_URN.getUrn());
+              response.put(TITLE, "success");
+              response.put(RESULTS, new JsonArray().add(successRegistration));
+              handler.handle(Future.succeededFuture(response));
+            })
+        .onFailure(
+            registrationFailure ->
+                handler.handle(Future.failedFuture(registrationFailure.getMessage())));
+
+    return this;
+  }
+
+  @Override
+  public DatabrokerService deleteConnector(
+      JsonObject request, Handler<AsyncResult<JsonObject>> handler) {
+    LOGGER.trace("Info : DatabrokerServiceImpl#deleteConnector() started");
+    request.put(EXCHANGE_NAME, publishEx);
+    connectorService
+        .deleteConnectors(request, vhost)
+        .onSuccess(
+            successDeletion -> {
+              JsonObject response = new JsonObject();
+              response.put(TYPE, SUCCESS_URN.getUrn());
+              response.put(TITLE, "Success");
+              response.put(RESULTS, new JsonArray().add(successDeletion));
+              handler.handle(Future.succeededFuture(response));
+            })
+        .onFailure(
+            registrationFailure -> {
+              handler.handle(Future.failedFuture(registrationFailure.getMessage()));
+            });
+
+    return this;
+  }
+
+  @Override
+  public DatabrokerService resetPassword(String userid, Handler<AsyncResult<JsonObject>> handler) {
+    JsonObject response = new JsonObject();
+    String password = Util.randomPassword.get();
+
+    rabbitClient
+        .resetPasswordInRmq(userid, password)
+        .onSuccess(
+            resetPasswordResult -> {
+              response.put(TYPE_KEY, SUCCESS_URN.getUrn());
+              response.put(TITLE, "successful");
+              response.put(DETAIL, "Successfully changed the password");
+              JsonArray result =
+                  new JsonArray()
+                      .add(new JsonObject().put("username", userid).put("apiKey", password));
+              response.put("result", result);
+              handler.handle(Future.succeededFuture(response));
+            })
+        .onFailure(
+            resetPasswordFailure -> {
+              JsonObject failureResponse = new JsonObject();
+              failureResponse
+                  .put("type", 401)
+                  .put("title", "not authorized")
+                  .put("detail", "not authorized");
+              handler.handle(Future.failedFuture(failureResponse.toString()));
+            });
+
     return this;
   }
 }

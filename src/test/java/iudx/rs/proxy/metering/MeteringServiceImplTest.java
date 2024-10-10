@@ -1,26 +1,14 @@
 package iudx.rs.proxy.metering;
 
 import static iudx.rs.proxy.apiserver.util.ApiServerConstants.*;
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.API;
 import static iudx.rs.proxy.authenticator.Constants.ROLE;
 import static iudx.rs.proxy.metering.MeteringServiceImpl.postgresService;
-import static iudx.rs.proxy.metering.util.Constants.API;
-import static iudx.rs.proxy.metering.util.Constants.CONSUMER_ID;
-import static iudx.rs.proxy.metering.util.Constants.DETAIL;
-import static iudx.rs.proxy.metering.util.Constants.DURING;
-import static iudx.rs.proxy.metering.util.Constants.ENDPOINT;
-import static iudx.rs.proxy.metering.util.Constants.END_TIME;
+import static iudx.rs.proxy.metering.util.Constants.*;
 import static iudx.rs.proxy.metering.util.Constants.ID;
 import static iudx.rs.proxy.metering.util.Constants.IID;
-import static iudx.rs.proxy.metering.util.Constants.INVALID_DATE_TIME;
 import static iudx.rs.proxy.metering.util.Constants.PROVIDER_ID;
-import static iudx.rs.proxy.metering.util.Constants.RESOURCE_ID;
 import static iudx.rs.proxy.metering.util.Constants.RESPONSE_SIZE;
-import static iudx.rs.proxy.metering.util.Constants.START_TIME;
-import static iudx.rs.proxy.metering.util.Constants.SUCCESS;
-import static iudx.rs.proxy.metering.util.Constants.TIME_NOT_FOUND;
-import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION;
-import static iudx.rs.proxy.metering.util.Constants.TIME_RELATION_NOT_FOUND;
-import static iudx.rs.proxy.metering.util.Constants.USERID_NOT_FOUND;
 import static iudx.rs.proxy.metering.util.Constants.USER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,6 +24,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rabbitmq.RabbitMQClient;
+import iudx.rs.proxy.apiserver.util.ApiServerConstants;
 import iudx.rs.proxy.cache.CacheService;
 import iudx.rs.proxy.cache.cacheImpl.CacheType;
 import iudx.rs.proxy.common.Api;
@@ -46,6 +35,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+
+import iudx.rs.proxy.metering.util.Constants;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
@@ -74,7 +65,15 @@ class MeteringServiceImplTest {
   static void startVertex(Vertx vertx, VertxTestContext vertxTestContext) {
     vertxObj = vertx;
     config = new Configuration();
-    dbConfig = config.configLoader(4, vertx);
+    dbConfig =  new JsonObject()
+            .put(DATABASE_IP,"ip")
+            .put(DATABASE_PORT,123)
+            .put(DATABASE_NAME,"name")
+            .put(DATABASE_USERNAME,"user")
+            .put(DATABASE_PASSWORD,"passs")
+            .put(DATABASE_TABLE_NAME,"table")
+            .put(POOL_SIZE,123);
+  //config.configLoader(4, vertx);
     cacheService = mock(CacheService.class);
     meteringService =
         new MeteringServiceImpl(dbConfig, vertxObj, Api.getInstance("/ngsi-ld/v1"), cacheService);

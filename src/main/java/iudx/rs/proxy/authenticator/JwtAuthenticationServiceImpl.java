@@ -5,9 +5,13 @@ import static iudx.rs.proxy.apiserver.util.ApiServerConstants.PPB_NUMBER;
 import static iudx.rs.proxy.authenticator.Constants.*;
 
 import io.vertx.core.*;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import iudx.rs.proxy.authenticator.authorization.*;
 import iudx.rs.proxy.authenticator.model.JwtData;
 import iudx.rs.proxy.cache.CacheService;
@@ -22,10 +26,15 @@ import org.apache.logging.log4j.Logger;
 public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
   private static final Logger LOGGER = LogManager.getLogger(JwtAuthenticationServiceImpl.class);
+  static WebClient catWebClient;
   final JWTAuth jwtAuth;
   final String audience;
   final CacheService cache;
   final Api apis;
+  String relationshipCatPath;
+  String host;
+  int port;
+  String catBasePath;
 
   JwtAuthenticationServiceImpl(
       Vertx vertx,
@@ -37,6 +46,12 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
     this.audience = config.getString("audience");
     this.apis = apis;
     this.cache = cacheService;
+    this.host = config.getString("catServerHost");
+    this.port = config.getInteger("catServerPort");
+    this.catBasePath = config.getString("dxCatalogueBasePath");
+    WebClientOptions options = new WebClientOptions();
+    options.setTrustAll(true).setVerifyHost(false).setSsl(true);
+    catWebClient = WebClient.create(vertx, options);
   }
 
   @Override
@@ -57,8 +72,8 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             || endPoint.equalsIgnoreCase(apis.getConsumerAuditEndpoint())
             || endPoint.equalsIgnoreCase(apis.getProviderAuditEndpoint())
             || endPoint.equalsIgnoreCase(apis.getOverviewEndPoint())
-            || endPoint.equalsIgnoreCase(apis.getSummaryEndPoint());
-    ;
+            || endPoint.equalsIgnoreCase(apis.getSummaryEndPoint())
+            || endPoint.equalsIgnoreCase(apis.getManagementBasePath());
 
     Future<Boolean> audienceFuture = isValidAudienceValue(jwtData);
     audienceFuture
@@ -83,6 +98,10 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             openResourceHandler -> {
               LOGGER.debug("isOpenResource messahe {}", openResourceHandler);
               result.isOpen = openResourceHandler.equalsIgnoreCase("OPEN");
+              if (endPoint.equalsIgnoreCase(apis.getConnectorsPath())) {
+                return isValidId(result.jwtData, id, ppbNumber, openResourceHandler);
+              }
+
               if (result.isOpen && checkOpenEndPoints(endPoint)) {
                 JsonObject json = new JsonObject();
                 json.put(JSON_USERID, result.jwtData.getSub());
@@ -95,6 +114,22 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             })
         .compose(
             validIdHandler -> {
+              if (isConnectorEndpoints(authenticationInfo)) {
+                return getProviderUserId(authenticationInfo.getString("id"));
+              } else {
+                return Future.succeededFuture("");
+              }
+            })
+        .compose(
+            providerUserHandler -> {
+              if (isConnectorEndpoints(authenticationInfo)) {
+                return validateProviderUser(providerUserHandler, result.jwtData);
+              } else {
+                return Future.succeededFuture(true);
+              }
+            })
+        .compose(
+            validProviderHandler -> {
               if (result.jwtData.getIss().equals(result.jwtData.getSub())) {
                 JsonObject jsonResponse = new JsonObject();
                 jsonResponse.put(JSON_USERID, result.jwtData.getSub());
@@ -121,10 +156,75 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
             })
         .onFailure(
             failureHandler -> {
+              failureHandler.printStackTrace();
               LOGGER.error("error : " + failureHandler.getMessage());
               handler.handle(Future.failedFuture(failureHandler.getMessage()));
             });
     return this;
+  }
+
+  private boolean isConnectorEndpoints(JsonObject authenticationInfo) {
+    return authenticationInfo.getString("apiEndpoint").equalsIgnoreCase("/ngsi-ld/v1/connectors");
+  }
+
+  Future<String> getProviderUserId(String id) {
+    LOGGER.trace("getProviderUserId () started");
+    relationshipCatPath = catBasePath + "/relationship";
+    Promise<String> promise = Promise.promise();
+    LOGGER.debug("id: " + id);
+    catWebClient
+        .get(port, host, relationshipCatPath)
+        .addQueryParam("id", id)
+        .addQueryParam("rel", "provider")
+        .expect(ResponsePredicate.JSON)
+        .send(
+            catHandler -> {
+              if (catHandler.succeeded()) {
+                JsonArray response = catHandler.result().bodyAsJsonObject().getJsonArray("results");
+                response.forEach(
+                    json -> {
+                      JsonObject res = (JsonObject) json;
+                      String providerUserId = res.getString("ownerUserId");
+                      LOGGER.info("providerUserId: " + providerUserId);
+                      promise.complete(providerUserId);
+                    });
+
+              } else {
+                LOGGER.error(
+                    "Failed to call catalogue  while getting provider user id {}",
+                    catHandler.cause().getMessage());
+              }
+            });
+
+    return promise.future();
+  }
+
+  Future<Boolean> validateProviderUser(String providerUserId, JwtData jwtData) {
+    LOGGER.trace("validateProviderUser() started");
+    Promise<Boolean> promise = Promise.promise();
+    try {
+      if (jwtData.getRole().equalsIgnoreCase("delegate")) {
+        if (jwtData.getDid().equalsIgnoreCase(providerUserId)) {
+          LOGGER.info("success");
+          promise.complete(true);
+        } else {
+          LOGGER.error("fail");
+          promise.fail("incorrect providerUserId");
+        }
+      } else if (jwtData.getRole().equalsIgnoreCase("provider")) {
+        if (jwtData.getSub().equalsIgnoreCase(providerUserId)) {
+          LOGGER.info("success");
+          promise.complete(true);
+        } else {
+          LOGGER.error("fail");
+          promise.fail("incorrect providerUserId");
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.error("exception occurred while validating provider user : " + e.getMessage());
+      promise.fail("exception occurred while validating provider user");
+    }
+    return promise.future();
   }
 
   Future<Boolean> isRevokedClientToken(JwtData jwtData) {

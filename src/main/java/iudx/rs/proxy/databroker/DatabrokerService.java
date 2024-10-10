@@ -13,23 +13,32 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface DatabrokerService {
 
-
   @GenIgnore
   static DatabrokerService createProxy(Vertx vertx, String address) {
     return new DatabrokerServiceVertxEBProxy(vertx, address);
   }
 
   @Fluent
-  DatabrokerService executeAdapterQuery(JsonObject request,
+  DatabrokerService executeAdapterQuery(
+      JsonObject request, Handler<AsyncResult<JsonObject>> handler);
+
+  @Fluent
+  DatabrokerService executeAdapterQueryRPC(
+      JsonObject request, Handler<AsyncResult<JsonObject>> handler);
+
+  @Fluent
+  DatabrokerService publishMessage(
+      JsonObject body,
+      String toExchange,
+      String routingKey,
       Handler<AsyncResult<JsonObject>> handler);
 
   @Fluent
-  DatabrokerService executeAdapterQueryRPC(JsonObject request,
-      Handler<AsyncResult<JsonObject>> handler);
+  DatabrokerService createConnector(JsonObject request, Handler<AsyncResult<JsonObject>> handler);
 
   @Fluent
-  DatabrokerService publishMessage(JsonObject body, String toExchange,
-                                   String routingKey,
-                                   Handler<AsyncResult<JsonObject>> handler);
+  DatabrokerService deleteConnector(JsonObject request, Handler<AsyncResult<JsonObject>> handler);
 
+  @Fluent
+  DatabrokerService resetPassword(String userid, Handler<AsyncResult<JsonObject>> handler);
 }
