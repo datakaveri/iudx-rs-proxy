@@ -17,9 +17,9 @@ import org.apache.logging.log4j.Logger;
 public class ConsumerAuthStrategy implements AuthorizationStrategy {
   private static final Logger LOGGER = LogManager.getLogger(ConsumerAuthStrategy.class);
   static Map<String, List<AuthorizationRequest>> consumerAuthorizationRules = new HashMap<>();
+  static double d = Double.NaN;
   private static volatile ConsumerAuthStrategy instance;
   private final Api apis;
-  static double d= Double.NaN;
 
   private ConsumerAuthStrategy(Api apis) {
     this.apis = apis;
@@ -80,10 +80,5 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     }
     LOGGER.debug("result : " + result);
     return result;
-  }
-  public static void main(String[] args){
-    System.out.println("d: "+d);
-    d= 1.0;
-    System.out.println("d : "+d);
   }
 }

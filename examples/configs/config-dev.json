@@ -8,6 +8,7 @@
     "dxApiBasePath": "/ngsi-ld/v1",
     "dxCatalogueBasePath": "/iudx/cat/v1",
     "dxAuthBasePath": "/auth/v1",
+    "isAdexInstance": false,
     "isTimeLimitEnabled": false
   },
   "modules": [
@@ -18,8 +19,7 @@
       "keystore": "",
       "keystorePassword": "",
       "verticleInstances": 8,
-      "port": 1,
-      "isAdexInstance": false
+      "port": 1
     },
     {
       "id": "iudx.rs.proxy.authenticator.AuthenticationVerticle",
@@ -29,7 +29,9 @@
       "audience": "",
       "authServerHost": "",
       "jwtIgnoreExpiry": true,
-      "jwtLeeWay": 90
+      "jwtLeeWay": 90,
+      "catServerHost": "",
+      "catServerPort": 123
     },
     {
       "id": "iudx.rs.proxy.cache.CacheVerticle",
@@ -75,7 +77,8 @@
       "handshakeTimeout": 6000,
       "requestedChannelMax": 5,
       "networkRecoveryInterval": 500,
-      "automaticRecoveryEnabled": ""
+      "automaticRecoveryEnabled": "",
+      "brokerAmqpsPort": 123
     },
     {
       "id": "iudx.rs.proxy.optional.consentlogs.ConsentLoggingVerticle",
