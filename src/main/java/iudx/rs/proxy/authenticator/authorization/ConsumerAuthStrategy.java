@@ -1,5 +1,6 @@
 package iudx.rs.proxy.authenticator.authorization;
 
+import static iudx.rs.proxy.apiserver.util.ApiServerConstants.RESET_PWD;
 import static iudx.rs.proxy.authenticator.authorization.Method.GET;
 import static iudx.rs.proxy.authenticator.authorization.Method.POST;
 
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 public class ConsumerAuthStrategy implements AuthorizationStrategy {
   private static final Logger LOGGER = LogManager.getLogger(ConsumerAuthStrategy.class);
   static Map<String, List<AuthorizationRequest>> consumerAuthorizationRules = new HashMap<>();
+  static double d = Double.NaN;
   private static volatile ConsumerAuthStrategy instance;
   private final Api apis;
 
@@ -52,6 +54,10 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     asyncAccessList.add(new AuthorizationRequest(GET, api.getAsyncSearchEndPoint()));
     asyncAccessList.add(new AuthorizationRequest(GET, api.getAsyncStatusEndpoint()));
     consumerAuthorizationRules.put(IudxAccess.ASYNC.getAccess(), asyncAccessList);
+
+    List<AuthorizationRequest> mgmtAccessList = new ArrayList<>();
+    mgmtAccessList.add(new AuthorizationRequest(POST, RESET_PWD));
+    consumerAuthorizationRules.put(IudxAccess.MANAGEMENT.getAccess(), mgmtAccessList);
   }
 
   @Override
@@ -72,7 +78,6 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     if (!result) {
       result = consumerAuthorizationRules.get(IudxAccess.ASYNC.getAccess()).contains(authRequest);
     }
-    LOGGER.debug("result : " + result);
     return result;
   }
 }
