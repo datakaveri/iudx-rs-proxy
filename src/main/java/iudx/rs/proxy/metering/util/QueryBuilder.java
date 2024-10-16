@@ -28,7 +28,6 @@ public class QueryBuilder {
       request.put(PRIMARY_KEY, primaryKey);
       request.put(USER_ID, userId);
       request.put(ORIGIN, ORIGIN_SERVER);
-      LOGGER.trace("Info: Request " + request);
     }
     return request;
   }

@@ -426,7 +426,7 @@ public class ApiServerVerticle extends AbstractVerticle {
         request,
         deleteHandler -> {
           if (deleteHandler.succeeded()) {
-            LOGGER.info("success: [handleDeleteConnectors] " + deleteHandler);
+            LOGGER.info("success: [handleDeleteConnectors] ");
             handleSuccessResponse(
                 response, ResponseType.Ok.getCode(), deleteHandler.result().toString());
             routingContext.data().put(RESPONSE_SIZE, response.bytesWritten());

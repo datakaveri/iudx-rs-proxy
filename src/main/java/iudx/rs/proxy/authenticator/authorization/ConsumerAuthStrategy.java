@@ -78,7 +78,6 @@ public class ConsumerAuthStrategy implements AuthorizationStrategy {
     if (!result) {
       result = consumerAuthorizationRules.get(IudxAccess.ASYNC.getAccess()).contains(authRequest);
     }
-    LOGGER.debug("result : " + result);
     return result;
   }
 }
